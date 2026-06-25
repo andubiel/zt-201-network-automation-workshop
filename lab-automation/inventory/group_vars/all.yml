@@ -12,7 +12,7 @@ gateway_username: "{{ lookup('ansible.builtin.env', 'GATEWAY_USERNAME') | defaul
 gateway_password: "{{ lookup('ansible.builtin.env', 'GATEWAY_PASSWORD') | default('', true) }}"
 
 # Containerlab topology on the containerlab VM (lab-user home).
-clab_topology_dir: "/home/lab-user/1_multi_vendor_router"
+clab_topology_dir: "/home/lab-user/2_multi_vendor_router"
 clab_deploy_wait_seconds: 120
 
 # Git project to register in Controller (override per deployment).
