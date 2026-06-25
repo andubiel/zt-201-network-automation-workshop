@@ -3,7 +3,7 @@
 echo "Setup vscode" >> /tmp/progress.log
 chmod 666 /tmp/progress.log 2>/dev/null || true
 
-REPO_URL="https://github.com/rhpds/zt-network-automation-workshop.git"
+REPO_URL="https://github.com/andubiel/zt-201-network-automation-workshop.git"
 REPO_DIR="/tmp/zt-network-automation-workshop"
 
 # ---------------------------------------------------------------------------

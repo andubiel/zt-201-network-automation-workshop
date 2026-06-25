@@ -2,7 +2,7 @@
 USER=rhel
 EE_IMAGE="registry.redhat.io/ansible-automation-platform-26/ee-supported-rhel9:latest"
 NETWORK_EE_IMAGE="quay.io/acme_corp/network-ee"
-REPO_URL="https://github.com/rhpds/zt-network-automation-workshop.git"
+REPO_URL="https://github.com/andubiel/zt-201-network-automation-workshop.git"
 REPO_DIR="/home/rhel/zt-network-automation-workshop"
 RHEL_SSH="/home/rhel/.ssh"
 
