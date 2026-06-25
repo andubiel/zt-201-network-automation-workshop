@@ -2,11 +2,11 @@
 # Run from Controller with inventory = only localhost. Uses SSH from the execution environment
 # to containerlab — no AWX *machine credential* if the EE default user can SSH as lab-user with keys.
 # Requires passwordless sudo for containerlab on the VM (sudo -n).
-- name: Deploy 1_multi_vendor_router (SSH from controller runtime)
+- name: Deploy 2_multi_vendor_vxlan (SSH from controller runtime)
   hosts: localhost
   gather_facts: false
   vars:
-    clab_dir: "/home/lab-user/1_multi_vendor_router"
+    clab_dir: "/home/lab-user/2_multi_vendor_vxlan"
     containerlab_host: "containerlab"
     containerlab_user: "lab-user"
 
