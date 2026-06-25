@@ -41,7 +41,7 @@ tabs:
     external: false
   - name: Gitea Repo
     url: http://containerlab:8181
-    external: true
+    external: false
   - name: Open an Issue
     # GitHub blocks iframes (X-Frame-Options); external opens in a new browser tab.
     url: https://github.com/rhpds/zt-network-automation-workshop/issues/new
