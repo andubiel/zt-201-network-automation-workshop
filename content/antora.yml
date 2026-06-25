@@ -1,0 +1,18 @@
+---
+
+name: modules
+title: Ansible Network Automation
+version: master
+nav:
+  - modules/ROOT/nav.adoc
+
+asciidoc:
+  attributes:
+    page-pagination: true
+    guid: GUID
+    domain: example.opentlc.com
+    user: rhel
+    hostname: vscode
+    page-links:
+      - url: https://github.com/rhpds/zt-network-automation-workshop/issues/new
+        text: Open an Issue (GitHub)

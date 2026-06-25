@@ -1,0 +1,48 @@
+---
+# By default egress traffic is not allowed, define below the ports allowed.
+# TCP 22: SSH between lab VMs (e.g. control <-> containerlab) and ansible-playbook over SSH.
+# Without it, ping may still fail (ICMP often not allowed by policy) and SSH will hang or time out.
+ingress:
+- ports:
+  - protocol: TCP
+    port: 22
+  - protocol: TCP
+    port: 2222
+  - protocol: TCP
+    port: 2223
+  - protocol: TCP
+    port: 2224
+  - protocol: TCP
+    port: 2225
+  - protocol: TCP
+    port: 2226
+  - protocol: TCP
+    port: 2227
+  - protocol: TCP
+    port: 2228
+  - protocol: TCP
+    port: 8181
+  - protocol: TCP
+    port: 8282
+  - protocol: TCP
+    port: 8383
+  - protocol: TCP
+    port: 8484
+  - protocol: TCP
+    port: 8080
+  - protocol: TCP
+    port: 8088
+  - from:
+      - podSelector:
+          matchLabels:
+            kubevirt.io: virt-launcher
+egress:
+  - ports:
+      - protocol: TCP
+        port: 22
+      - protocol: TCP
+        port: 443
+  - to:
+      - podSelector:
+          matchLabels:
+            kubevirt.io: virt-launcher

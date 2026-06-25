@@ -1,0 +1,98 @@
+---
+- name: Create inventory
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../config/secrets.yaml  # NOTE: this is inclueded later in this document
+  tasks:
+  - name: Add nodes
+    ansible.builtin.add_host:
+      name: "{{ item }}"
+      ansible_ssh_host: "{{ item }}"
+      ansible_ssh_port: "{{ lookup('ansible.builtin.env', 'BASTION_PORT') }}"
+      ansible_ssh_user: "{{ lookup('ansible.builtin.env', 'BASTION_USER') }}"
+      ansible_ssh_pass: "{{ lookup('ansible.builtin.env', 'BASTION_PASSWORD') }}"
+      ansible_become_password: "{{ lookup('ansible.builtin.env', 'BASTION_PASSWORD') }}"
+      ansible_python_interpreter: /usr/libexec/platform-python
+    loop:
+      - control
+      - containerlab
+      - vscode
+    
+- name: Demo Playbook for the ansible-runner API
+  hosts: all:!localhost
+  gather_facts: false
+  vars:
+    satellite_url: "{{ lookup('ansible.builtin.env', 'SATELLITE_URL') }}"
+    satellite_org: "{{ lookup('ansible.builtin.env', 'SATELLITE_ORG') }}"
+    satellite_activationkey: "{{ lookup('ansible.builtin.env', 'SATELLITE_ACTIVATIONKEY') }}"
+    guid: "{{ lookup('ansible.builtin.env', 'GUID') }}"
+    domain: "{{ lookup('ansible.builtin.env', 'DOMAIN') }}"
+  tasks:
+  - name: "waiting for the port tcp/22 to be open"
+    ansible.builtin.wait_for_connection:
+
+  - name: Set config_host variable with ansible_host value
+    ansible.builtin.set_fact:
+      config_host: "{{ ansible_host }}"
+
+  - name: Create a directory if it does not exist
+    ansible.builtin.file:
+      path: "/tmp/setup-scripts/"
+      state: directory
+      mode: '0755'
+
+  - name: Check if setup-server.sh exists
+    ansible.builtin.stat:
+      path: "./setup-{{ config_host }}.sh"
+    delegate_to: localhost
+    register: r_script_test
+
+  - name: Copy script file
+    when: r_script_test.stat.exists
+    ansible.builtin.copy:
+      src: "./setup-{{ ansible_host }}.sh"
+      dest: "/tmp/setup-scripts/setup-{{ ansible_host }}.sh"
+    register: r_result
+
+  - name: Include secrets var
+    ansible.builtin.include_vars: ../config/secrets.yaml
+
+  - name: Execute setup-node.sh if it exists
+    when: r_script_test.stat.exists
+    ansible.builtin.shell: "sh -x /tmp/setup-scripts/setup-{{ ansible_host }}.sh > /tmp/setup-scripts/setup-{{ ansible_host }}.log 2>&1"
+    become: true
+    register: r_result
+    environment:
+      REG_USER: "{{ reg_user }}"
+      REG_PASS: "{{ reg_pass }}"
+      REG_ORG: "{{ reg_org }}"
+      REG_ACTIVATION_KEY: "{{ reg_activation_key }}"
+      GUID: "{{ guid }}"
+      DOMAIN: "{{ domain }}"
+
+  - name: Output script result
+    ansible.builtin.debug:
+      var: r_result.stdout
+    when: r_script_test.stat.exists
+
+  - name: Write script result to file
+    ansible.builtin.copy:
+      content: "{{ r_result.stdout | default(r_result.stderr) | default(r_result) }}"
+      dest: "/tmp/{{ ansible_host }}-setup-script.out"
+    delegate_to: localhost
+    when:
+    - r_result is defined
+
+  - name: Output script result
+    ansible.builtin.debug:
+      var: r_result
+    when: r_result is defined
+
+  - name: Fail if stage was failed
+    ansible.builtin.fail:
+      msg: "Setup failed"
+    when:
+    - r_result is defined
+    - r_result.rc != 0

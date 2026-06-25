@@ -1,0 +1,139 @@
+---
+# Run on the control VM (localhost). Uses ansible.controller for Controller CRUD (ships in ee-supported-rhel9).
+# Optional: ansible.platform.token when use_aap_gateway_token and gateway_* vars/env are set.
+- name: Bootstrap Automation controller (API)
+  hosts: aap_controller
+  gather_facts: false
+
+  tasks:
+    - name: Skip AAP bootstrap without controller password
+      when: controller_password | default('') | length == 0
+      block:
+        - ansible.builtin.debug:
+            msg: >-
+              CONTROLLER_PASSWORD is not set; skipping Controller API bootstrap.
+              Export the admin password and run playbooks/aap_bootstrap.yml again if needed.
+        - ansible.builtin.meta: end_play
+
+    - name: Skip when bootstrap disabled
+      when: not (bootstrap_aap | default(true) | bool)
+      block:
+        - ansible.builtin.debug:
+            msg: "bootstrap_aap is false; skipping."
+        - ansible.builtin.meta: end_play
+
+    - name: Wait for Controller API (curl — uri module hangs with AAP 2.6 gateway)
+      ansible.builtin.command:
+        argv:
+          - curl
+          - -sk
+          - -o
+          - /dev/null
+          - -w
+          - "%{http_code}"
+          - "{{ controller_endpoint.rstrip('/') }}/api/controller/v2/ping/"
+      register: aap_ping
+      until: aap_ping.stdout == "200"
+      retries: 36
+      delay: 10
+      changed_when: false
+
+    - name: Optional OAuth token via ansible.platform (Gateway deployments)
+      when:
+        - use_aap_gateway_token | default(false) | bool
+        - gateway_hostname | default('') | length > 0
+      environment:
+        GATEWAY_HOSTNAME: "{{ gateway_hostname }}"
+        GATEWAY_USERNAME: "{{ gateway_username }}"
+        GATEWAY_PASSWORD: "{{ gateway_password }}"
+        GATEWAY_VERIFY_SSL: "{{ controller_verify_ssl | string }}"
+      ansible.platform.token:
+        description: Workshop automation
+        scope: write
+        state: present
+      register: workshop_gateway_token
+      failed_when: false
+
+    - name: Log gateway token creation result
+      when: workshop_gateway_token is defined
+      ansible.builtin.debug:
+        msg: >-
+          Gateway token module finished (check changed/failed). Use controller API modules below
+          for classic Controller configuration.
+
+    - name: Ensure Default organization exists
+      ansible.controller.organization:
+        name: Default
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+      register: org_result
+      until: org_result is success
+      retries: 12
+      delay: 10
+
+    - name: Ensure workshop project exists (SCM)
+      ansible.controller.project:
+        name: "{{ workshop_project_name }}"
+        organization: Default
+        scm_type: git
+        scm_url: "{{ workshop_git_url }}"
+        scm_branch: "{{ workshop_scm_branch }}"
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+    - name: Discover SSH private key for containerlab credential
+      block:
+        - name: Set SSH key search path
+          ansible.builtin.set_fact:
+            ssh_key_search_path: "{{ ansible_env.HOME | default('/home/runner') }}/.ssh"
+
+        - name: Prefer containerlab.pem when pushed from containerlab VM
+          ansible.builtin.stat:
+            path: "{{ ssh_key_search_path }}/containerlab.pem"
+          register: containerlab_pem_key
+
+        - name: Read containerlab.pem private key
+          ansible.builtin.slurp:
+            src: "{{ ssh_key_search_path }}/containerlab.pem"
+          register: ssh_key_data
+          when: containerlab_pem_key.stat.exists | default(false)
+
+        - name: Find other SSH private key files
+          ansible.builtin.find:
+            paths: "{{ ssh_key_search_path }}"
+            patterns: "*.pem,id_rsa,id_ed25519"
+            file_type: file
+          register: ssh_key_files
+          when: not (containerlab_pem_key.stat.exists | default(false))
+
+        - name: Read SSH private key from find results
+          ansible.builtin.slurp:
+            src: "{{ ssh_key_files.files[0].path }}"
+          register: ssh_key_data
+          when:
+            - not (containerlab_pem_key.stat.exists | default(false))
+            - ssh_key_files.matched | default(0) > 0
+
+        - name: Set ssh_private_key_content fact
+          ansible.builtin.set_fact:
+            ssh_private_key_content: "{{ ssh_key_data.content | b64decode }}"
+          when: ssh_key_data is not skipped and ssh_key_data is succeeded
+
+        - name: Warn when no SSH private key found for containerlab credential
+          ansible.builtin.debug:
+            msg: >-
+              No SSH private key found under {{ ssh_key_search_path }}; Workshop Credential
+              will use password auth only (workshop_admin_password).
+          when: ssh_private_key_content is not defined
+
+    - name: Inventory, credentials, job template (containerlab topology)
+      ansible.builtin.include_tasks: tasks/controller_bootstrap_objects.yml
+
+    - name: Workshop inventory, toolkit templates, users, teams, RBAC
+      ansible.builtin.include_tasks: tasks/controller_workshop_objects.yml

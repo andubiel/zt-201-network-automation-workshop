@@ -1,0 +1,5 @@
+---
+# Default network exists by default, specify here always.
+- name: default
+# Second NIC for VMs that attach to the lab/container network (e.g. control in instances.yaml).
+- name: secondary

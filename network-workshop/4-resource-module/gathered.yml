@@ -1,0 +1,17 @@
+---
+- name: Configure VLANs
+  hosts: arista
+  gather_facts: false
+
+  tasks:
+
+    - name: Use vlans resource module
+      arista.eos.eos_vlans:
+        state: gathered
+      register: vlan_config
+
+    - name: Copy vlan_config to file
+      ansible.builtin.copy:
+        content: "{{ vlan_config | to_nice_yaml }}"
+        dest: "{{ playbook_dir }}/{{ inventory_hostname }}_vlan.yml"
+        mode: "644"

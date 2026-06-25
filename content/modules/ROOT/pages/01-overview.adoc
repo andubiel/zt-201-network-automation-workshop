@@ -1,0 +1,77 @@
+= Workshop overview
+:toc:
+:toc-placement: preamble
+:icons: font
+
+== About this workshop
+
+This workshop teaches network automation using Red Hat Ansible Automation Platform. You will progress from command-line automation fundamentals to building production-ready automation workflows in the Automation Platform web interface.
+
+== Learning objectives
+
+By the end of this workshop, you will be able to:
+
+* Use `ansible-navigator` to run playbooks, inspect execution environments, and explore inventory
+* Write Ansible Playbooks that configure network devices across multiple vendors
+* Gather structured facts from network devices and use them in automation
+* Use network resource modules for vendor-agnostic, idempotent configuration management
+* Create and manage job templates, surveys, and workflows in Ansible Automation Platform
+* Configure RBAC to delegate automation safely to different teams and users
+
+== Workshop progression
+
+The workshop is organized into two phases:
+
+=== Phase 1: Module 1: Network Basics (1-1 through 1-4)
+
+Build foundational Ansible skills on the command line:
+
+* **1-1** -- Explore the lab environment, tools, and inventory
+* **1-2** -- Execute your first network automation playbook
+* **1-3** -- Gather and use Ansible facts from network devices
+* **1-4** -- Use network resource modules for multi-vendor configuration
+
+=== Phase 2: Module 2: Intro to AAP (2-1 through 2-5)
+
+Move to the Ansible Automation Platform web interface:
+
+* **2-1** -- Explore Ansible Automation Platform: inventories, credentials, and projects
+* **2-2** -- Create a job template for network configuration backup
+* **2-3** -- Add surveys for user-friendly input to job templates
+* **2-4** -- Configure RBAC for multi-user access control
+* **2-5** -- Build automation workflows with conditional execution and failure handling
+
+== Target audience
+
+This workshop is designed for:
+
+* Network engineers looking to automate repetitive tasks
+* Systems administrators expanding into network automation
+* Automation architects evaluating Ansible for network infrastructure
+* Anyone interested in hands-on network automation experience
+
+== What you need to succeed
+
+You should have:
+
+* Basic networking knowledge (routing, switching, VLANs)
+* Familiarity with the Linux command line
+* A web browser for accessing the lab environment
+* No prior Ansible experience required
+
+== Lab topology
+
+The lab environment includes the following devices:
+
+[cols="1,1,1,1",options="header"]
+|===
+| Device | Platform | Connection | Data Center
+
+| rtr1 | Cisco IOS-XE | network_cli | dc1
+| rtr2 | Arista EOS | network_cli | dc2
+| rtr3 | Juniper Junos | netconf | dc1
+| rtr4 | Arista EOS | network_cli | dc2
+|===
+
+// TODO: Add network topology diagram
+// image::ansible_network_diagram.png[Network Topology,align="center",link=self,window=blank,width=700,title="Workshop Network Topology"]

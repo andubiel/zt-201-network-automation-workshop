@@ -1,0 +1,13 @@
+---
+- name: Destroy multi-vendor router containerlab topology
+  hosts: containerlab
+  gather_facts: false
+  vars:
+    clab_dir: "/home/lab-user/1_multi_vendor_router"
+
+  tasks:
+    - name: Containerlab destroy
+      ansible.builtin.command:
+        cmd: containerlab destroy
+        chdir: "{{ clab_dir }}"
+      become: true

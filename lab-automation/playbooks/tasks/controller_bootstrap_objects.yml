@@ -1,0 +1,143 @@
+---
+# Included from aap_bootstrap.yml after project exists.
+- name: Initial SCM sync for workshop project
+  ansible.controller.project_update:
+    project: "{{ workshop_project_name }}"
+    wait: true
+    timeout: 1200
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+  when: workshop_project_sync_on_bootstrap | default(true) | bool
+  failed_when: false
+  register: workshop_proj_sync
+
+- name: Log project sync result
+  ansible.builtin.debug:
+    msg: >-
+      Project sync {{ 'finished' if workshop_proj_sync is not failed else 'skipped or failed — check Controller UI and sync manually' }}
+
+# --- local: inventory = localhost; playbook uses ssh from the execution environment (no machine credential in AWX).
+- name: Controller objects for localhost job template (SSH from EE without machine credential)
+  when: workshop_jt_mode | default('local') == 'local'
+  block:
+    - name: Inventory — workshop localhost
+      ansible.controller.inventory:
+        name: "{{ workshop_localhost_inventory_name }}"
+        organization: Default
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+    - name: Host — localhost
+      ansible.controller.host:
+        name: localhost
+        inventory: "{{ workshop_localhost_inventory_name }}"
+        variables:
+          ansible_connection: local
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+    - name: Job template — deploy 1_multi_vendor_router (local + ssh)
+      ansible.controller.job_template:
+        name: "{{ workshop_jt_deploy_topology_name }}"
+        job_type: run
+        organization: Default
+        project: "{{ workshop_project_name }}"
+        playbook: "{{ workshop_playbook_topology_local }}"
+        inventory: "{{ workshop_localhost_inventory_name }}"
+        execution_environment: "{{ workshop_execution_environment if workshop_execution_environment | default('') | length > 0 else omit }}"
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# --- remote: classic inventory group containerlab + machine credential + ansible become on host.
+- name: Controller objects for remote Ansible over SSH (machine credential)
+  when: workshop_jt_mode | default('local') == 'remote'
+  block:
+    - name: Inventory — workshop lab hosts
+      ansible.controller.inventory:
+        name: "{{ workshop_inventory_name }}"
+        organization: Default
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+    - name: Group — containerlab
+      ansible.controller.group:
+        name: "{{ workshop_containerlab_group }}"
+        inventory: "{{ workshop_inventory_name }}"
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+    - name: Host — containerlab VM (SSH target in inventory)
+      ansible.controller.host:
+        name: "{{ workshop_containerlab_host_name }}"
+        inventory: "{{ workshop_inventory_name }}"
+        variables:
+          ansible_host: "{{ containerlab_ansible_host }}"
+          ansible_user: "{{ containerlab_ansible_user }}"
+          ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+    - name: Associate host with group containerlab
+      ansible.controller.group:
+        name: "{{ workshop_containerlab_group }}"
+        inventory: "{{ workshop_inventory_name }}"
+        hosts:
+          - "{{ workshop_containerlab_host_name }}"
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+    - name: Machine credential — SSH to containerlab
+      ansible.controller.credential:
+        name: "{{ workshop_credential_name }}"
+        organization: Default
+        credential_type: Machine
+        inputs:
+          username: "{{ containerlab_ansible_user }}"
+          password: "{{ workshop_admin_password }}"
+          ssh_key_data: "{{ ssh_private_key_content | default(omit) }}"
+          become_method: sudo
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+    - name: Job template — deploy topology (Ansible SSH + become)
+      ansible.controller.job_template:
+        name: "{{ workshop_jt_deploy_topology_name }}"
+        job_type: run
+        organization: Default
+        project: "{{ workshop_project_name }}"
+        playbook: "{{ workshop_playbook_topology_remote }}"
+        inventory: "{{ workshop_inventory_name }}"
+        credentials:
+          - "{{ workshop_credential_name }}"
+        execution_environment: "{{ workshop_execution_environment if workshop_execution_environment | default('') | length > 0 else omit }}"
+        state: present
+        controller_host: "{{ controller_endpoint.rstrip('/') }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_verify_ssl | default(false) }}"

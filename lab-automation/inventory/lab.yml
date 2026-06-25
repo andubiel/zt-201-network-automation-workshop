@@ -1,0 +1,50 @@
+---
+# Override with -e or host/group_vars for your environment.
+# Containerlab SSH: defaults match common RHDP workshop (lab-user, hostname containerlab).
+# Routers: set containerlab_fip to the LoadBalancer IP that fronts ports 2222–2228 before gather_facts.
+
+all:
+  vars:
+    ansible_python_interpreter: auto_silent
+
+  children:
+    containerlab:
+      vars:
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+      hosts:
+        network_workshop:
+          ansible_host: containerlab
+          ansible_user: rhel
+
+    aap_controller:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+    routers:
+      hosts:
+        rtr1:
+          ansible_network_os: cisco.ios.ios
+          ansible_connection: network_cli
+          ansible_port: 2222
+          ansible_user: admin
+          ansible_password: admin@123
+        rtr2:
+          ansible_network_os: arista.eos.eos
+          ansible_connection: network_cli
+          ansible_port: 2223
+          ansible_user: admin
+          ansible_password: admin@123
+        rtr3:
+          ansible_network_os: junipernetworks.junos.junos
+          ansible_connection: ansible.netcommon.netconf
+          ansible_port: 2225
+          ansible_netconf_port: 2224
+          ansible_user: admin
+          ansible_password: admin@123
+        rtr4:
+          ansible_network_os: arista.eos.eos
+          ansible_connection: network_cli
+          ansible_port: 2226
+          ansible_user: admin
+          ansible_password: admin@123

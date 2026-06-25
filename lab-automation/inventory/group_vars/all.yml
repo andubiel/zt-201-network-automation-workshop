@@ -1,0 +1,57 @@
+---
+# Controller API (AAP 2.6 gateway prefixes controller at /api/controller/).
+controller_endpoint: "https://aap.example.org"
+controller_username: admin
+controller_password: "{{ lookup('ansible.builtin.env', 'CONTROLLER_PASSWORD') | default('ansible123!', true) }}"
+controller_verify_ssl: false
+
+# Optional: OAuth / gateway token via ansible.platform (set use_aap_gateway_token true + gateway env below).
+use_aap_gateway_token: false
+gateway_hostname: "{{ lookup('ansible.builtin.env', 'GATEWAY_HOSTNAME') | default('', true) }}"
+gateway_username: "{{ lookup('ansible.builtin.env', 'GATEWAY_USERNAME') | default('', true) }}"
+gateway_password: "{{ lookup('ansible.builtin.env', 'GATEWAY_PASSWORD') | default('', true) }}"
+
+# Containerlab topology on the containerlab VM (lab-user home).
+clab_topology_dir: "/home/lab-user/1_multi_vendor_router"
+clab_deploy_wait_seconds: 120
+
+# Git project to register in Controller (override per deployment).
+workshop_git_url: "https://github.com/rhpds/zt-network-automation-workshop.git"
+workshop_project_name: "Network automation workshop"
+workshop_scm_branch: main
+
+# Skip parts of site.yml when iterating.
+deploy_containerlab: true
+bootstrap_aap: true
+
+# --- Controller pre-provision (aap_bootstrap + controller_bootstrap_objects) ---
+# remote (default): Job runs from Controller/EE on control; Ansible SSHs to host containerlab and runs
+#   lab-automation/playbooks/1_multi_vendor_router_up.yml there (become/sudo for containerlab).
+# local: Job inventory is only localhost; playbook uses raw `ssh …@containerlab` inside tasks (optional
+#   if you refuse to store a machine credential—still needs key-based SSH from the EE user).
+workshop_jt_mode: remote
+
+workshop_localhost_inventory_name: "Workshop localhost"
+workshop_inventory_name: "Network workshop lab"
+workshop_containerlab_group: containerlab
+workshop_containerlab_host_name: containerlab-vm
+containerlab_ansible_host: containerlab
+containerlab_ansible_user: rhel
+
+workshop_jt_deploy_topology_name: "Deploy — 1_multi_vendor_router"
+workshop_playbook_topology_local: lab-automation/playbooks/1_multi_vendor_router_up_local.yml
+workshop_playbook_topology_remote: lab-automation/playbooks/1_multi_vendor_router_up.yml
+workshop_credential_name: "Workshop containerlab SSH"
+
+# Optional: set if default EE is not sufficient (exact name string from Controller).
+workshop_execution_environment: ""
+
+# SSH/become secrets for remote mode (often empty if keys + NOPASSWD sudo).
+workshop_containerlab_ssh_password: "{{ lookup('ansible.builtin.env', 'WORKSHOP_CONTAINERLAB_SSH_PASSWORD') | default('', true) }}"
+workshop_containerlab_ssh_private_key: ""
+workshop_containerlab_become_password: "{{ lookup('ansible.builtin.env', 'WORKSHOP_CONTAINERLAB_BECOME_PASSWORD') | default('', true) }}"
+
+workshop_project_sync_on_bootstrap: true
+
+# Password for workshop user accounts (network-operator, network-admin, bbelcher, etc.)
+workshop_admin_password: "ansible123!"

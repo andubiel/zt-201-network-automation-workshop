@@ -1,0 +1,5 @@
+---
+# Collections needed (both ship inside ee-supported-rhel9; listed here for reference / non-EE runs).
+collections:
+  - name: ansible.platform
+  - name: ansible.controller

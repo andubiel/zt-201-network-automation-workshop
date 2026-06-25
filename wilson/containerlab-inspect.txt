@@ -1,0 +1,21 @@
+# Captured on containerlab VM, 2026-05-14
+# Commands:
+#   cd /home/lab-user/1_multi_vendor_router
+#   sudo containerlab inspect
+
+08:25:45 INFO Parsing & checking topology file=routers.clab.yml
+╭───────────────────┬───────────────────────────────────────────────────────────┬─────────────┬───────────────────╮
+│        Name       │                         Kind/Image                        │    State    │   IPv4/6 Address  │
+├───────────────────┼───────────────────────────────────────────────────────────┼─────────────┼───────────────────┤
+│ clab-routers-rtr1 │ cisco_c8000v                                              │ running     │ 172.20.20.10      │
+│                   │ registry.gitlab.com/redhatautomation/cat8:17.13.01a       │ (unhealthy) │ 3fff:172:20:20::2 │
+├───────────────────┼───────────────────────────────────────────────────────────┼─────────────┼───────────────────┤
+│ clab-routers-rtr2 │ arista_veos                                               │ exited      │ N/A               │
+│                   │ registry.gitlab.com/redhatautomation/veos-ee:4.32.0F      │             │ N/A               │
+├───────────────────┼───────────────────────────────────────────────────────────┼─────────────┼───────────────────┤
+│ clab-routers-rtr3 │ juniper_vsrx                                              │ running     │ 172.20.20.30      │
+│                   │ registry.gitlab.com/redhatautomation/juniper-ee:23.2R2.21 │ (unhealthy) │ 3fff:172:20:20::3 │
+├───────────────────┼───────────────────────────────────────────────────────────┼─────────────┼───────────────────┤
+│ clab-routers-rtr4 │ arista_veos                                               │ exited      │ N/A               │
+│                   │ registry.gitlab.com/redhatautomation/veos-ee:4.32.0F      │             │ N/A               │
+╰───────────────────┴───────────────────────────────────────────────────────────┴─────────────┴───────────────────╯

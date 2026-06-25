@@ -1,0 +1,687 @@
+---
+# Provisions the full network workshop inside Automation controller:
+#   Workshop Inventory (rtr1-4, ansible-1, backup-server), groups, credential,
+#   toolkit project + job templates, organizations, teams, users, RBAC.
+#
+# Included from aap_bootstrap.yml after the base project is created.
+# All controller_* auth vars come from group_vars/all.yml.
+
+# ── Organizations (must exist before objects that reference them) ────────────
+- name: "Organization — Red Hat network organization"
+  ansible.controller.organization:
+    name: "Red Hat network organization"
+    description: "Red Hat Network Organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Organization — Red Hat compute organization"
+  ansible.controller.organization:
+    name: "Red Hat compute organization"
+    description: "Red Hat Compute Organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# ── Workshop Credential (Machine) ───────────────────────────────────────────
+- name: Workshop Credential — SSH to routers and hosts
+  ansible.controller.credential:
+    name: "Workshop Credential"
+    organization: "Red Hat network organization"
+    credential_type: Machine
+    inputs:
+      username: "{{ containerlab_ansible_user }}"
+      password: "{{ workshop_admin_password }}"
+      ssh_key_data: "{{ ssh_private_key_content | default(omit) }}"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: Build external AAP hostname from GUID/DOMAIN
+  ansible.builtin.set_fact:
+    controller_external_host: >-
+      {{ 'https://control-' + lookup('ansible.builtin.env', 'GUID') + '.' + lookup('ansible.builtin.env', 'DOMAIN')
+         if lookup('ansible.builtin.env', 'GUID') | length > 0 and lookup('ansible.builtin.env', 'DOMAIN') | length > 0
+         else controller_endpoint }}
+
+- name: Log Controller Credential host
+  ansible.builtin.debug:
+    msg: "Controller Credential host will be: {{ controller_external_host }}"
+
+- name: Controller Credential — AAP API access for backup/restore jobs
+  ansible.controller.credential:
+    name: "Controller Credential"
+    organization: Default
+    credential_type: "Red Hat Ansible Automation Platform"
+    inputs:
+      host: "{{ controller_external_host }}"
+      username: "{{ controller_username }}"
+      password: "{{ controller_password }}"
+      verify_ssl: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# ── Workshop Inventory ──────────────────────────────────────────────────────
+- name: Workshop Inventory
+  ansible.controller.inventory:
+    name: "Workshop Inventory"
+    organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# Groups
+- name: "Group — cisco"
+  ansible.controller.group:
+    name: cisco
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_network_os: ios
+      ansible_connection: network_cli
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Group — arista"
+  ansible.controller.group:
+    name: arista
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_network_os: eos
+      ansible_connection: network_cli
+      ansible_become: true
+      ansible_become_method: enable
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Group — juniper"
+  ansible.controller.group:
+    name: juniper
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_network_os: junos
+      ansible_connection: netconf
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Group — network (parent of cisco, arista, juniper)"
+  ansible.controller.group:
+    name: network
+    inventory: "Workshop Inventory"
+    children:
+      - cisco
+      - arista
+      - juniper
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# Router hosts — accessed from AAP/control via containerlab port forwarding
+- name: "Host — rtr1 (Cisco IOS)"
+  ansible.controller.host:
+    name: rtr1
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_host: containerlab
+      ansible_port: 2222
+      ansible_user: admin
+      ansible_password: "admin@123"
+      note: "in production these passwords would be encrypted in vault"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Host — rtr2 (Arista EOS)"
+  ansible.controller.host:
+    name: rtr2
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_host: containerlab
+      ansible_port: 2223
+      ansible_user: admin
+      ansible_password: "admin@123"
+      note: "in production these passwords would be encrypted in vault"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Host — rtr3 (Juniper Junos)"
+  ansible.controller.host:
+    name: rtr3
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_host: containerlab
+      ansible_port: 2225
+      ansible_netconf_port: 2224
+      ansible_user: admin
+      ansible_password: "admin@123"
+      note: "in production these passwords would be encrypted in vault"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Host — rtr4 (Arista EOS)"
+  ansible.controller.host:
+    name: rtr4
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_host: containerlab
+      ansible_port: 2226
+      ansible_user: admin
+      ansible_password: "admin@123"
+      note: "in production these passwords would be encrypted in vault"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Host — ansible-1 (containerlab VM — reachable from EE)"
+  ansible.controller.host:
+    name: ansible-1
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_host: containerlab
+      ansible_connection: ssh
+      ansible_user: rhel
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Host — backup-server (containerlab VM — reachable from EE)"
+  ansible.controller.host:
+    name: backup-server
+    description: "this server is where we backup network configuration"
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_host: containerlab
+      ansible_connection: ssh
+      ansible_user: rhel
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+      note: "in production these passwords would be encrypted in vault"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# Associate hosts with groups
+- name: "Associate rtr1 with cisco group"
+  ansible.controller.group:
+    name: cisco
+    inventory: "Workshop Inventory"
+    hosts:
+      - rtr1
+    preserve_existing_hosts: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Associate rtr2, rtr4 with arista group"
+  ansible.controller.group:
+    name: arista
+    inventory: "Workshop Inventory"
+    hosts:
+      - rtr2
+      - rtr4
+    preserve_existing_hosts: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Associate rtr3 with juniper group"
+  ansible.controller.group:
+    name: juniper
+    inventory: "Workshop Inventory"
+    hosts:
+      - rtr3
+    preserve_existing_hosts: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# ── Execution Environment ──────────────────────────────────────────────────
+- name: "Execution Environment — Network EE"
+  ansible.controller.execution_environment:
+    name: "Network EE"
+    image: "quay.io/acme_corp/network-ee"
+    pull: missing
+    organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# ── Toolkit Project ─────────────────────────────────────────────────────────
+- name: "Project — Workshop Project (network-automation/toolkit)"
+  ansible.controller.project:
+    name: "Workshop Project"
+    organization: "Red Hat network organization"
+    scm_type: git
+    scm_url: "https://github.com/network-automation/toolkit"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Sync Workshop Project"
+  ansible.controller.project_update:
+    project: "Workshop Project"
+    wait: true
+    timeout: 600
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+  failed_when: false
+
+# ── Job Templates ────────────────────────────────────────────────────────────
+- name: "Job template — Network-Commands"
+  ansible.controller.job_template:
+    name: "Network-Commands"
+    description: "adhoc cisco commands"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "playbooks/network_commands.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    limit: "cisco"
+    survey_enabled: true
+    survey_spec:
+      name: ""
+      description: ""
+      spec:
+        - question_name: "Select a command you would like to execute"
+          question_description: "Restricted list of commands executable by operator"
+          required: true
+          type: multiplechoice
+          variable: controller_input
+          min: 0
+          max: 1024
+          default: "show version"
+          choices: "show version\nshow ip interface brief\nshow interface description\nshow ip route"
+          new_question: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — Network-Reload"
+  ansible.controller.job_template:
+    name: "Network-Reload"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "playbooks/network_reload.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — Network-User"
+  ansible.controller.job_template:
+    name: "Network-User"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "playbooks/network_user.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    survey_enabled: true
+    survey_spec:
+      name: "System Survey"
+      description: "Prompt for system properties such as hostname"
+      spec:
+        - type: text
+          question_name: "Please enter the username"
+          question_description: "this will set the username on the network device"
+          variable: network_name
+          required: false
+          default: "ansible"
+        - type: text
+          question_name: "Please enter the plain-text password"
+          question_description: "this is not required if using an SSH key"
+          variable: network_configured_password
+          required: false
+          default: "ansible123"
+        - type: textarea
+          question_name: "Please paste the SSH public key here"
+          question_description: "this is not required, please leave blank to use plain-text password"
+          variable: network_key
+          required: false
+          default: ""
+        - type: text
+          question_name: "Please enter a privilege level (for network OS that support it)"
+          question_description: "This argument accepts integer values in the range of 1 to 15"
+          variable: network_privilege
+          required: false
+          default: ""
+        - question_description: "non-Juniper devices will ignore this field"
+          default: "super-user"
+          required: false
+          choices: "operator\nread-only\nsuper-user\nunauthorized"
+          variable: network_juniper_class
+          question_name: "Which login class? (Juniper only)"
+          type: multiplechoice
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — Network-Time"
+  ansible.controller.job_template:
+    name: "Network-Time"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "playbooks/network_time.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    limit: "cisco"
+    survey_enabled: true
+    survey_spec:
+      name: ""
+      description: ""
+      spec:
+        - question_name: "What is the IP address of your NTP server?"
+          question_description: "Please enter a IPv4 address"
+          required: true
+          type: text
+          variable: ntp_server
+          min: 0
+          max: 1024
+          default: "216.239.35.0"
+          choices: ""
+          new_question: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — Network-Report"
+  ansible.controller.job_template:
+    name: "Network-Report"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "playbooks/network_report.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    execution_environment: "Network EE"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — Network-System"
+  ansible.controller.job_template:
+    name: "Network-System"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "playbooks/network_system.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    limit: "cisco"
+    survey_enabled: true
+    survey_spec:
+      name: "System Survey"
+      description: "Prompt for system properties such as hostname"
+      spec:
+        - type: text
+          question_name: "Please enter a hostname"
+          question_description: "this will set the hostname of the network device"
+          variable: network_hostname
+          required: false
+          default: "{{ '{{' }} inventory_hostname {{ '}}' }}"
+        - type: text
+          question_name: "Domain Name"
+          question_description: "Set the IP domain name"
+          variable: network_domain_name
+          required: false
+          default: ""
+        - type: text
+          question_name: "Please enter a lookup source"
+          question_description: "e.g. MgmtEth0/0/CPU0/0, source interface for performing DNS lookups"
+          variable: network_lookup_source
+          required: false
+          default: ""
+        - type: text
+          question_name: "Please enter the name servers"
+          question_description: "e.g. 8.8.8.8, List of DNS name servers"
+          variable: network_name_servers
+          required: false
+          default: "8.8.8.8"
+        - type: text
+          question_name: "Please enter the domain search names"
+          question_description: "e.g. the ip domain list, resolution for unqualified host names"
+          variable: network_domain_search
+          required: false
+          default: ""
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# ── Network-Backup (needs two credentials workaround via extra_vars) ────────
+- name: "Job template — Network-Facts"
+  ansible.controller.job_template:
+    name: "Network-Facts"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "playbooks/network_facts.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — Network-Backup"
+  ansible.controller.job_template:
+    name: "Network-Backup"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "playbooks/network_backup.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+      - "Controller Credential"
+    extra_vars:
+      restore_inventory: "Workshop Inventory"
+      restore_project: "Workshop Project"
+      restore_credential: "Workshop Credential"
+      restore_ee: "Default execution environment"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Remove stale restore templates (dynamic one is created by Network-Backup)"
+  ansible.controller.job_template:
+    name: "{{ item }}"
+    state: absent
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+  loop:
+    - "Network-Restore"
+    - "Network Automation - Restore"
+
+# ── Teams ────────────────────────────────────────────────────────────────────
+- name: Create teams
+  ansible.controller.team:
+    name: "{{ item.name }}"
+    description: "{{ item.description }}"
+    organization: "{{ item.organization }}"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+  loop:
+    - { name: "Netops", description: "Network Ops Team", organization: "Red Hat network organization" }
+    - { name: "Netadmin", description: "Network Admin Team", organization: "Red Hat network organization" }
+    - { name: "Compute T1", description: "Computer T1 Team", organization: "Red Hat compute organization" }
+    - { name: "Compute T2", description: "Computer T2 Team", organization: "Red Hat compute organization" }
+
+# ── Users ────────────────────────────────────────────────────────────────────
+# AAP 2.6: ansible.controller.user creates Controller-level users that sync
+# to the gateway with "Password Disabled".  We must PATCH the gateway copy
+# via /api/gateway/v1/ to set a real password so users can log in.
+
+- name: Workshop user list
+  ansible.builtin.set_fact:
+    workshop_users:
+      - { username: "network-operator", email: "nwops@redhat.com", first_name: "Issac", last_name: "Assimov" }
+      - { username: "network-admin", email: "nwadmin@redhat.com", first_name: "Larry", last_name: "Niven" }
+      - { username: "bbelcher", email: "bbelcher@redhat.com", first_name: "Bob", last_name: "Belcher", superuser: true }
+      - { username: "tbelcher", email: "tbelcher@redhat.com", first_name: "Tina", last_name: "Belcher" }
+      - { username: "lbelcher", email: "lbelcher@redhat.com", first_name: "Louise", last_name: "Belcher" }
+      - { username: "libelcher", email: "libelcher@redhat.com", first_name: "Linda", last_name: "Belcher" }
+      - { username: "gbelcher", email: "gbelcher@redhat.com", first_name: "Gene", last_name: "Belcher" }
+
+- name: Create workshop users (controller)
+  ansible.controller.user:
+    username: "{{ item.username }}"
+    password: "{{ workshop_admin_password }}"
+    email: "{{ item.email }}"
+    first_name: "{{ item.first_name }}"
+    last_name: "{{ item.last_name }}"
+    superuser: "{{ item.superuser | default(false) }}"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+  loop: "{{ workshop_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+
+- name: Look up workshop users in gateway
+  ansible.builtin.uri:
+    url: "{{ controller_endpoint.rstrip('/') }}/api/gateway/v1/users/?username={{ item.username | urlencode }}"
+    method: GET
+    url_username: "{{ controller_username }}"
+    url_password: "{{ controller_password }}"
+    force_basic_auth: true
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+  loop: "{{ workshop_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+  register: gateway_user_lookup
+
+- name: Set gateway password for workshop users (required for AAP 2.6 login)
+  ansible.builtin.uri:
+    url: "{{ controller_endpoint.rstrip('/') }}{{ item.json.results[0].url }}"
+    method: PATCH
+    url_username: "{{ controller_username }}"
+    url_password: "{{ controller_password }}"
+    force_basic_auth: true
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+    body_format: json
+    body:
+      password: "{{ workshop_admin_password }}"
+    status_code: 200
+  loop: "{{ gateway_user_lookup.results }}"
+  loop_control:
+    label: "{{ item.item.username }}"
+  when: item.json.count > 0
+
+# ── RBAC — pre-wire roles so the workshop RBAC exercise works ────────────────
+# Organization Admin alone (set manually in Step 3) does NOT cascade to
+# job-template-level admin in AAP 2.5+. network-admin needs explicit Admin
+# on the job templates to be able to assign Execute permissions to others.
+
+- name: "RBAC — network-admin gets Admin on all network job templates"
+  ansible.controller.role:
+    users:
+      - "network-admin"
+    role: admin
+    job_templates:
+      - "Network-Commands"
+      - "Network-Reload"
+      - "Network-User"
+      - "Network-Time"
+      - "Network-Report"
+      - "Network-System"
+      - "Network-Facts"
+      - "Network-Backup"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "RBAC — network-admin and network-operator are members of the network org"
+  ansible.controller.role:
+    users:
+      - "network-admin"
+      - "network-operator"
+    role: member
+    organizations:
+      - "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"

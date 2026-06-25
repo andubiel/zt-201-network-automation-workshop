@@ -1,0 +1,21 @@
+---
+ansible-navigator:
+  ansible:
+    inventory:
+      entries:
+      - /home/rhel/network-workshop/lab_inventory/hosts
+
+  execution-environment:
+    image: quay.io/acme_corp/network-ee:latest
+    enabled: true
+    container-engine: podman
+    pull:
+      policy: missing
+
+  logging:
+    level: warning
+    append: false
+    file: /tmp/ansible-navigator.log
+
+  playbook-artifact:
+    enable: false

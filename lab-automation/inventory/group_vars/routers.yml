@@ -1,0 +1,4 @@
+---
+# Set when running gather_facts against virtual routers (e.g. -e containerlab_fip=203.0.113.50).
+# All routers share this host; ports are per-host in lab.yml.
+ansible_host: "{{ containerlab_fip }}"

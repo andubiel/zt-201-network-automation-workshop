@@ -1,0 +1,29 @@
+---
+# Optional smoke test: requires -e containerlab_fip=<LB IP> and network collections in the EE.
+- name: Gather facts from virtual routers
+  hosts: routers
+  gather_facts: false
+
+  pre_tasks:
+    - name: Require containerlab_fip for router inventory
+      ansible.builtin.assert:
+        that:
+          - containerlab_fip is defined
+          - containerlab_fip | length > 0
+        fail_msg: >-
+          Set containerlab_fip to the external IP that fronts SSH to the lab (e.g. LoadBalancer IP).
+          Example: ansible-playbook -i ../inventory/lab.yml gather_facts.yml -e containerlab_fip=203.0.113.50
+
+  tasks:
+    - name: Gather IOS facts (rtr1)
+      cisco.ios.ios_facts:
+      when: inventory_hostname == 'rtr1'
+
+    - name: Gather EOS facts (rtr2, rtr4)
+      arista.eos.eos_facts:
+      when: "'eos' in (ansible_network_os | default(''))"
+
+    - name: Gather Junos facts (rtr3)
+      junipernetworks.junos.junos_facts:
+        gather_subset: min
+      when: inventory_hostname == 'rtr3'

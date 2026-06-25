@@ -1,0 +1,40 @@
+[all:vars]
+ansible_user=admin
+ansible_password=admin@123
+
+[network:children]
+cisco
+arista
+juniper
+
+[cisco]
+rtr1 ansible_host=containerlab ansible_port=2222
+
+[arista]
+rtr2 ansible_host=containerlab ansible_port=2223
+rtr4 ansible_host=containerlab ansible_port=2226
+
+[juniper]
+rtr3 ansible_host=containerlab ansible_port=2225 ansible_netconf_port=2224
+
+[cisco:vars]
+ansible_network_os=ios
+ansible_connection=network_cli
+
+[arista:vars]
+ansible_network_os=eos
+ansible_connection=network_cli
+ansible_become=true
+ansible_become_method=enable
+
+[juniper:vars]
+ansible_network_os=junos
+ansible_connection=netconf
+
+[dc1]
+rtr1
+rtr3
+
+[dc2]
+rtr2
+rtr4

@@ -1,0 +1,7 @@
+# Captured on containerlab VM, 2026-05-14 (same incident as docker-logs / inspect)
+
+$ uname -r
+5.14.0-611.24.1.el9_7.x86_64
+
+$ ls -la /dev/kvm
+crw-rw-rw-. 1 root kvm 10, 232 May 14 08:22 /dev/kvm

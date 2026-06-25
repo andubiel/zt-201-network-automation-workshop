@@ -1,0 +1,54 @@
+---
+# Run from Controller with inventory = only localhost. Uses SSH from the execution environment
+# to containerlab — no AWX *machine credential* if the EE default user can SSH as lab-user with keys.
+# Requires passwordless sudo for containerlab on the VM (sudo -n).
+- name: Deploy 1_multi_vendor_router (SSH from controller runtime)
+  hosts: localhost
+  gather_facts: false
+  vars:
+    clab_dir: "/home/lab-user/1_multi_vendor_router"
+    containerlab_host: "containerlab"
+    containerlab_user: "lab-user"
+
+  tasks:
+    - name: Containerlab deploy on remote host over SSH
+      ansible.builtin.command:
+        argv:
+          - ssh
+          - -o
+          - BatchMode=yes
+          - -o
+          - StrictHostKeyChecking=no
+          - "{{ containerlab_user }}@{{ containerlab_host }}"
+          - sudo
+          - -n
+          - bash
+          - -c
+          - "cd {{ clab_dir }} && containerlab deploy --reconfigure"
+      register: clab_deploy
+      changed_when: true
+
+    - name: Wait for nodes to settle
+      ansible.builtin.pause:
+        seconds: 120
+
+    - name: Containerlab inspect (remote)
+      ansible.builtin.command:
+        argv:
+          - ssh
+          - -o
+          - BatchMode=yes
+          - -o
+          - StrictHostKeyChecking=no
+          - "{{ containerlab_user }}@{{ containerlab_host }}"
+          - sudo
+          - -n
+          - bash
+          - -c
+          - "cd {{ clab_dir }} && containerlab inspect"
+      register: clab_inspect
+      changed_when: false
+
+    - name: Show containerlab inspect output
+      ansible.builtin.debug:
+        msg: "{{ clab_inspect.stdout_lines | default([]) }}"

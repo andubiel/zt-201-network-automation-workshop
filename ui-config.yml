@@ -1,0 +1,48 @@
+---
+antora:
+  name: modules
+  dir: www
+  modules:
+    - name: 03-module-01-explore-lab
+      label: "1-1: Explore the lab environment"
+    - name: 04-module-02-first-playbook
+      label: "1-2: First Ansible Playbook"
+    - name: 05-module-03-facts
+      label: "1-3: Ansible facts"
+    - name: 06-module-04-resource-modules
+      label: "1-4: Resource modules"
+    - name: 07-module-05-explore-controller
+      label: "2-1: Explore Automation controller"
+    - name: 08-module-06-job-template
+      label: "2-2: Job templates"
+    - name: 09-module-07-survey
+      label: "2-3: Surveys"
+    - name: 10-module-08-rbac
+      label: "2-4: RBAC"
+    - name: 11-module-09-workflow
+      label: "2-5: Workflows"
+
+tabs:
+  # Browser terminals are all WeTTY; type: terminal = chart default route, url: /wetty_* = explicit VM.
+  # Mixing default + explicit URL is fine. If the default is not control, switch AAP to url: /wetty_control.
+  # Root: /wetty_control/ssh/root etc. Optional modules: list page stems on each tab.
+  - name: AAP terminal
+    url: /wetty_control
+  - name: Containerlab terminal
+    url: /wetty_containerlab
+  - name: VS Code
+    url: https://vscode-${guid}.${domain}/
+    external: false
+  - name: Ansible Automation Platform
+    url: https://control-${guid}.${domain}/
+    external: false
+  - name: Network Report
+    url: https://clab-report-${guid}.${domain}/
+    external: false
+  - name: Network Report
+    url: http://containerlab:8181
+    external: false
+  - name: Open an Issue
+    # GitHub blocks iframes (X-Frame-Options); external opens in a new browser tab.
+    url: https://github.com/rhpds/zt-network-automation-workshop/issues/new
+    external: true

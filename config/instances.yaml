@@ -1,0 +1,185 @@
+---
+containers: []
+virtualmachines:
+  - name: "containerlab"
+    image: "ansiblebu-containerlab-v3"
+    memory: "64Gi"
+    cores: 20
+    image_size: "200Gi"
+    tags:
+      - key: "AnsibleGroup"
+        value: "isolated"
+    networks:
+      - default
+    services:
+      - name: containerlab-fip
+        type: LoadBalancer
+        ports:
+          - port: 2222
+            protocol: TCP
+            targetPort: 2222
+            name: port2222
+          - port: 2223
+            protocol: TCP
+            targetPort: 2223
+            name: port2223
+
+          - port: 2224
+            protocol: TCP
+            targetPort: 2224
+            name: port2224
+          - port: 2225
+            protocol: TCP
+            targetPort: 2225
+            name: port2225
+          - port: 2226
+            protocol: TCP
+            targetPort: 2226
+            name: port2226
+          - port: 2227
+            protocol: TCP
+            targetPort: 2227
+            name: port2227
+          - port: 2228
+            protocol: TCP
+            targetPort: 2228
+            name: port2228
+          - port: 8181
+            protocol: TCP
+            targetPort: 8181
+            name: port8181
+          - port: 8282
+            protocol: TCP
+            targetPort: 8282
+            name: port8282
+          - port: 8383
+            protocol: TCP
+            targetPort: 8383
+            name: port8383
+          - port: 8484
+            protocol: TCP
+            targetPort: 8484
+            name: port8484
+      - name: clab-report
+        ports:
+          - port: 8088
+            protocol: TCP
+            targetPort: 8088
+            name: clab-report
+    routes:
+      - name: clab-report
+        host: clab-report
+        service: clab-report
+        targetPort: 8088
+        tls: true
+        tls_termination: Edge
+    userdata: |-
+      #cloud-config
+      user: rhel
+      password: ansible123!
+      chpasswd: { expire: False }
+      runcmd:
+        - echo "PasswordAuthentication yes" > /etc/ssh/sshd_config.d/50-cloud-init.conf
+        - systemctl reload sshd
+
+  - name: control
+    image: aap-2.6-2-ceh-20251103
+    memory: 32G
+    cores: 4
+    image_size: 50Gi
+    tags:
+      - key: AnsibleGroup
+        value: isolated
+    networks:
+      - default
+      - secondary
+    services:
+      - name: control-https
+        ports:
+          - port: 443
+            protocol: TCP
+            targetPort: 443
+            name: control-https
+    routes:
+      - name: control-https
+        host: control
+        service: control-https
+        targetPort: 443
+        tls: true
+        tls_termination: reencrypt
+        tls_destinationCACertificate: |
+          -----BEGIN CERTIFICATE-----
+          MIIF1jCCA76gAwIBAgIUASi34Lss1upPyAS1YsA8eZTJOFAwDQYJKoZIhvcNAQEL
+          BQAwgYIxCzAJBgNVBAYTAlVTMRcwFQYDVQQIDA5Ob3J0aCBDYXJvbGluYTEQMA4G
+          A1UEBwwHUmFsZWlnaDEQMA4GA1UECgwHUmVkIEhhdDEQMA4GA1UECwwHQW5zaWJs
+          ZTEkMCIGA1UEAwwbQW5zaWJsZSBBdXRvbWF0aW9uIFBsYXRmb3JtMB4XDTI1MTEw
+          MzE5NDkyNVoXDTM1MTEwMTE5NDkyNVowgYIxCzAJBgNVBAYTAlVTMRcwFQYDVQQI
+          DA5Ob3J0aCBDYXJvbGluYTEQMA4GA1UEBwwHUmFsZWlnaDEQMA4GA1UECgwHUmVk
+          IEhhdDEQMA4GA1UECwwHQW5zaWJsZTEkMCIGA1UEAwwbQW5zaWJsZSBBdXRvbWF0
+          aW9uIFBsYXRmb3JtMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAqNju
+          44XrKsBPTqv5J+OqRz3RsY1QIemHw3NIJF3d3UvimBHt42rHnwt4Lww3mYtYMJQ0
+          nzcRpr+EnFlC5YFl2Htrfq6NzUUqknTpaCeSKNCli4aKYe9JYSocWy/8ag+H7gMf
+          oUFJ7+PDh/S8HcP7ZA15RRXhyGdjzpUK9+ry/UcMcLE4ZOW2Z4YvFyjemh+c/yYY
+          KHsNjV56TRL5q4VqsxlKQuqNQos9lWoHjz363JxC9UrvTPqvl/UbHsQmTD8NKDnB
+          xxsaYTl41kVqscLSw5KR2c6CVVgSjIn5o0iAo01Sd4gONZ0ImhrzQ5Ea9Ya2kKG7
+          OCdg84V4hVmy/fnrcBC4k9RgNthWH9k4eMHwZf3B2P1xZds3dkV1k6yF3zSrQfJd
+          VJZ0AsaeGQGw26NQw0IG17P/jmho1jBhqSLaJyT9vVM/JMOjdojbD/dSFkccID1E
+          wUZeklYiLScD13rhckVk8MxrsFv99BO91tm07lwnj5jsyLoTvUOLuI4o7yw1AlsC
+          V/OjdpAohWbL0W6YxS/elBVgZhe7Gv2lnIF9L7TxTj/UQWaarouAIgyevqbP5dnt
+          mRccxZ38YGivRA+PgWwwSL9AQCFzIJW1Q45shUR2vkTsiWEEB+Lobkj5dcyLG0CH
+          Z7fnJnlKdNDcMbm2s6U1i+nHvv1dpfyveRvOiCsCAwEAAaNCMEAwDgYDVR0PAQH/
+          BAQDAgIEMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFHAFWQy/8in8Lg2TaG9g
+          NJyRxdMfMA0GCSqGSIb3DQEBCwUAA4ICAQBT5QI+nxhpEwPVp/BxZnxJWFBotHw3
+          rROgu1GBR3clZ+c+YFygAUs3LSpCLuDGnqJnh0822sIM+5FFP2ypqHdzeKo3TQEj
+          K4QiTBGeiSgqKqwHQdqPKywgFqAuxFC+clVrmFVR7dQJ8OiUZYNk5fwYLxnOftFQ
+          pxgpJyAX7vpZKnzujc5IGEqb3apjyxUuX3TFRq4uJp8ffWR9cgykeI8WFqAi33+K
+          RW8h9UQbS9mPjkJ3lbTtd06Jx2M0V2pwtQBMlp7aTboEqs+CB5moCIq1wTXvZBqB
+          dcqcpRGppYHL+QuUguBIlZcxn/8JpfoEsYVOJszp4YLEKzr68RoXvevObbrjJxfq
+          BnEPFKqt+pQpjEJktn8JDqp8G6gMc9n+Nkx88f3MR8yr2nhMl9YL6jSZLklH4JJV
+          2UjYg+KU/u/JttFmDydmys1xN9hiFM2wtRjp+r8gAQw95pyUhMraA01qLYWP5wAO
+          KsMpndKg6rUIycxNNr+eLGNafbUNsp9qayRSull5jKok43Goi8oF8edRlPY4qpZW
+          6WvY8+YjBLTCY1rQBb6/Rfr5PHSaRlGLi3Os6xG84gt69dLtMZBz4O232fc5sG5M
+          wMQ+MKwOpgDyuy79XKvsPanlAfP8WgJi79pJdHu3BGTLlDFil9CK8l2sncM1FdaE
+          57Ys1npOUx+oxw==
+          -----END CERTIFICATE-----
+    userdata: |-
+      #cloud-config
+      user: rhel
+      password: ansible123!
+      chpasswd: { expire: False }
+      runcmd:
+        - echo "PasswordAuthentication yes" > /etc/ssh/sshd_config.d/50-cloud-init.conf
+        - systemctl reload sshd
+
+  - name: vscode
+    image: rhel-9.6
+    memory: 8G
+    cores: 2
+    image_size: 40G
+    tags:
+      - key: AnsibleGroup
+        value: isolated
+    networks:
+      - default
+    services:
+      - name: vscode
+        ports:
+          - port: 8080
+            protocol: TCP
+            targetPort: 8080
+            name: vscode
+    routes:
+      - name: vscode
+        host: vscode
+        service: vscode
+        targetPort: 8080
+        tls: true
+        tls_termination: Edge
+    userdata: |-
+      #cloud-config
+      user: rhel
+      password: ansible123!
+      chpasswd: { expire: False }
+      runcmd:
+        - echo "PasswordAuthentication yes" > /etc/ssh/sshd_config.d/50-cloud-init.conf
+        - systemctl reload sshd

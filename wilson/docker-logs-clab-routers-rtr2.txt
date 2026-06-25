@@ -1,0 +1,119 @@
+# Captured on containerlab VM, 2026-05-14 (lab-user, topology /home/lab-user/1_multi_vendor_router)
+# Command: docker logs clab-routers-rtr2
+# Source: workshop incident — Arista vEOS container exits under nested KVM (MSR 0x345).
+
+2026-05-14 12:22:08,535: launch         DEBUG Environment variables: environ({'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'HOSTNAME': 'rtr2', 'TERM': 'xterm', 'CLAB_LABEL_CLAB_NODE_NAME': 'rtr2', 'DOCKER_NET_V6_ADDR': '3fff:172:20:20::/64', 'PASSWORD': 'admin', 'no_proxy': 'localhost,127.0.0.1,::1,*.local,172.20.20.0/24,172.20.20.10,172.20.20.20,172.20.20.30,172.20.20.40,3fff:172:20:20::/64,rtr1,rtr2,rtr3,rtr4', 'CLAB_LABEL_CLAB_NODE_LAB_DIR': '/home/lab-user/1_multi_vendor_router/clab-routers/rtr2', 'USERNAME': 'admin', 'CLAB_LABEL_CLAB_OWNER': 'lab-user', 'CLAB_LABEL_CLAB_NODE_KIND': 'arista_veos', 'CLAB_LABEL_CLAB_NODE_TYPE': '', 'CLAB_INTFS': '2', 'CONNECTION_MODE': 'tc', 'NO_PROXY': 'localhost,127.0.0.1,::1,*.local,172.20.20.0/24,172.20.20.10,172.20.20.20,172.20.20.30,172.20.20.40,3fff:172:20:20::/64,rtr1,rtr2,rtr3,rtr4', 'CLAB_LABEL_CLAB_NODE_LONGNAME': 'clab-routers-rtr2', 'CLAB_LABEL_CLAB_NODE_GROUP': '', 'DOCKER_NET_V4_ADDR': '172.20.20.0/24', 'CLAB_LABEL_CLAB_TOPO_FILE': '/home/lab-user/1_multi_vendor_router/routers.clab.yml', 'CLAB_LABEL_CONTAINERLAB': 'routers', 'HOME': '/root', 'LC_CTYPE': 'C.UTF-8'})
+2026-05-14 12:22:08,536: vrnetlab       DEBUG class: VEOS_vm, disk_image: /vEOS-lab-4.32.0F.qcow2, overlay: /vEOS-lab-4.32.0F-overlay.qcow2
+2026-05-14 12:22:08,536: vrnetlab       DEBUG Creating overlay disk image
+2026-05-14 12:22:08,640: vrnetlab       DEBUG Starting vrnetlab VEOS
+2026-05-14 12:22:08,640: vrnetlab       DEBUG VMs: [<__main__.VEOS_vm object at 0x7f6e808f4190>]
+2026-05-14 12:22:08,640: vrnetlab       DEBUG VM not started; starting!
+2026-05-14 12:22:08,640: vrnetlab       INFO ----------------START ENVIRONMENT VARIABLES-----------------
+2026-05-14 12:22:08,640: vrnetlab       INFO CLAB_INTFS: 2
+2026-05-14 12:22:08,640: vrnetlab       INFO CLAB_LABEL_CLAB_NODE_GROUP: 
+2026-05-14 12:22:08,640: vrnetlab       INFO CLAB_LABEL_CLAB_NODE_KIND: arista_veos
+2026-05-14 12:22:08,640: vrnetlab       INFO CLAB_LABEL_CLAB_NODE_LAB_DIR: /home/lab-user/1_multi_vendor_router/clab-routers/rtr2
+2026-05-14 12:22:08,640: vrnetlab       INFO CLAB_LABEL_CLAB_NODE_LONGNAME: clab-routers-rtr2
+2026-05-14 12:22:08,640: vrnetlab       INFO CLAB_LABEL_CLAB_NODE_NAME: rtr2
+2026-05-14 12:22:08,640: vrnetlab       INFO CLAB_LABEL_CLAB_NODE_TYPE: 
+2026-05-14 12:22:08,641: vrnetlab       INFO CLAB_LABEL_CLAB_OWNER: lab-user
+2026-05-14 12:22:08,641: vrnetlab       INFO CLAB_LABEL_CLAB_TOPO_FILE: /home/lab-user/1_multi_vendor_router/routers.clab.yml
+2026-05-14 12:22:08,641: vrnetlab       INFO CLAB_LABEL_CONTAINERLAB: routers
+2026-05-14 12:22:08,641: vrnetlab       INFO CONNECTION_MODE: tc
+2026-05-14 12:22:08,641: vrnetlab       INFO DOCKER_NET_V4_ADDR: 172.20.20.0/24
+2026-05-14 12:22:08,641: vrnetlab       INFO DOCKER_NET_V6_ADDR: 3fff:172:20:20::/64
+2026-05-14 12:22:08,641: vrnetlab       INFO HOME: /root
+2026-05-14 12:22:08,641: vrnetlab       INFO HOSTNAME: rtr2
+2026-05-14 12:22:08,641: vrnetlab       INFO LC_CTYPE: C.UTF-8
+2026-05-14 12:22:08,641: vrnetlab       INFO NO_PROXY: localhost,127.0.0.1,::1,*.local,172.20.20.0/24,172.20.20.10,172.20.20.20,172.20.20.30,172.20.20.40,3fff:172:20:20::/64,rtr1,rtr2,rtr3,rtr4
+2026-05-14 12:22:08,641: vrnetlab       INFO PASSWORD: admin
+2026-05-14 12:22:08,641: vrnetlab       INFO PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+2026-05-14 12:22:08,641: vrnetlab       INFO TERM: xterm
+2026-05-14 12:22:08,641: vrnetlab       INFO USERNAME: admin
+2026-05-14 12:22:08,641: vrnetlab       INFO no_proxy: localhost,127.0.0.1,::1,*.local,172.20.20.0/24,172.20.20.10,172.20.20.20,172.20.20.30,172.20.20.40,3fff:172:20:20::/64,rtr1,rtr2,rtr3,rtr4
+2026-05-14 12:22:08,641: vrnetlab       INFO -----------------END ENVIRONMENT VARIABLES------------------
+2026-05-14 12:22:08,641: vrnetlab       INFO Launching VEOS_vm with 2,sockets=1,cores=1 SMP/VCPU and 2048 M of RAM
+2026-05-14 12:22:08,641: vrnetlab       INFO Scrapli: Disabled
+2026-05-14 12:22:08,641: vrnetlab       INFO Transparent mgmt interface: Disabled
+2026-05-14 12:22:08,641: vrnetlab       DEBUG number of provisioned data plane interfaces is 2
+2026-05-14 12:22:08,641: vrnetlab       DEBUG waiting for provisioned interfaces to appear...
+2026-05-14 12:22:08,642: vrnetlab       DEBUG highest allocated interface id determined to be: 2...
+2026-05-14 12:22:08,642: vrnetlab       DEBUG interfaces provisioned, continuing...
+2026-05-14 12:22:08,642: vrnetlab       DEBUG qemu cmd: qemu-system-x86_64 -enable-kvm -display none -machine pc -monitor tcp:0.0.0.0:4000,server,nowait -serial telnet:0.0.0.0:5000,server,nowait -m 2048 -cpu host,level=9 -smp 2,sockets=1,cores=1 -drive if=ide,file=/vEOS-lab-4.32.0F-overlay.qcow2 -device pci-bridge,chassis_nr=1,id=pci.1 -device e1000,netdev=p00,mac=0C:00:e6:78:01:00 -netdev user,id=p00,net=10.0.0.0/24,host=10.0.0.2,dns=10.0.0.3,dhcpstart=10.0.0.15,hostfwd=tcp:0.0.0.0:22-10.0.0.15:22,hostfwd=udp:0.0.0.0:161-10.0.0.15:161,hostfwd=tcp:0.0.0.0:80-10.0.0.15:80,hostfwd=tcp:0.0.0.0:443-10.0.0.15:443,hostfwd=tcp:0.0.0.0:830-10.0.0.15:830,hostfwd=tcp:0.0.0.0:6030-10.0.0.15:6030,hostfwd=tcp:0.0.0.0:8080-10.0.0.15:8080,hostfwd=tcp:0.0.0.0:9339-10.0.0.15:9339,hostfwd=tcp:0.0.0.0:32767-10.0.0.15:32767,hostfwd=tcp:0.0.0.0:57400-10.0.0.15:57400,tftp=/tftpboot -device e1000,netdev=p01,mac=0C:00:ab:8d:9e:01,bus=pci.1,addr=0x3 -netdev tap,id=p01,ifname=tap1,script=/etc/tc-tap-ifup,downscript=no -device e1000,netdev=p02,mac=0C:00:2c:49:6b:02,bus=pci.1,addr=0x4 -netdev tap,id=p02,ifname=tap2,script=/etc/tc-tap-ifup,downscript=no
+2026-05-14 12:22:09,329: vrnetlab       INFO STDOUT: 
+2026-05-14 12:22:09,329: vrnetlab       INFO STDERR: qemu-system-x86_64: error: failed to set MSR 0x345 to 0x2000
+qemu-system-x86_64: ../../target/i386/kvm/kvm.c:3183: kvm_buf_set_msrs: Assertion `ret == cpu->kvm_msr_buf->nmsrs' failed.
+
+2026-05-14 12:22:09,332: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 1)
+2026-05-14 12:22:10,333: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 2)
+2026-05-14 12:22:11,334: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 3)
+2026-05-14 12:22:12,335: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 4)
+2026-05-14 12:22:13,336: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 5)
+2026-05-14 12:22:14,337: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 6)
+2026-05-14 12:22:15,338: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 7)
+2026-05-14 12:22:16,339: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 8)
+2026-05-14 12:22:17,339: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 9)
+2026-05-14 12:22:18,340: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 10)
+2026-05-14 12:22:19,341: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 11)
+2026-05-14 12:22:20,342: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 12)
+2026-05-14 12:22:21,343: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 13)
+2026-05-14 12:22:22,343: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 14)
+2026-05-14 12:22:23,344: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 15)
+2026-05-14 12:22:24,345: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 16)
+2026-05-14 12:22:25,346: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 17)
+2026-05-14 12:22:26,347: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 18)
+2026-05-14 12:22:27,348: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 19)
+2026-05-14 12:22:28,349: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 20)
+2026-05-14 12:22:29,350: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 21)
+2026-05-14 12:22:30,350: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 22)
+2026-05-14 12:22:31,351: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 23)
+2026-05-14 12:22:32,352: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 24)
+2026-05-14 12:22:33,353: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 25)
+2026-05-14 12:22:34,354: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 26)
+2026-05-14 12:22:35,357: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 27)
+2026-05-14 12:22:36,358: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 28)
+2026-05-14 12:22:37,360: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 29)
+2026-05-14 12:22:38,361: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 30)
+2026-05-14 12:22:39,362: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 31)
+2026-05-14 12:22:40,363: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 32)
+2026-05-14 12:22:41,364: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 33)
+2026-05-14 12:22:42,365: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 34)
+2026-05-14 12:22:43,366: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 35)
+2026-05-14 12:22:44,367: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 36)
+2026-05-14 12:22:45,369: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 37)
+2026-05-14 12:22:46,371: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 38)
+2026-05-14 12:22:47,372: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 39)
+2026-05-14 12:22:48,373: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 40)
+2026-05-14 12:22:49,373: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 41)
+2026-05-14 12:22:50,374: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 42)
+2026-05-14 12:22:51,375: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 43)
+2026-05-14 12:22:52,376: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 44)
+2026-05-14 12:22:53,377: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 45)
+2026-05-14 12:22:54,378: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 46)
+2026-05-14 12:22:55,379: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 47)
+2026-05-14 12:22:56,381: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 48)
+2026-05-14 12:22:57,382: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 49)
+2026-05-14 12:22:58,383: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 50)
+2026-05-14 12:22:59,384: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 51)
+2026-05-14 12:23:00,385: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 52)
+2026-05-14 12:23:01,386: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 53)
+2026-05-14 12:23:02,388: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 54)
+2026-05-14 12:23:03,390: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 55)
+2026-05-14 12:23:04,391: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 56)
+2026-05-14 12:23:05,392: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 57)
+2026-05-14 12:23:06,393: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 58)
+2026-05-14 12:23:07,394: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 59)
+2026-05-14 12:23:08,395: vrnetlab       ERROR Unable to connect to qemu monitor (port 4000), retrying in a second (attempt 60)
+Traceback (most recent call last):
+  File "/launch.py", line 194, in <module>
+    vr.start() 
+    ^^^^^^^^^^
+  File "/vrnetlab.py", line 1035, in start
+    vm.work()
+  File "/vrnetlab.py", line 909, in work
+    self.check_qemu()
+  File "/vrnetlab.py", line 923, in check_qemu
+    self.start()
+  File "/vrnetlab.py", line 389, in start
+    raise QemuBroken(
+vrnetlab.QemuBroken: Unable to connect to qemu monitor on port 4000
