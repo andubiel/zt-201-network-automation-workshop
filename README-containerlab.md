@@ -86,11 +86,11 @@ New workshop images install a resume helper that runs **`containerlab destroy`**
 - **Re-run setup** from a current copy of the repo (overwrites the script):
 
   ```bash
-  curl -fsSL https://github.com/rhpds/zt-network-automation-workshop/archive/refs/heads/main.tar.gz | tar xz -C /tmp
-  sudo bash /tmp/zt-network-automation-workshop-main/setup-automation/setup-containerlab.sh
+  curl -fsSL https://github.com/andubiel/zt-201-network-automation-workshop/archive/refs/heads/main.tar.gz | tar xz -C /tmp
+  sudo bash /tmp/zt-201-network-automation-workshop-main/setup-automation/setup-containerlab.sh
   ```
 
-- **Or** replace `/usr/local/bin/containerlab-resume` manually so it matches [setup-containerlab.sh](https://github.com/rhpds/zt-network-automation-workshop/blob/main/setup-automation/setup-containerlab.sh) (`install_clab_resume_service` heredoc).
+- **Or** replace `/usr/local/bin/containerlab-resume` manually so it matches [setup-containerlab.sh](https://github.com/andubiel/zt-201-network-automation-workshop/blob/main/setup-automation/setup-containerlab.sh) (`install_clab_resume_service` heredoc).
 
 ---
 

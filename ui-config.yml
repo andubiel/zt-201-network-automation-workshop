@@ -44,5 +44,5 @@ tabs:
     external: false
   - name: Open an Issue
     # GitHub blocks iframes (X-Frame-Options); external opens in a new browser tab.
-    url: https://github.com/rhpds/zt-network-automation-workshop/issues/new
+    url: https://github.com/andubiel/zt-201-network-automation-workshop/issues/new
     external: true

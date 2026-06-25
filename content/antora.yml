@@ -14,5 +14,5 @@ asciidoc:
     user: rhel
     hostname: vscode
     page-links:
-      - url: https://github.com/rhpds/zt-network-automation-workshop/issues/new
+      - url: https://github.com/andubiel/zt-201-network-automation-workshop/issues/new
         text: Open an Issue (GitHub)
