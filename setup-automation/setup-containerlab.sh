@@ -4,7 +4,7 @@
 echo "Setup containerlab" >> /tmp/progress.log
 chmod 666 /tmp/progress.log 2>/dev/null || true
 
-REPO_URL="https://github.com/rhpds/201-zt-network-automation-workshop.git"
+REPO_URL="https://github.com/rhpds/zt-201-network-automation-workshop.git"
 REPO_DIR="/home/rhel/201-zt-network-automation-workshop"
 
 # ---------------------------------------------------------------------------
