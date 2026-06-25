@@ -39,9 +39,9 @@ tabs:
   - name: Network Report
     url: https://clab-report-${guid}.${domain}/
     external: false
-  - name: Network Report
+  - name: Gitea Repo
     url: http://containerlab:8181
-    external: false
+    external: true
   - name: Open an Issue
     # GitHub blocks iframes (X-Frame-Options); external opens in a new browser tab.
     url: https://github.com/rhpds/zt-network-automation-workshop/issues/new
