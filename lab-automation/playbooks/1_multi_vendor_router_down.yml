@@ -3,7 +3,7 @@
   hosts: containerlab
   gather_facts: false
   vars:
-    clab_dir: "/home/lab-user/2_multi_vendor_vxla"
+    clab_dir: "/home/lab-user/2_multi_vendor_vxlan"
 
   tasks:
     - name: Containerlab destroy
