@@ -11,6 +11,13 @@ REPO_DIR="/home/rhel/zt-201-network-automation-workshop"
 # Clone the workshop repo so we have access to bundled RPMs etc.
 # ---------------------------------------------------------------------------
 clone_repo() {
+  # Remove old repo directory if it exists (from previous versions)
+  local old_repo_dir="/home/rhel/zt-network-automation-workshop"
+  if [[ -d "${old_repo_dir}" ]]; then
+    echo "Removing old repo directory ${old_repo_dir}..." >> /tmp/progress.log
+    rm -rf "${old_repo_dir}" 2>>/tmp/progress.log || true
+  fi
+
   if [[ -d "${REPO_DIR}/.git" ]]; then
     echo "Workshop repo already present on containerlab" >> /tmp/progress.log
     return 0

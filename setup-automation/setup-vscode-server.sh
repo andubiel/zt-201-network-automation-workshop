@@ -4,7 +4,7 @@ echo "Setup vscode" >> /tmp/progress.log
 chmod 666 /tmp/progress.log 2>/dev/null || true
 
 REPO_URL="https://github.com/andubiel/zt-201-network-automation-workshop.git"
-REPO_DIR="/tmp/zt-network-automation-workshop"
+REPO_DIR="/tmp/zt-201-network-automation-workshop"
 
 # ---------------------------------------------------------------------------
 # Configure and start code-server (already baked into devtools-ansible image).
