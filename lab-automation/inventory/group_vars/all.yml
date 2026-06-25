@@ -16,7 +16,7 @@ clab_topology_dir: "/home/lab-user/2_multi_vendor_router"
 clab_deploy_wait_seconds: 120
 
 # Git project to register in Controller (override per deployment).
-workshop_git_url: "https://github.com/rhpds/zt-network-automation-workshop.git"
+workshop_git_url: "https://github.com/andubiel/zt-201-network-automation-workshop.git"
 workshop_project_name: "Network automation workshop"
 workshop_scm_branch: main
 

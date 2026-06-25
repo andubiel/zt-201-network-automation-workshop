@@ -122,7 +122,7 @@ PIP_PID=$!
 # ---------------------------------------------------------------------------
 # Download workshop repo and copy exercise + bundled RPM files.
 # ---------------------------------------------------------------------------
-TARBALL_URL="https://github.com/rhpds/zt-network-automation-workshop/archive/refs/heads/main.tar.gz"
+TARBALL_URL="https://github.com/andubiel/zt-201-network-automation-workshop/archive/refs/heads/main.tar.gz"
 echo "Downloading workshop repo tarball..." >> /tmp/progress.log
 curl -sL "${TARBALL_URL}" | tar xz -C /tmp >> /tmp/progress.log 2>&1
 REPO_DIR="/tmp/zt-network-automation-workshop-main"
