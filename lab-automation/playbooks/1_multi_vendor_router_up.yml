@@ -15,7 +15,7 @@
 
     - name: Record last-deployed topology for resume-on-boot
       ansible.builtin.copy:
-        content: "{{ clab_dir }}"
+        content: "2_multi_vendor_vxlan"
         dest: /etc/containerlab/last-topology
         mode: "0644"
       become: true

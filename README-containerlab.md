@@ -71,13 +71,13 @@ sudo containerlab deploy --reconfigure
 If the lab acts broken after the containerlab VM was **powered off**, **suspended/resumed**, or `deploy --reconfigure` fights **stale containers** (sometimes seen with **Arista vEOS**), tear the topology down fully, then deploy again — same sequence as `lab-automation/playbooks/1_multi_vendor_router_down.yml` plus deploy:
 
 ```bash
-TOPO_DIR="$(cat /etc/containerlab/last-topology 2>/dev/null || echo /home/lab-user/1_multi_vendor_router)"
+TOPO_DIR="$(cat /etc/containerlab/last-topology 2>/dev/null || echo /home/lab-user/2_multi_vendor_vxlan)"
 cd "$TOPO_DIR"
 sudo containerlab destroy
 sudo containerlab deploy --reconfigure
 ```
 
-Use another directory if your topology is not under `1_multi_vendor_router` (the path in `/etc/containerlab/last-topology` is the one the workshop records after a successful deploy).
+Use another directory if your topology is not under `2_multi_vendor_vxlan` (the path in `/etc/containerlab/last-topology` is the one the workshop records after a successful deploy).
 
 ### Refresh `containerlab-resume` on an older image
 
@@ -99,7 +99,7 @@ New workshop images install a resume helper that runs **`containerlab destroy`**
 ### Inspect (text)
 
 ```bash
-cd ~/1_multi_vendor_router
+cd ~/2_multi_vendor_vxlan
 sudo containerlab inspect
 ```
 
@@ -147,14 +147,14 @@ From **outside** the cluster (e.g. from your laptop or from the **control** VM),
 From the same directory you deployed from:
 
 ```bash
-cd ~/1_multi_vendor_router
+cd ~/2_multi_vendor_vxlan
 sudo containerlab destroy
 ```
 
 If you used `-t` to deploy, use the same file:
 
 ```bash
-sudo containerlab destroy -t ./routers.clab.yml
+sudo containerlab destroy -t ./vxlan.base.clab.yml
 ```
 
 ---
