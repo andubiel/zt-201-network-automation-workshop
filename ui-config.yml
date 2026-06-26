@@ -40,7 +40,7 @@ tabs:
     url: https://clab-report-${guid}.${domain}/
     external: false
   - name: Gitea Repo
-    url: http://containerlab:8181
+    url: https://gitea-${guid}.${domain}/
     external: false
   - name: Open an Issue
     # GitHub blocks iframes (X-Frame-Options); external opens in a new browser tab.
