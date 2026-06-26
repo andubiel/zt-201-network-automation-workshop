@@ -218,4 +218,15 @@ fi
 # ---------------------------------------------------------------------------
 chown -R $USER:$USER /home/$USER/.config /home/$USER/.local 2>/dev/null
 
+# ---------------------------------------------------------------------------
+# Run Gitea setup if the script exists
+# ---------------------------------------------------------------------------
+GITEA_SCRIPT="$(dirname "$0")/setup-vscode-gitea.sh"
+if [[ -f "${GITEA_SCRIPT}" ]]; then
+  echo "Running setup-vscode-gitea.sh..." >> /tmp/progress.log
+  bash "${GITEA_SCRIPT}" >> /tmp/progress.log 2>&1 || echo "setup-vscode-gitea.sh failed" >> /tmp/progress.log
+else
+  echo "setup-vscode-gitea.sh not found, skipping" >> /tmp/progress.log
+fi
+
 echo "setup-vscode.sh complete" >> /tmp/progress.log

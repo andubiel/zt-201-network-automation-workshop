@@ -388,4 +388,16 @@ push_ssh_key_to_control || echo "push_ssh_key_to_control failed" >> /tmp/progres
 setup_router_access || echo "setup_router_access failed" >> /tmp/progress.log
 install_clab_resume_service || echo "install_clab_resume_service failed" >> /tmp/progress.log
 deploy_topology || echo "deploy_topology failed" >> /tmp/progress.log
+
+# ---------------------------------------------------------------------------
+# Run Gitea setup if the script exists
+# ---------------------------------------------------------------------------
+GITEA_SCRIPT="$(dirname "$0")/setup-containerlab-gitea.sh"
+if [[ -f "${GITEA_SCRIPT}" ]]; then
+  echo "Running setup-containerlab-gitea.sh..." >> /tmp/progress.log
+  bash "${GITEA_SCRIPT}" >> /tmp/progress.log 2>&1 || echo "setup-containerlab-gitea.sh failed" >> /tmp/progress.log
+else
+  echo "setup-containerlab-gitea.sh not found, skipping" >> /tmp/progress.log
+fi
+
 echo "setup-containerlab.sh complete" >> /tmp/progress.log
