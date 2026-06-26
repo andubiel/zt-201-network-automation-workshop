@@ -338,6 +338,42 @@ UNIT
 }
 
 # ---------------------------------------------------------------------------
+# Deploy the containerlab topology to ensure it's running after setup
+# ---------------------------------------------------------------------------
+deploy_topology() {
+  local topo_dir="/home/lab-user/2_multi_vendor_vxlan"
+  echo "Deploying containerlab topology..." >> /tmp/progress.log
+
+  if [[ ! -d "${topo_dir}" ]]; then
+    echo "WARNING: Topology directory ${topo_dir} does not exist, skipping deploy" >> /tmp/progress.log
+    return 0
+  fi
+
+  cd "${topo_dir}" || {
+    echo "ERROR: Could not cd to ${topo_dir}" >> /tmp/progress.log
+    return 1
+  }
+
+  echo "Running containerlab deploy --reconfigure in ${topo_dir}..." >> /tmp/progress.log
+  containerlab deploy --reconfigure >> /tmp/progress.log 2>&1
+  if [[ $? -eq 0 ]]; then
+    echo "Containerlab topology deployed successfully" >> /tmp/progress.log
+
+    # Record this topology as the last-deployed for resume service
+    mkdir -p /etc/containerlab
+    echo "${topo_dir}" > /etc/containerlab/last-topology
+    echo "Recorded ${topo_dir} as last-deployed topology" >> /tmp/progress.log
+  else
+    echo "WARNING: Containerlab deploy failed" >> /tmp/progress.log
+    return 1
+  fi
+
+  # Show what's running
+  echo "Containerlab inspect output:" >> /tmp/progress.log
+  containerlab inspect >> /tmp/progress.log 2>&1 || true
+}
+
+# ---------------------------------------------------------------------------
 # Run each step independently — failures in one must not block the rest.
 # install_rpms runs before push_ssh_key_to_control because sshpass is needed.
 # ---------------------------------------------------------------------------
@@ -351,4 +387,5 @@ install_rpms
 push_ssh_key_to_control || echo "push_ssh_key_to_control failed" >> /tmp/progress.log
 setup_router_access || echo "setup_router_access failed" >> /tmp/progress.log
 install_clab_resume_service || echo "install_clab_resume_service failed" >> /tmp/progress.log
+deploy_topology || echo "deploy_topology failed" >> /tmp/progress.log
 echo "setup-containerlab.sh complete" >> /tmp/progress.log
