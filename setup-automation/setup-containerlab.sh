@@ -11,22 +11,29 @@ REPO_DIR="/home/rhel/zt-201-network-automation-workshop"
 # Destroy any existing containerlab topology to ensure clean state
 # ---------------------------------------------------------------------------
 cleanup_existing_topology() {
-  local topo_dir="/home/lab-user/1_multi_vendor_router"
-  echo "Cleaning up any existing containerlab topology..." >> /tmp/progress.log
+  echo "Cleaning up any existing containerlab topologies..." >> /tmp/progress.log
 
-  if [[ -d "${topo_dir}" ]]; then
-    echo "Found topology directory ${topo_dir}, attempting to destroy..." >> /tmp/progress.log
-    cd "${topo_dir}" || {
-      echo "WARNING: Could not cd to ${topo_dir}" >> /tmp/progress.log
-      return 0
-    }
+  # List of possible topology directories to clean up
+  local topo_dirs=(
+    "/home/lab-user/1_multi_vendor_router"
+    "/home/lab-user/2_multi_vendor_vxlan"
+  )
 
-    # Destroy existing topology (ignore errors if nothing exists)
-    containerlab destroy >> /tmp/progress.log 2>&1 || true
-    echo "Containerlab destroy completed (or no topology was running)" >> /tmp/progress.log
-  else
-    echo "No existing topology directory found at ${topo_dir}" >> /tmp/progress.log
-  fi
+  for topo_dir in "${topo_dirs[@]}"; do
+    if [[ -d "${topo_dir}" ]]; then
+      echo "Found topology directory ${topo_dir}, attempting to destroy..." >> /tmp/progress.log
+      cd "${topo_dir}" || {
+        echo "WARNING: Could not cd to ${topo_dir}" >> /tmp/progress.log
+        continue
+      }
+
+      # Destroy existing topology (ignore errors if nothing exists)
+      containerlab destroy >> /tmp/progress.log 2>&1 || true
+      echo "Containerlab destroy completed for ${topo_dir}" >> /tmp/progress.log
+    else
+      echo "No topology directory found at ${topo_dir}" >> /tmp/progress.log
+    fi
+  done
 }
 
 # ---------------------------------------------------------------------------
