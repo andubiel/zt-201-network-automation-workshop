@@ -1,5 +1,5 @@
 ---
-- name: Destroy multi-vendor router containerlab topology
+- name: Destroy multi-vendor vxlan containerlab topology
   hosts: containerlab
   gather_facts: false
   vars:

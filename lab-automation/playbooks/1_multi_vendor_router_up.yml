@@ -1,6 +1,6 @@
 ---
-# Deploy the 1_multi_vendor_router topology on the containerlab VM.
-- name: Deploy multi-vendor router containerlab topology
+# Deploy the 2_multi_vendor_vxlan topology on the containerlab VM.
+- name: Deploy multi-vendor vxlan containerlab topology
   hosts: containerlab
   gather_facts: false
   vars:
