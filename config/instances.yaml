@@ -60,6 +60,12 @@ virtualmachines:
             protocol: TCP
             targetPort: 8484
             name: port8484
+      - name: gitea
+        ports:
+          - port: 8181
+            protocol: TCP
+            targetPort: 8181
+            name: gitea
       - name: clab-report
         ports:
           - port: 8088
@@ -67,6 +73,12 @@ virtualmachines:
             targetPort: 8088
             name: clab-report
     routes:
+      - name: gitea
+        host: gitea
+        service: gitea
+        targetPort: 8181
+        tls: true
+        tls_termination: Edge
       - name: clab-report
         host: clab-report
         service: clab-report
