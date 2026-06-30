@@ -155,36 +155,32 @@ if ! grep -q '.local/bin' /home/$USER/.bashrc 2>/dev/null; then
 fi
 
 # ---------------------------------------------------------------------------
-# Router SSH access — wrapper scripts so students can type `ssh rtr1` or `rtr1`
-# from the VS Code terminal. Routers are reachable via containerlab port forwarding.
+# Switch SSH access — wrapper scripts so students can type `ssh leaf1` or `leaf1`
+# from the VS Code terminal. Switches are reachable via containerlab hostname.
 # ---------------------------------------------------------------------------
-setup_router_access() {
-  echo "Setting up router SSH access on vscode VM..." >> /tmp/progress.log
+setup_switch_access() {
+  echo "Setting up switch SSH access on vscode VM..." >> /tmp/progress.log
 
   if ! command -v sshpass &>/dev/null; then
-    echo "WARNING: sshpass not available; router SSH wrappers will not work" >> /tmp/progress.log
+    echo "WARNING: sshpass not available; switch SSH wrappers will not work" >> /tmp/progress.log
     return 0
   fi
 
-  for rtr_entry in "rtr1 2222" "rtr2 2223" "rtr3 2225" "rtr4 2226"; do
-    local rtr_name="${rtr_entry% *}"
-    local rtr_port="${rtr_entry#* }"
-    cat > "/usr/local/bin/${rtr_name}" <<WRAPPER
+  # Wrapper scripts: just type `leaf1` or `spine1` to connect passwordlessly.
+  for switch in leaf1 leaf2 leaf3 leaf4 spine1 spine2; do
+    cat > "/usr/local/bin/${switch}" <<WRAPPER
 #!/bin/bash
-exec sshpass -p 'admin@123' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${rtr_port} admin@containerlab "\$@"
+exec sshpass -p 'admin@123' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@${switch} "\$@"
 WRAPPER
-    chmod 755 "/usr/local/bin/${rtr_name}"
+    chmod 755 "/usr/local/bin/${switch}"
   done
 
-  cat > /etc/profile.d/router-ssh.sh <<'PROFILE'
+  # Shell function so `ssh leaf1` also works passwordlessly (all users).
+  cat > /etc/profile.d/switch-ssh.sh <<'PROFILE'
 ssh() {
   case "$1" in
-    rtr[1-4])
-      local port
-      case "$1" in
-        rtr1) port=2222 ;; rtr2) port=2223 ;; rtr3) port=2225 ;; rtr4) port=2226 ;;
-      esac
-      sshpass -p 'admin@123' /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "$port" "admin@containerlab" "${@:2}"
+    leaf[1-4]|spine[1-2])
+      sshpass -p 'admin@123' /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "admin@$1" "${@:2}"
       ;;
     *)
       /usr/bin/ssh "$@"
@@ -192,11 +188,11 @@ ssh() {
   esac
 }
 PROFILE
-  chmod 644 /etc/profile.d/router-ssh.sh
+  chmod 644 /etc/profile.d/switch-ssh.sh
 
-  echo "Router access configured on vscode — rtr1/rtr2/rtr3/rtr4 via containerlab ports" >> /tmp/progress.log
+  echo "Switch access configured on vscode — leaf1-4, spine1-2 (passwordless)" >> /tmp/progress.log
 }
-setup_router_access
+setup_switch_access
 
 # ---------------------------------------------------------------------------
 # Wait for background tasks to finish.

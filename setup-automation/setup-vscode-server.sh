@@ -26,20 +26,7 @@ echo "code-server configured and started on port 8080" >> /tmp/progress.log
 echo "%rhel ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/rhel_sudoers
 chmod 440 /etc/sudoers.d/rhel_sudoers
 
-# ---------------------------------------------------------------------------
-# Clone the workshop repo and copy exercise files to ~rhel/network-workshop.
-# ---------------------------------------------------------------------------
-echo "Cloning workshop repo for exercise files..." >> /tmp/progress.log
-timeout 120 git clone "${REPO_URL}" "${REPO_DIR}" >> /tmp/progress.log 2>&1 || true
 
-if [[ -d "${REPO_DIR}/network-workshop" ]]; then
-  cp -r "${REPO_DIR}/network-workshop" /home/rhel/network-workshop
-  cp "${REPO_DIR}/network-workshop/.ansible-navigator.yml" /home/rhel/.ansible-navigator.yml
-  chown -R rhel:rhel /home/rhel/network-workshop /home/rhel/.ansible-navigator.yml
-  echo "Exercise files copied to /home/rhel/network-workshop" >> /tmp/progress.log
-else
-  echo "WARNING: network-workshop directory not found in repo" >> /tmp/progress.log
-fi
 
 # ---------------------------------------------------------------------------
 # Install bundled RPMs (podman, etc.) — skip failures silently.

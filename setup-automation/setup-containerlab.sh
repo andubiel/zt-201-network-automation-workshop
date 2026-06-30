@@ -410,10 +410,10 @@ install_gitea() {
   echo "Setting up Gitea on containerlab VM..." >> /tmp/progress.log
 
   local USER="gitea"
-  local REPO="zt-201-network-automation-workshop"
+  local REPO="201-network-automation-workshop"
   local PASSWORD="gitea123"
   local GITEA_DATA_DIR="/home/rhel/gitea_data"
-  local GITEA_URL="http://127.0.0.1:8181"
+  local GITEA_URL="http://containerlab:8181"
 
   # Ensure rhel user is in docker group
   if ! groups rhel | grep -q docker; then
@@ -475,7 +475,7 @@ install_gitea() {
       git config user.email 'gitea@local.host' 2>/dev/null || true
       git config user.name 'gitea' 2>/dev/null || true
       if ! git remote | grep -q gitea; then
-        git remote add gitea http://${USER}:${PASSWORD}@127.0.0.1:8181/${USER}/${REPO}.git
+        git remote add gitea http://${USER}:${PASSWORD}@containerlab:8181/${USER}/${REPO}.git
       fi
       git push gitea main 2>&1 || git push gitea main --force 2>&1 || true
     " >> /tmp/progress.log 2>&1
