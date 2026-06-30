@@ -1,24 +1,40 @@
 #!/bin/bash
-# All-in-One Gitea Deployment Script
+# Install and configure Gitea on the containerlab VM
+# Runs after setup-containerlab.sh completes
 
-set -e
+echo "Setting up Gitea on containerlab VM..." >> /tmp/progress.log
 
 # Variables
 USER="gitea"
-REPO="201-multi-vendor-vxlan-workshop"
+REPO="zt-201-network-automation-workshop"
 PASSWORD="gitea123"
 RHEL_USER="rhel"
 BASE_DIR="/home/${RHEL_USER}"
 GITEA_DATA_DIR="${BASE_DIR}/gitea_data"
-WORKSHOP_REMOTE_DIR="${BASE_DIR}/201-multi-vendor-vxlan-workshop-remote"
-WORKSHOP_DIR="${BASE_DIR}/201-multi-vendor-vxlan-workshop"
-export ANSIBLE_HOST="containerlab"
+WORKSHOP_DIR="${BASE_DIR}/${REPO}"
+GITEA_URL="http://containerlab:8181"
 
-sudo usermod -aG docker rhel
-newgrp docker
+# Ensure rhel user is in docker group
+if ! groups rhel | grep -q docker; then
+  echo "Adding rhel user to docker group..." >> /tmp/progress.log
+  usermod -aG docker rhel
+fi
 
-# Deploy Gitea Container
-sudo -u rhel docker run -d \
+# Create Gitea data directory
+mkdir -p "${GITEA_DATA_DIR}"
+chown -R rhel:rhel "${GITEA_DATA_DIR}"
+echo "Created Gitea data directory: ${GITEA_DATA_DIR}" >> /tmp/progress.log
+
+# Stop and remove existing Gitea container if it exists
+if docker ps -a | grep -q gitea; then
+  echo "Removing existing Gitea container..." >> /tmp/progress.log
+  docker stop gitea 2>/dev/null || true
+  docker rm gitea 2>/dev/null || true
+fi
+
+# Deploy Gitea container
+echo "Deploying Gitea container..." >> /tmp/progress.log
+docker run -d \
   --name gitea \
   --restart always \
   -p 8181:3000 \
@@ -27,89 +43,70 @@ sudo -u rhel docker run -d \
   -e USER_GID=1000 \
   -e GITEA__database__DB_TYPE=sqlite3 \
   -e GITEA__security__INSTALL_LOCK=true \
-  -v /home/rhel/gitea_data:/data:z \
-  docker.io/gitea/gitea:latest
+  -v "${GITEA_DATA_DIR}:/data:z" \
+  docker.io/gitea/gitea:latest >> /tmp/progress.log 2>&1
 
-echo "Waiting for Gitea to initialize..."
-sleep 15
+if [[ $? -eq 0 ]]; then
+  echo "Gitea container started successfully" >> /tmp/progress.log
+else
+  echo "ERROR: Failed to start Gitea container" >> /tmp/progress.log
+  exit 1
+fi
 
-echo "Creating Gitea admin user..."
-# Added '-u git' to bypass the mustNotRunAsRoot() restriction
-sudo -u rhel docker exec -u git gitea gitea admin user create \
+# Wait for Gitea to be ready
+echo "Waiting for Gitea to initialize..." >> /tmp/progress.log
+for i in {1..30}; do
+  if curl -s "${GITEA_URL}" > /dev/null 2>&1; then
+    echo "Gitea is ready" >> /tmp/progress.log
+    break
+  fi
+  sleep 2
+done
+
+# Create Gitea admin user
+echo "Creating Gitea admin user..." >> /tmp/progress.log
+docker exec -u git gitea gitea admin user create \
   --username "${USER}" \
   --password "${PASSWORD}" \
   --email "gitea@local.host" \
-  --admin || true
+  --admin >> /tmp/progress.log 2>&1 || echo "User may already exist" >> /tmp/progress.log
 
-echo "Creating repository via API..."
+# Create repository via API
+echo "Creating repository via Gitea API..." >> /tmp/progress.log
 curl -s -X POST \
   -u "${USER}:${PASSWORD}" \
   -H "Content-Type: application/json" \
-  -d "{\"name\":\"${REPO}\"}" \
-  http://127.0.0.1:8181/api/v1/user/repos/ || true
+  -d "{\"name\":\"${REPO}\",\"private\":false,\"auto_init\":false}" \
+  "${GITEA_URL}/api/v1/user/repos" >> /tmp/progress.log 2>&1 || echo "Repo may already exist" >> /tmp/progress.log
 
 # Wait for API to register the new repo
 sleep 2
-echo -e "\nSetup complete."
-  
-  
-  Controller
 
-#!/bin/bash
-# All-in-One Gitea Deployment Script
-# This creates the Compose file, deploys the container, and configures the repos using Docker.
+# Clone the workshop repository and push to Gitea
+if [[ -d "${WORKSHOP_DIR}" ]]; then
+  echo "Workshop directory already exists at ${WORKSHOP_DIR}" >> /tmp/progress.log
 
-set -e
+  # Configure git and add Gitea remote
+  sudo -u ${RHEL_USER} bash -c "
+    cd ${WORKSHOP_DIR}
+    git config user.email 'gitea@local.host' 2>/dev/null || true
+    git config user.name 'gitea' 2>/dev/null || true
 
-# Variables
-USER="gitea"
-REPO="201-multi-vendor-vxlan-workshop"
-PASSWORD="gitea123"
-RHEL_USER="rhel"
-BASE_DIR="/home/${RHEL_USER}"
-GITEA_DATA_DIR="${BASE_DIR}/gitea_data"
-COMPOSE_FILE="${BASE_DIR}/docker-compose.yml"
-WORKSHOP_REMOTE_DIR="${BASE_DIR}/201-multi-vendor-vxlan-workshop-remote"
-WORKSHOP_DIR="${BASE_DIR}/201-multi-vendor-vxlan-workshop"
-export ANSIBLE_HOST="containerlab"
- 
-# 4. Clone the remote workshop repository
-echo "Cloning remote workshop repository..."
-sudo -u ${RHEL_USER} git clone \
-  https://gitlab.com/redhatautomation/201-multi-vendor-vxlan-workshop.git \
-  ${WORKSHOP_REMOTE_DIR} || true
-  
-# 5. Cleanup remote and local directory
-echo "Cleaning up .git from remote directory..."
-sudo -u ${RHEL_USER} rm -rf "${WORKSHOP_REMOTE_DIR}/.git"
-sudo -u ${RHEL_USER} rm -rf "${WORKSHOP_DIR}/"
+    # Add Gitea as a remote if not already added
+    if ! git remote | grep -q gitea; then
+      git remote add gitea http://${USER}:${PASSWORD}@containerlab:8181/${USER}/${REPO}.git
+    fi
 
+    # Push to Gitea
+    git push gitea main 2>&1 || git push gitea main --force 2>&1 || true
+  " >> /tmp/progress.log 2>&1
 
+  echo "Pushed workshop content to Gitea" >> /tmp/progress.log
+else
+  echo "WARNING: Workshop directory ${WORKSHOP_DIR} not found, skipping push to Gitea" >> /tmp/progress.log
+fi
 
-# 6. Clone the local Gitea repository
-echo "Cloning local Gitea repository..."
-sudo -u ${RHEL_USER} git clone \
-  http://${USER}:${PASSWORD}@${ANSIBLE_HOST}:8181/${USER}/${REPO}.git \
-  ${WORKSHOP_DIR} || true
-
-# 7. Copy files from remote to local repository
-echo "Copying workshop files..."
-sudo -u ${RHEL_USER} rsync -a \
-  ${WORKSHOP_REMOTE_DIR}/ \
-  ${WORKSHOP_DIR}/
-
-# 8. Configure Git and push to Gitea
-echo "Configuring Git and pushing to Gitea..."
-sudo -u ${RHEL_USER} bash -c "cd ${WORKSHOP_DIR} && \
-  git config --global user.email admin@example.com && \
-  git config --global user.name gitea && \
-  git add . && \
-  git commit -m 'Initial workshop sync' || true && \
-  git push origin main || git push origin main || true" 
-echo "Cleaning up..."
-sudo -u ${RHEL_USER} rm -rf ${WORKSHOP_REMOTE_DIR}
-
-echo "=== Gitea setup complete ==="
-echo "Access at: http://${ANSIBLE_HOST}:8181"
-echo "Username: ${USER}"
-echo "Password: ${PASSWORD}"
+echo "=== Gitea setup complete ===" >> /tmp/progress.log
+echo "Gitea URL: http://containerlab:8181" >> /tmp/progress.log
+echo "Username: ${USER}" >> /tmp/progress.log
+echo "Repository: ${REPO}" >> /tmp/progress.log
