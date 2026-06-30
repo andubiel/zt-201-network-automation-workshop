@@ -410,7 +410,7 @@ install_gitea() {
   echo "Setting up Gitea on containerlab VM..." >> /tmp/progress.log
 
   local USER="gitea"
-  local REPO="201-network-automation-workshop"
+  local REPO="201-multi-vendor-vxlan-workshop"
   local PASSWORD="gitea123"
   local GITEA_DATA_DIR="/home/rhel/gitea_data"
   local GITEA_URL="http://containerlab:8181"
