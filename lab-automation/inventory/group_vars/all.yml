@@ -26,7 +26,7 @@ bootstrap_aap: true
 
 # --- Controller pre-provision (aap_bootstrap + controller_bootstrap_objects) ---
 # remote (default): Job runs from Controller/EE on control; Ansible SSHs to host containerlab and runs
-#   lab-automation/playbooks/1_multi_vendor_router_up.yml there (become/sudo for containerlab).
+#   lab-automation/playbooks/2_multi_vendor_vxlan_up.yml there (become/sudo for containerlab).
 # local: Job inventory is only localhost; playbook uses raw `ssh …@containerlab` inside tasks (optional
 #   if you refuse to store a machine credential—still needs key-based SSH from the EE user).
 workshop_jt_mode: remote
@@ -38,9 +38,9 @@ workshop_containerlab_host_name: containerlab-vm
 containerlab_ansible_host: containerlab
 containerlab_ansible_user: rhel
 
-workshop_jt_deploy_topology_name: "Deploy — 1_multi_vendor_router"
-workshop_playbook_topology_local: lab-automation/playbooks/1_multi_vendor_router_up_local.yml
-workshop_playbook_topology_remote: lab-automation/playbooks/1_multi_vendor_router_up.yml
+workshop_jt_deploy_topology_name: "Deploy — 2_multi_vendor_vxlan"
+workshop_playbook_topology_local: lab-automation/playbooks/2_multi_vendor_vxlan_up_local.yml
+workshop_playbook_topology_remote: lab-automation/playbooks/2_multi_vendor_vxlan_up.yml
 workshop_credential_name: "Workshop containerlab SSH"
 
 # Optional: set if default EE is not sufficient (exact name string from Controller).

@@ -26,25 +26,81 @@ all:
         rtr1:
           ansible_network_os: cisco.ios.ios
           ansible_connection: network_cli
-          ansible_port: 2222
+          ansible_port: 12222
           ansible_user: admin
           ansible_password: admin@123
         rtr2:
           ansible_network_os: arista.eos.eos
           ansible_connection: network_cli
-          ansible_port: 2223
+          ansible_port: 12223
           ansible_user: admin
           ansible_password: admin@123
         rtr3:
           ansible_network_os: junipernetworks.junos.junos
           ansible_connection: ansible.netcommon.netconf
           ansible_port: 2225
-          ansible_netconf_port: 2224
+          ansible_netconf_port: 12224
           ansible_user: admin
           ansible_password: admin@123
         rtr4:
           ansible_network_os: arista.eos.eos
           ansible_connection: network_cli
-          ansible_port: 2226
+          ansible_port: 12226
           ansible_user: admin
           ansible_password: admin@123
+    spines:
+      hosts:
+        spine1:
+          ansible_port: 2226
+        spine2:
+          ansible_port: 2227
+      vars:
+        ansible_host: "{{ containerlab_fip }}"
+        ansible_network_os: arista.eos.eos
+        ansible_connection: ansible.netcommon.network_cli
+        ansible_user: admin
+        ansible_password: admin@123
+        ansible_become: 'true'
+        ansible_become_method: enable
+         
+    leafs:
+      children:
+        arista_leafs:
+          hosts:
+            leaf1:
+              ansible_port: 2222
+            leaf2:
+              ansible_port: 2223
+          vars:
+            ansible_host: "{{ containerlab_fip }}"
+            ansible_network_os: arista.eos.eos
+            ansible_connection: ansible.netcommon.network_cli
+            ansible_user: admin
+            ansible_password: admin@123
+            ansible_become: 'true'
+            ansible_become_method: enable
+    
+        cisco_leafs:
+          hosts:
+            leaf3:
+              ansible_port: 2224
+            leaf4:
+              ansible_port: 2225
+          vars:
+            ansible_host: "{{ containerlab_fip }}"
+            ansible_network_os: cisco.nxos.nxos
+            ansible_connection: ansible.netcommon.network_cli
+            ansible_user: admin
+            ansible_password: admin@123
+             
+    arista:
+      children:
+        spines:
+        arista_leafs:
+
+    cisco:
+      children:
+        cisco_leafs:
+          
+
+    

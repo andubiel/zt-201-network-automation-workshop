@@ -7,4 +7,4 @@
 #   ansible-playbook -i inventory/lab.yml playbooks/aap_bootstrap.yml
 #   ansible-playbook -i inventory/lab.yml playbooks/1_multi_vendor_router_up.yml
 - import_playbook: aap_bootstrap.yml
-- import_playbook: 1_multi_vendor_router_up.yml
+- import_playbook: 2_multi_vendor_vxlan_up.yml
