@@ -44,7 +44,7 @@
         controller_password: "{{ controller_password }}"
         validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-    - name: Job template — deploy 1_multi_vendor_router (local + ssh)
+    - name: Job template — deploy 2_multi_vendor_vxlan (local + ssh)
       ansible.controller.job_template:
         name: "{{ workshop_jt_deploy_topology_name }}"
         job_type: run
