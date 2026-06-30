@@ -82,27 +82,17 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 # Groups
-- name: "Group — cisco"
+- name: "Group — arista_leafs"
   ansible.controller.group:
-    name: cisco
+    name: arista_leafs
     inventory: "Workshop Inventory"
     variables:
-      ansible_network_os: ios
-      ansible_connection: network_cli
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Group — arista"
-  ansible.controller.group:
-    name: arista
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_network_os: eos
-      ansible_connection: network_cli
-      ansible_become: true
+      ansible_host: containerlab
+      ansible_network_os: arista.eos.eos
+      ansible_connection: ansible.netcommon.network_cli
+      ansible_user: admin
+      ansible_password: "admin@123"
+      ansible_become: 'true'
       ansible_become_method: enable
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -110,43 +100,85 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Group — juniper"
+- name: "Group — cisco_leafs"
   ansible.controller.group:
-    name: juniper
+    name: cisco_leafs
     inventory: "Workshop Inventory"
     variables:
-      ansible_network_os: junos
-      ansible_connection: netconf
+      ansible_host: containerlab
+      ansible_network_os: cisco.nxos.nxos
+      ansible_connection: ansible.netcommon.network_cli
+      ansible_user: admin
+      ansible_password: "admin@123"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Group — network (parent of cisco, arista, juniper)"
+- name: "Group — spines"
   ansible.controller.group:
-    name: network
+    name: spines
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_host: containerlab
+      ansible_network_os: arista.eos.eos
+      ansible_connection: ansible.netcommon.network_cli
+      ansible_user: admin
+      ansible_password: "admin@123"
+      ansible_become: 'true'
+      ansible_become_method: enable
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Group — leafs (parent of arista_leafs, cisco_leafs)"
+  ansible.controller.group:
+    name: leafs
     inventory: "Workshop Inventory"
     children:
-      - cisco
-      - arista
-      - juniper
+      - arista_leafs
+      - cisco_leafs
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-# Router hosts — accessed from AAP/control via containerlab port forwarding
-- name: "Host — rtr1 (Cisco IOS)"
+- name: "Group — arista (parent of spines, arista_leafs)"
+  ansible.controller.group:
+    name: arista
+    inventory: "Workshop Inventory"
+    children:
+      - spines
+      - arista_leafs
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Group — cisco (parent of cisco_leafs)"
+  ansible.controller.group:
+    name: cisco
+    inventory: "Workshop Inventory"
+    children:
+      - cisco_leafs
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# Switch hosts — accessed from AAP/control via containerlab port forwarding
+- name: "Host — leaf1 (Arista EOS)"
   ansible.controller.host:
-    name: rtr1
+    name: leaf1
     inventory: "Workshop Inventory"
     variables:
-      ansible_host: containerlab
       ansible_port: 2222
-      ansible_user: admin
-      ansible_password: "admin@123"
       note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -154,15 +186,12 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Host — rtr2 (Arista EOS)"
+- name: "Host — leaf2 (Arista EOS)"
   ansible.controller.host:
-    name: rtr2
+    name: leaf2
     inventory: "Workshop Inventory"
     variables:
-      ansible_host: containerlab
       ansible_port: 2223
-      ansible_user: admin
-      ansible_password: "admin@123"
       note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -170,16 +199,25 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Host — rtr3 (Juniper Junos)"
+- name: "Host — leaf3 (Cisco NX-OS)"
   ansible.controller.host:
-    name: rtr3
+    name: leaf3
     inventory: "Workshop Inventory"
     variables:
-      ansible_host: containerlab
+      ansible_port: 2224
+      note: "in production these passwords would be encrypted in vault"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Host — leaf4 (Cisco NX-OS)"
+  ansible.controller.host:
+    name: leaf4
+    inventory: "Workshop Inventory"
+    variables:
       ansible_port: 2225
-      ansible_netconf_port: 2224
-      ansible_user: admin
-      ansible_password: "admin@123"
       note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -187,15 +225,25 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Host — rtr4 (Arista EOS)"
+- name: "Host — spine1 (Arista EOS)"
   ansible.controller.host:
-    name: rtr4
+    name: spine1
     inventory: "Workshop Inventory"
     variables:
-      ansible_host: containerlab
       ansible_port: 2226
-      ansible_user: admin
-      ansible_password: "admin@123"
+      note: "in production these passwords would be encrypted in vault"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Host — spine2 (Arista EOS)"
+  ansible.controller.host:
+    name: spine2
+    inventory: "Workshop Inventory"
+    variables:
+      ansible_port: 2227
       note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -236,12 +284,13 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 # Associate hosts with groups
-- name: "Associate rtr1 with cisco group"
+- name: "Associate leaf1, leaf2 with arista_leafs group"
   ansible.controller.group:
-    name: cisco
+    name: arista_leafs
     inventory: "Workshop Inventory"
     hosts:
-      - rtr1
+      - leaf1
+      - leaf2
     preserve_existing_hosts: true
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -249,13 +298,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Associate rtr2, rtr4 with arista group"
+- name: "Associate leaf3, leaf4 with cisco_leafs group"
   ansible.controller.group:
-    name: arista
+    name: cisco_leafs
     inventory: "Workshop Inventory"
     hosts:
-      - rtr2
-      - rtr4
+      - leaf3
+      - leaf4
     preserve_existing_hosts: true
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -263,12 +312,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Associate rtr3 with juniper group"
+- name: "Associate spine1, spine2 with spines group"
   ansible.controller.group:
-    name: juniper
+    name: spines
     inventory: "Workshop Inventory"
     hosts:
-      - rtr3
+      - spine1
+      - spine2
     preserve_existing_hosts: true
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
