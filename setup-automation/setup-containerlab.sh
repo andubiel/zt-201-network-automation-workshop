@@ -169,21 +169,23 @@ REMOTE
 
 # ---------------------------------------------------------------------------
 # Set up /etc/hosts, SSH config, sshpass, and wrapper scripts so students
-# can connect to routers with just `ssh rtr1` or `rtr1`.
+# can connect to switches with just `ssh leaf1` or `spine1`.
 # ---------------------------------------------------------------------------
-setup_router_access() {
-  echo "Setting up router name resolution and SSH config..." >> /tmp/progress.log
+setup_switch_access() {
+  echo "Setting up switch name resolution and SSH config..." >> /tmp/progress.log
 
   # /etc/hosts — system-wide. Always rewrite the block; the VM image may
   # contain stale containerlab-managed entries that fool a simple grep check.
-  sed -i '/rtr[1-4]/d' /etc/hosts 2>/dev/null
+  sed -i '/leaf[1-4]\|spine[1-2]/d' /etc/hosts 2>/dev/null
   cat >> /etc/hosts <<'HOSTS'
-172.20.20.10 rtr1
-172.20.20.20 rtr2
-172.20.20.30 rtr3
-172.20.20.40 rtr4
+172.20.20.10 leaf1
+172.20.20.20 leaf2
+172.20.20.30 leaf3
+172.20.20.40 leaf4
+172.20.20.11 spine1
+172.20.20.12 spine2
 HOSTS
-  echo "Written rtr1-4 to /etc/hosts (172.20.20.x)" >> /tmp/progress.log
+  echo "Written leaf1-4, spine1-2 to /etc/hosts (172.20.20.x)" >> /tmp/progress.log
 
   # SSH config for both rhel and lab-user.
   for u in rhel lab-user; do
@@ -191,43 +193,55 @@ HOSTS
     local ussh="${uhome}/.ssh"
     if id "${u}" &>/dev/null; then
       mkdir -p "${ussh}"
-      cat > "${ussh}/config.d-routers" <<'SSHCFG'
-Host rtr1
+      cat > "${ussh}/config.d-switches" <<'SSHCFG'
+Host leaf1
   Hostname 172.20.20.10
   User admin
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 
-Host rtr2
+Host leaf2
   Hostname 172.20.20.20
   User admin
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 
-Host rtr3
+Host leaf3
   Hostname 172.20.20.30
   User admin
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 
-Host rtr4
+Host leaf4
   Hostname 172.20.20.40
+  User admin
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+Host spine1
+  Hostname 172.20.20.11
+  User admin
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+
+Host spine2
+  Hostname 172.20.20.12
   User admin
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null
 SSHCFG
       # Append Include if main config exists, otherwise create config directly.
       if [[ -f "${ussh}/config" ]]; then
-        grep -q "config.d-routers" "${ussh}/config" 2>/dev/null || \
-          sed -i '1i Include ~/.ssh/config.d-routers' "${ussh}/config"
+        grep -q "config.d-switches" "${ussh}/config" 2>/dev/null || \
+          sed -i '1i Include ~/.ssh/config.d-switches' "${ussh}/config"
       else
         cat > "${ussh}/config" <<'MAINCFG'
-Include ~/.ssh/config.d-routers
+Include ~/.ssh/config.d-switches
 MAINCFG
       fi
-      chmod 600 "${ussh}/config" "${ussh}/config.d-routers" 2>/dev/null
+      chmod 600 "${ussh}/config" "${ussh}/config.d-switches" 2>/dev/null
       chown -R "${u}:${u}" "${ussh}" 2>/dev/null || chown -R "${u}:users" "${ussh}" 2>/dev/null
-      echo "SSH router config written for ${u}" >> /tmp/progress.log
+      echo "SSH switch config written for ${u}" >> /tmp/progress.log
     fi
   done
 
@@ -244,20 +258,20 @@ MAINCFG
     echo "sshpass already installed" >> /tmp/progress.log
   fi
 
-  # Wrapper scripts: just type `rtr1` to connect passwordlessly.
-  for rtr in rtr1 rtr2 rtr3 rtr4; do
-    cat > "/usr/local/bin/${rtr}" <<WRAPPER
+  # Wrapper scripts: just type `leaf1` or `spine1` to connect passwordlessly.
+  for switch in leaf1 leaf2 leaf3 leaf4 spine1 spine2; do
+    cat > "/usr/local/bin/${switch}" <<WRAPPER
 #!/bin/bash
-exec sshpass -p 'admin@123' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@${rtr} "\$@"
+exec sshpass -p 'admin@123' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@${switch} "\$@"
 WRAPPER
-    chmod 755 "/usr/local/bin/${rtr}"
+    chmod 755 "/usr/local/bin/${switch}"
   done
 
-  # Shell function so `ssh rtr1` also works passwordlessly (all users).
-  cat > /etc/profile.d/router-ssh.sh <<'PROFILE'
+  # Shell function so `ssh leaf1` also works passwordlessly (all users).
+  cat > /etc/profile.d/switch-ssh.sh <<'PROFILE'
 ssh() {
   case "$1" in
-    rtr[1-4])
+    leaf[1-4]|spine[1-2])
       sshpass -p 'admin@123' /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "admin@$1" "${@:2}"
       ;;
     *)
@@ -266,9 +280,9 @@ ssh() {
   esac
 }
 PROFILE
-  chmod 644 /etc/profile.d/router-ssh.sh
+  chmod 644 /etc/profile.d/switch-ssh.sh
 
-  echo "Router access configured — rtr1/rtr2/rtr3/rtr4 (passwordless)" >> /tmp/progress.log
+  echo "Switch access configured — leaf1-4, spine1-2 (passwordless)" >> /tmp/progress.log
 }
 
 # ---------------------------------------------------------------------------
@@ -385,7 +399,7 @@ cleanup_existing_topology
 clone_repo
 install_rpms
 push_ssh_key_to_control || echo "push_ssh_key_to_control failed" >> /tmp/progress.log
-setup_router_access || echo "setup_router_access failed" >> /tmp/progress.log
+setup_switch_access || echo "setup_switch_access failed" >> /tmp/progress.log
 install_clab_resume_service || echo "install_clab_resume_service failed" >> /tmp/progress.log
 deploy_topology || echo "deploy_topology failed" >> /tmp/progress.log
 
