@@ -413,7 +413,8 @@ install_gitea() {
   local REPO="201-multi-vendor-vxlan-workshop"
   local PASSWORD="gitea123"
   local GITEA_DATA_DIR="/home/rhel/gitea_data"
-  local GITEA_URL="http://containerlab:8181"
+  local GITEA_URL_LOCAL="http://127.0.0.1:8181"
+  local GITEA_URL_REMOTE="http://containerlab:8181"
 
   # Ensure rhel user is in docker group
   if ! groups rhel | grep -q docker; then
@@ -428,13 +429,13 @@ install_gitea() {
   docker stop gitea 2>/dev/null || true
   docker rm gitea 2>/dev/null || true
 
-  # Deploy Gitea container
+  # Deploy Gitea container - bind to 0.0.0.0 to allow access from other VMs
   echo "Deploying Gitea container..." >> /tmp/progress.log
   docker run -d \
     --name gitea \
     --restart always \
-    -p 8181:3000 \
-    -p 2229:22 \
+    -p 0.0.0.0:8181:3000 \
+    -p 0.0.0.0:2229:22 \
     -e USER_UID=1000 \
     -e USER_GID=1000 \
     -e GITEA__database__DB_TYPE=sqlite3 \
@@ -442,10 +443,10 @@ install_gitea() {
     -v "${GITEA_DATA_DIR}:/data:z" \
     docker.io/gitea/gitea:latest >> /tmp/progress.log 2>&1
 
-  # Wait for Gitea to be ready
+  # Wait for Gitea to be ready (check locally)
   echo "Waiting for Gitea to initialize..." >> /tmp/progress.log
   for i in {1..30}; do
-    if curl -s "${GITEA_URL}" > /dev/null 2>&1; then
+    if curl -s "${GITEA_URL_LOCAL}" > /dev/null 2>&1; then
       echo "Gitea is ready" >> /tmp/progress.log
       break
     fi
@@ -459,23 +460,23 @@ install_gitea() {
     --email "gitea@local.host" \
     --admin >> /tmp/progress.log 2>&1 || true
 
-  # Create repository via API
+  # Create repository via API (use local URL)
   curl -s -X POST \
     -u "${USER}:${PASSWORD}" \
     -H "Content-Type: application/json" \
     -d "{\"name\":\"${REPO}\",\"private\":false,\"auto_init\":false}" \
-    "${GITEA_URL}/api/v1/user/repos" >> /tmp/progress.log 2>&1 || true
+    "${GITEA_URL_LOCAL}/api/v1/user/repos" >> /tmp/progress.log 2>&1 || true
 
   sleep 2
 
-  # Push workshop content to Gitea if repo exists
+  # Push workshop content to Gitea if repo exists (use local URL)
   if [[ -d "${REPO_DIR}" ]]; then
     sudo -u rhel bash -c "
       cd ${REPO_DIR}
       git config user.email 'gitea@local.host' 2>/dev/null || true
       git config user.name 'gitea' 2>/dev/null || true
       if ! git remote | grep -q gitea; then
-        git remote add gitea http://${USER}:${PASSWORD}@containerlab:8181/${USER}/${REPO}.git
+        git remote add gitea http://${USER}:${PASSWORD}@127.0.0.1:8181/${USER}/${REPO}.git
       fi
       git push gitea main 2>&1 || git push gitea main --force 2>&1 || true
     " >> /tmp/progress.log 2>&1
