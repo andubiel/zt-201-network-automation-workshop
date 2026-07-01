@@ -513,11 +513,31 @@ deploy_netbox() {
     docker compose up -d
   " >> /tmp/progress.log 2>&1
 
+  # Run a second time in case the first attempt didn't complete
+  echo "Running docker compose up -d a second time to ensure completion..." >> /tmp/progress.log
+  sudo -u rhel bash -c "
+    cd ${NETBOX_DIR}
+    docker compose up -d
+  " >> /tmp/progress.log 2>&1
+
   if [[ $? -eq 0 ]]; then
     echo "Netbox deployed successfully" >> /tmp/progress.log
   else
     echo "WARNING: Netbox deployment failed" >> /tmp/progress.log
     return 1
+  fi
+
+  # Create admin superuser
+  echo "Creating Netbox admin superuser..." >> /tmp/progress.log
+  sudo -u rhel bash -c "
+    cd ${NETBOX_DIR}
+    docker compose exec -e DJANGO_SUPERUSER_PASSWORD='admin@123' netbox /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py createsuperuser --noinput --username admin --email admin@example.com
+  " >> /tmp/progress.log 2>&1
+
+  if [[ $? -eq 0 ]]; then
+    echo "Netbox admin superuser created successfully" >> /tmp/progress.log
+  else
+    echo "WARNING: Netbox admin superuser creation failed" >> /tmp/progress.log
   fi
 
   echo "Netbox setup complete" >> /tmp/progress.log
