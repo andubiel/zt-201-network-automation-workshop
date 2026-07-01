@@ -1,4 +1,4 @@
-PLUGINS = ["netbox_branching"]
+#PLUGINS = ["netbox_branching"]
 # Add your plugins and plugin settings here.
 # Of course uncomment this file out.
 
