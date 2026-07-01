@@ -488,4 +488,41 @@ install_gitea() {
 
 install_gitea || echo "install_gitea failed" >> /tmp/progress.log
 
+# ---------------------------------------------------------------------------
+# Deploy Netbox using docker compose
+# ---------------------------------------------------------------------------
+deploy_netbox() {
+  echo "Deploying Netbox on containerlab VM..." >> /tmp/progress.log
+
+  local NETBOX_DIR="${REPO_DIR}/netbox-docker"
+
+  if [[ ! -d "${NETBOX_DIR}" ]]; then
+    echo "WARNING: netbox-docker directory not found at ${NETBOX_DIR}" >> /tmp/progress.log
+    return 1
+  fi
+
+  # Ensure rhel user is in docker group
+  if ! groups rhel | grep -q docker; then
+    usermod -aG docker rhel >> /tmp/progress.log 2>&1
+  fi
+
+  # Run docker compose up -d from netbox-docker directory
+  echo "Running docker compose up -d in ${NETBOX_DIR}..." >> /tmp/progress.log
+  sudo -u rhel bash -c "
+    cd ${NETBOX_DIR}
+    docker compose up -d
+  " >> /tmp/progress.log 2>&1
+
+  if [[ $? -eq 0 ]]; then
+    echo "Netbox deployed successfully" >> /tmp/progress.log
+  else
+    echo "WARNING: Netbox deployment failed" >> /tmp/progress.log
+    return 1
+  fi
+
+  echo "Netbox setup complete" >> /tmp/progress.log
+}
+
+deploy_netbox || echo "deploy_netbox failed" >> /tmp/progress.log
+
 echo "setup-containerlab.sh complete" >> /tmp/progress.log

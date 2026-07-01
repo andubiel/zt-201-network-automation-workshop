@@ -66,6 +66,12 @@ virtualmachines:
             protocol: TCP
             targetPort: 8181
             name: gitea
+      - name: netbox
+        ports:
+          - port: 8282
+            protocol: TCP
+            targetPort: 8282
+            name: netbox
       - name: clab-report
         ports:
           - port: 8088
@@ -77,6 +83,12 @@ virtualmachines:
         host: gitea
         service: gitea
         targetPort: 8181
+        tls: true
+        tls_termination: Edge
+      - name: netbox
+        host: netbox
+        service: netbox
+        targetPort: 8282
         tls: true
         tls_termination: Edge
       - name: clab-report

@@ -42,6 +42,9 @@ tabs:
   - name: Gitea Repo
     url: https://gitea-${guid}.${domain}/
     external: false
+  - name: Netbox
+    url: https://netbox-${guid}.${domain}/
+    external: false
   - name: Open an Issue
     # GitHub blocks iframes (X-Frame-Options); external opens in a new browser tab.
     url: https://github.com/andubiel/zt-201-network-automation-workshop/issues/new
