@@ -1,0 +1,5 @@
+FROM netboxcommunity/netbox:v4.4.4
+
+COPY ./plugin_requirements.txt /opt/netbox/
+COPY ./local_settings.py /opt/netbox/netbox/netbox/
+RUN /usr/local/bin/uv pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r /opt/netbox/plugin_requirements.txt
