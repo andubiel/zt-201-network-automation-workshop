@@ -146,6 +146,13 @@ else
   echo "WARNING: network-workshop directory not found in repo" >> /tmp/progress.log
 fi
 
+# Remove network-workshop directory as we'll use the GitLab workshop content instead
+echo "Removing network-workshop directory (will use GitLab workshop instead)..." >> /tmp/progress.log
+if [[ -d "/home/$USER/network-workshop" ]]; then
+  sudo -u $USER rm -rf /home/$USER/network-workshop
+  echo "network-workshop directory removed" >> /tmp/progress.log
+fi
+
 # ---------------------------------------------------------------------------
 # Add ~/.local/bin to PATH for the rhel user.
 # ---------------------------------------------------------------------------
