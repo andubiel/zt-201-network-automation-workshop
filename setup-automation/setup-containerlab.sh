@@ -527,11 +527,15 @@ deploy_netbox() {
     return 1
   fi
 
+  # Wait for Netbox to be fully ready
+  echo "Waiting for Netbox to be ready (60 seconds)..." >> /tmp/progress.log
+  sleep 60
+
   # Create admin superuser
   echo "Creating Netbox admin superuser..." >> /tmp/progress.log
   sudo -u rhel bash -c "
     cd ${NETBOX_DIR}
-    docker compose exec -e DJANGO_SUPERUSER_PASSWORD='admin@123' netbox /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py createsuperuser --noinput --username admin --email admin@example.com
+    docker compose exec -T -e DJANGO_SUPERUSER_PASSWORD='admin@123' netbox /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py createsuperuser --noinput --username admin --email admin@example.com
   " >> /tmp/progress.log 2>&1
 
   if [[ $? -eq 0 ]]; then
