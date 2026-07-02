@@ -506,30 +506,12 @@ deploy_netbox() {
     usermod -aG docker rhel >> /tmp/progress.log 2>&1
   fi
 
-  # Generate environment files from templates with random secrets
-  echo "Generating NetBox environment files from templates..." >> /tmp/progress.log
-  if [[ -f "${NETBOX_DIR}/generate-env-files.sh" ]]; then
-    bash "${NETBOX_DIR}/generate-env-files.sh" >> /tmp/progress.log 2>&1
-    if [[ $? -eq 0 ]]; then
-      echo "Environment files generated successfully" >> /tmp/progress.log
-    else
-      echo "WARNING: Failed to generate environment files" >> /tmp/progress.log
-      return 1
-    fi
-  else
-    echo "WARNING: generate-env-files.sh not found, using existing env files" >> /tmp/progress.log
-  fi
-
   # Run docker compose up -d from netbox-docker directory
   echo "Running docker compose up -d in ${NETBOX_DIR}..." >> /tmp/progress.log
   sudo -u rhel bash -c "
     cd ${NETBOX_DIR}
     docker compose up -d
   " >> /tmp/progress.log 2>&1
-
-  # Wait for containers to initialize
-  echo "Waiting 30 seconds for containers to initialize..." >> /tmp/progress.log
-  sleep 30
 
   # Run a second time in case the first attempt didn't complete
   echo "Running docker compose up -d a second time to ensure completion..." >> /tmp/progress.log
@@ -538,37 +520,16 @@ deploy_netbox() {
     docker compose up -d
   " >> /tmp/progress.log 2>&1
 
-  # Wait for Netbox container to become healthy (up to 5 minutes)
-  echo "Waiting for Netbox container to become healthy..." >> /tmp/progress.log
-  MAX_WAIT=300  # 5 minutes
-  ELAPSED=0
-  HEALTHY=false
-
-  while [[ $ELAPSED -lt $MAX_WAIT ]]; do
-    # Check if netbox container is healthy
-    HEALTH_STATUS=$(sudo -u rhel bash -c "cd ${NETBOX_DIR} && docker compose ps netbox --format json 2>/dev/null | grep -o '\"Health\":\"[^\"]*\"' | cut -d'\"' -f4")
-
-    if [[ "$HEALTH_STATUS" == "healthy" ]]; then
-      echo "Netbox container is healthy after ${ELAPSED} seconds" >> /tmp/progress.log
-      HEALTHY=true
-      break
-    fi
-
-    echo "Waiting for Netbox to be healthy... (${ELAPSED}s elapsed, status: ${HEALTH_STATUS:-unknown})" >> /tmp/progress.log
-    sleep 10
-    ELAPSED=$((ELAPSED + 10))
-  done
-
-  if [[ "$HEALTHY" == "true" ]]; then
+  if [[ $? -eq 0 ]]; then
     echo "Netbox deployed successfully" >> /tmp/progress.log
   else
-    echo "WARNING: Netbox container did not become healthy within ${MAX_WAIT} seconds" >> /tmp/progress.log
-    # Continue anyway - the container might still work
+    echo "WARNING: Netbox deployment failed" >> /tmp/progress.log
+    return 1
   fi
 
-  # Additional wait to ensure all services are ready
-  echo "Waiting additional 30 seconds for services to stabilize..." >> /tmp/progress.log
-  sleep 30
+  # Wait for Netbox to be fully ready
+  echo "Waiting for Netbox to be ready (60 seconds)..." >> /tmp/progress.log
+  sleep 60
 
   # Create admin superuser
   echo "Creating Netbox admin superuser..." >> /tmp/progress.log
