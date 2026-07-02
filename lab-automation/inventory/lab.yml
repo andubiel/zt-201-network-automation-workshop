@@ -1,7 +1,7 @@
 ---
 # Override with -e or host/group_vars for your environment.
 # Containerlab SSH: defaults match common RHDP workshop (lab-user, hostname containerlab).
-# Switches: set containerlab_fip to the LoadBalancer IP that fronts ports 2222–2227 before gather_facts.
+# Routers: set containerlab_fip to the LoadBalancer IP that fronts ports 2222–2228 before gather_facts.
 
 all:
   vars:
@@ -21,6 +21,7 @@ all:
         localhost:
           ansible_connection: local
 
+    
     spines:
       hosts:
         spine1:
