@@ -513,6 +513,10 @@ deploy_netbox() {
     docker compose up -d
   " >> /tmp/progress.log 2>&1
 
+  # Wait for initial container startup (30 seconds)
+  echo "Waiting 30 seconds for containers to initialize..." >> /tmp/progress.log
+  sleep 30
+
   # Run a second time in case the first attempt didn't complete
   echo "Running docker compose up -d a second time to ensure completion..." >> /tmp/progress.log
   sudo -u rhel bash -c "
@@ -520,16 +524,31 @@ deploy_netbox() {
     docker compose up -d
   " >> /tmp/progress.log 2>&1
 
-  if [[ $? -eq 0 ]]; then
-    echo "Netbox deployed successfully" >> /tmp/progress.log
-  else
-    echo "WARNING: Netbox deployment failed" >> /tmp/progress.log
-    return 1
+  # Wait for NetBox container to become healthy (up to 5 minutes)
+  echo "Waiting for NetBox container to become healthy..." >> /tmp/progress.log
+  HEALTHY=false
+  for i in {1..30}; do
+    HEALTH=$(sudo -u rhel bash -c "cd ${NETBOX_DIR} && docker compose ps netbox --format '{{.Health}}' 2>/dev/null" | head -1)
+    echo "Health check attempt $i/30: status=$HEALTH" >> /tmp/progress.log
+
+    if [[ "$HEALTH" == "healthy" ]]; then
+      echo "NetBox container is healthy" >> /tmp/progress.log
+      HEALTHY=true
+      break
+    fi
+
+    sleep 10
+  done
+
+  if [[ "$HEALTHY" != "true" ]]; then
+    echo "WARNING: NetBox container did not become healthy after 5 minutes" >> /tmp/progress.log
+    echo "Checking container logs..." >> /tmp/progress.log
+    sudo -u rhel bash -c "cd ${NETBOX_DIR} && docker compose logs netbox --tail=50" >> /tmp/progress.log 2>&1
   fi
 
-  # Wait for Netbox to be fully ready
-  echo "Waiting for Netbox to be ready (60 seconds)..." >> /tmp/progress.log
-  sleep 60
+  # Additional wait to ensure services are stable
+  echo "Waiting additional 30 seconds for services to stabilize..." >> /tmp/progress.log
+  sleep 30
 
   # Create admin superuser
   echo "Creating Netbox admin superuser..." >> /tmp/progress.log
