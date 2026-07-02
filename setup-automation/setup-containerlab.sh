@@ -506,6 +506,20 @@ deploy_netbox() {
     usermod -aG docker rhel >> /tmp/progress.log 2>&1
   fi
 
+  # Generate environment files from templates with random secrets
+  echo "Generating NetBox environment files from templates..." >> /tmp/progress.log
+  if [[ -f "${NETBOX_DIR}/generate-env-files.sh" ]]; then
+    bash "${NETBOX_DIR}/generate-env-files.sh" >> /tmp/progress.log 2>&1
+    if [[ $? -eq 0 ]]; then
+      echo "Environment files generated successfully" >> /tmp/progress.log
+    else
+      echo "WARNING: Failed to generate environment files" >> /tmp/progress.log
+      return 1
+    fi
+  else
+    echo "WARNING: generate-env-files.sh not found, using existing env files" >> /tmp/progress.log
+  fi
+
   # Run docker compose up -d from netbox-docker directory
   echo "Running docker compose up -d in ${NETBOX_DIR}..." >> /tmp/progress.log
   sudo -u rhel bash -c "
