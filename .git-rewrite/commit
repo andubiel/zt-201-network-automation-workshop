@@ -1,0 +1,21 @@
+tree 08608cc8236515811016721f7975dd7f13d85289
+parent 72f936b8ea03a09042eaed16e9493e92741e1b44
+author andubiel <tdubiel@yahoo.com> 1782998004 -0400
+committer andubiel <tdubiel@yahoo.com> 1782998004 -0400
+
+fix: add notsecret comments to NetBox env files
+
+Add '# notsecret' comments to all password and secret lines in NetBox
+environment files to prevent GitHub secret scanning alerts.
+
+These are demo/workshop credentials, not production secrets. The notsecret
+comment tells security scanners (gitleaks/PwnedAlert) to ignore these lines.
+
+Files updated:
+- netbox-docker/env/redis.env
+- netbox-docker/env/redis-cache.env
+- netbox-docker/env/postgres.env
+- netbox-docker/env/netbox.env (DB_PASSWORD, REDIS_PASSWORD, REDIS_CACHE_PASSWORD, SECRET_KEY, API_TOKEN_PEPPERS)
+
+Per Red Hat InfoSec pattern distribution server documentation:
+https://source.redhat.com/departments/it/it-information-security/wiki/pattern_distribution_server
