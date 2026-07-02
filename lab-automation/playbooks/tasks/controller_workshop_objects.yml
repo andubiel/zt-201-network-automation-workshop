@@ -218,7 +218,6 @@
     inventory: "Workshop Inventory"
     variables:
       ansible_port: 2225
-      note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
