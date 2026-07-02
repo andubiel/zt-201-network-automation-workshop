@@ -36,9 +36,6 @@ tabs:
   - name: Ansible Automation Platform
     url: https://control-${guid}.${domain}/
     external: false
-  - name: Network Report
-    url: https://clab-report-${guid}.${domain}/
-    external: false
   - name: Gitea Repo
     url: https://gitea-${guid}.${domain}/
     external: false
