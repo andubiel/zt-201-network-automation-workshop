@@ -324,8 +324,8 @@ fi
 echo "containerlab-resume: destroying existing topology in $TOPO_DIR (if any)"
 cd "$TOPO_DIR" || exit 1
 # Clean slate after pause/resume or hard stop — avoids stale containers (e.g. vEOS)
-# conflicting with deploy --reconfigure. destroy may fail if nothing exists; ignore.
-containerlab destroy || true
+# conflicting with deploy --reconfigure. Use --cleanup to remove lab subdirectories.
+containerlab destroy -t vxlan.base.clab.yml --cleanup || true
 echo "containerlab-resume: re-deploying topology in $TOPO_DIR"
 containerlab deploy --reconfigure
 RESUME
