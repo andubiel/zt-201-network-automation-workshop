@@ -352,6 +352,56 @@ UNIT
 }
 
 # ---------------------------------------------------------------------------
+# Netbox auto-resume: systemd service that restarts NetBox docker-compose
+# on boot after shutdown/power-on
+# ---------------------------------------------------------------------------
+install_netbox_resume_service() {
+  echo "Installing netbox-resume systemd service..." >> /tmp/progress.log
+
+  cat > /usr/local/bin/netbox-resume <<'RESUME'
+#!/bin/bash
+NETBOX_DIR="/home/rhel/zt-201-network-automation-workshop/netbox-docker"
+
+if [[ ! -d "$NETBOX_DIR" ]]; then
+  echo "netbox-resume: NetBox directory $NETBOX_DIR not found, skipping"
+  exit 0
+fi
+
+echo "netbox-resume: starting NetBox docker-compose in $NETBOX_DIR"
+cd "$NETBOX_DIR" || exit 1
+
+# Run as rhel user (who has docker permissions)
+su - rhel -c "cd $NETBOX_DIR && docker compose up -d" || {
+  echo "netbox-resume: failed to start NetBox"
+  exit 1
+}
+
+echo "netbox-resume: NetBox started successfully"
+RESUME
+  chmod 755 /usr/local/bin/netbox-resume
+
+  cat > /etc/systemd/system/netbox-resume.service <<'UNIT'
+[Unit]
+Description=Restart NetBox docker-compose after resume
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/netbox-resume
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+  systemctl daemon-reload
+  systemctl enable netbox-resume.service >> /tmp/progress.log 2>&1
+  echo "netbox-resume service installed and enabled" >> /tmp/progress.log
+}
+
+# ---------------------------------------------------------------------------
 # Deploy the containerlab topology to ensure it's running after setup
 # ---------------------------------------------------------------------------
 deploy_topology() {
@@ -567,5 +617,6 @@ deploy_netbox() {
 }
 
 deploy_netbox || echo "deploy_netbox failed" >> /tmp/progress.log
+install_netbox_resume_service || echo "install_netbox_resume_service failed" >> /tmp/progress.log
 
 echo "setup-containerlab.sh complete" >> /tmp/progress.log
