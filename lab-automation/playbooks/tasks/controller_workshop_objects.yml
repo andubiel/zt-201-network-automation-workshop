@@ -375,258 +375,6 @@
   failed_when: false
 
 # ── Job Templates ────────────────────────────────────────────────────────────
-- name: "Job template — Network-Commands"
-  ansible.controller.job_template:
-    name: "Network-Commands"
-    description: "adhoc cisco commands"
-    job_type: run
-    organization: "Red Hat network organization"
-    project: "Workshop Project"
-    playbook: "playbooks/network_commands.yml"
-    inventory: "Workshop Inventory"
-    credentials:
-      - "Workshop Credential"
-    limit: "cisco"
-    survey_enabled: true
-    survey_spec:
-      name: ""
-      description: ""
-      spec:
-        - question_name: "Select a command you would like to execute"
-          question_description: "Restricted list of commands executable by operator"
-          required: true
-          type: multiplechoice
-          variable: controller_input
-          min: 0
-          max: 1024
-          default: "show version"
-          choices: "show version\nshow ip interface brief\nshow interface description\nshow ip route"
-          new_question: true
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Job template — Network-Reload"
-  ansible.controller.job_template:
-    name: "Network-Reload"
-    job_type: run
-    organization: "Red Hat network organization"
-    project: "Workshop Project"
-    playbook: "playbooks/network_reload.yml"
-    inventory: "Workshop Inventory"
-    credentials:
-      - "Workshop Credential"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Job template — Network-User"
-  ansible.controller.job_template:
-    name: "Network-User"
-    job_type: run
-    organization: "Red Hat network organization"
-    project: "Workshop Project"
-    playbook: "playbooks/network_user.yml"
-    inventory: "Workshop Inventory"
-    credentials:
-      - "Workshop Credential"
-    survey_enabled: true
-    survey_spec:
-      name: "System Survey"
-      description: "Prompt for system properties such as hostname"
-      spec:
-        - type: text
-          question_name: "Please enter the username"
-          question_description: "this will set the username on the network device"
-          variable: network_name
-          required: false
-          default: "ansible"
-        - type: text
-          question_name: "Please enter the plain-text password"
-          question_description: "this is not required if using an SSH key"
-          variable: network_configured_password
-          required: false
-          default: "ansible123"
-        - type: textarea
-          question_name: "Please paste the SSH public key here"
-          question_description: "this is not required, please leave blank to use plain-text password"
-          variable: network_key
-          required: false
-          default: ""
-        - type: text
-          question_name: "Please enter a privilege level (for network OS that support it)"
-          question_description: "This argument accepts integer values in the range of 1 to 15"
-          variable: network_privilege
-          required: false
-          default: ""
-        - question_description: "non-Juniper devices will ignore this field"
-          default: "super-user"
-          required: false
-          choices: "operator\nread-only\nsuper-user\nunauthorized"
-          variable: network_juniper_class
-          question_name: "Which login class? (Juniper only)"
-          type: multiplechoice
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Job template — Network-Time"
-  ansible.controller.job_template:
-    name: "Network-Time"
-    job_type: run
-    organization: "Red Hat network organization"
-    project: "Workshop Project"
-    playbook: "playbooks/network_time.yml"
-    inventory: "Workshop Inventory"
-    credentials:
-      - "Workshop Credential"
-    limit: "cisco"
-    survey_enabled: true
-    survey_spec:
-      name: ""
-      description: ""
-      spec:
-        - question_name: "What is the IP address of your NTP server?"
-          question_description: "Please enter a IPv4 address"
-          required: true
-          type: text
-          variable: ntp_server
-          min: 0
-          max: 1024
-          default: "216.239.35.0"
-          choices: ""
-          new_question: true
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Job template — Network-Report"
-  ansible.controller.job_template:
-    name: "Network-Report"
-    job_type: run
-    organization: "Red Hat network organization"
-    project: "Workshop Project"
-    playbook: "playbooks/network_report.yml"
-    inventory: "Workshop Inventory"
-    credentials:
-      - "Workshop Credential"
-    execution_environment: "Network EE"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Job template — Network-System"
-  ansible.controller.job_template:
-    name: "Network-System"
-    job_type: run
-    organization: "Red Hat network organization"
-    project: "Workshop Project"
-    playbook: "playbooks/network_system.yml"
-    inventory: "Workshop Inventory"
-    credentials:
-      - "Workshop Credential"
-    limit: "cisco"
-    survey_enabled: true
-    survey_spec:
-      name: "System Survey"
-      description: "Prompt for system properties such as hostname"
-      spec:
-        - type: text
-          question_name: "Please enter a hostname"
-          question_description: "this will set the hostname of the network device"
-          variable: network_hostname
-          required: false
-          default: "{{ '{{' }} inventory_hostname {{ '}}' }}"
-        - type: text
-          question_name: "Domain Name"
-          question_description: "Set the IP domain name"
-          variable: network_domain_name
-          required: false
-          default: ""
-        - type: text
-          question_name: "Please enter a lookup source"
-          question_description: "e.g. MgmtEth0/0/CPU0/0, source interface for performing DNS lookups"
-          variable: network_lookup_source
-          required: false
-          default: ""
-        - type: text
-          question_name: "Please enter the name servers"
-          question_description: "e.g. 8.8.8.8, List of DNS name servers"
-          variable: network_name_servers
-          required: false
-          default: "8.8.8.8"
-        - type: text
-          question_name: "Please enter the domain search names"
-          question_description: "e.g. the ip domain list, resolution for unqualified host names"
-          variable: network_domain_search
-          required: false
-          default: ""
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-# ── Network-Backup (needs two credentials workaround via extra_vars) ────────
-- name: "Job template — Network-Facts"
-  ansible.controller.job_template:
-    name: "Network-Facts"
-    job_type: run
-    organization: "Red Hat network organization"
-    project: "Workshop Project"
-    playbook: "playbooks/network_facts.yml"
-    inventory: "Workshop Inventory"
-    credentials:
-      - "Workshop Credential"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Job template — Network-Backup"
-  ansible.controller.job_template:
-    name: "Network-Backup"
-    job_type: run
-    organization: "Red Hat network organization"
-    project: "Workshop Project"
-    playbook: "playbooks/network_backup.yml"
-    inventory: "Workshop Inventory"
-    credentials:
-      - "Workshop Credential"
-      - "Controller Credential"
-    extra_vars:
-      restore_inventory: "Workshop Inventory"
-      restore_project: "Workshop Project"
-      restore_credential: "Workshop Credential"
-      restore_ee: "Default execution environment"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Remove stale restore templates (dynamic one is created by Network-Backup)"
-  ansible.controller.job_template:
-    name: "{{ item }}"
-    state: absent
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-  loop:
-    - "Network-Restore"
-    - "Network Automation - Restore"
 
 # ── Additional Workshop Job Templates ────────────────────────────────────────
 - name: "Job template — 1-Dynamic_inventory-Netbox-Setup"
@@ -831,6 +579,119 @@
     inventory: "Workshop Inventory"
     credentials:
       - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 5-Underlay_Configs-Deploy"
+  ansible.controller.job_template:
+    name: "5-Underlay_Configs-Deploy"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "5-underlay_configs/deploy_underlay.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 5-Underlay_Configs-Test"
+  ansible.controller.job_template:
+    name: "5-Underlay_Configs-Test"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "5-underlay_configs/underlay_test.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 6-Overlay_Configs-Deploy"
+  ansible.controller.job_template:
+    name: "6-Overlay_Configs-Deploy"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "6-overlay_configs/deploy_overlay.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 6-Overlay_Configs-Test"
+  ansible.controller.job_template:
+    name: "6-Overlay_Configs-Test"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "6-overlay_configs/overlay_test.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 7-Tuning_For_Scale"
+  ansible.controller.job_template:
+    name: "7-Tuning_For_Scale"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "7-tuning_for_scale/configure_snmp.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    survey_enabled: true
+    survey_spec:
+      name: ""
+      description: ""
+      spec:
+        - question_name: "Do you want to send an error?"
+          question_description: ""
+          required: true
+          type: multiplechoice
+          variable: error
+          min: 0
+          max: 1024
+          default: "no"
+          choices: "yes\nno"
+          new_question: true
+        - question_name: "Please select the 'Serial' batch percentages"
+          question_description: ""
+          required: true
+          type: multiselect
+          variable: serials
+          min: 0
+          max: 1024
+          choices: "1\n35%\n50%\n75%\n100%"
+          new_question: false
+        - question_name: "Please select the Maximum_Failure_Percentage"
+          question_description: ""
+          required: true
+          type: multiplechoice
+          variable: max_fail
+          min: 0
+          max: 1024
+          choices: "0\n5\n10\n20\n50\n75\n100"
+          new_question: false
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
