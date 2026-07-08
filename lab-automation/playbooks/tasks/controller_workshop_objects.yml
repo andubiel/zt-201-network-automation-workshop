@@ -338,13 +338,25 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-# ── Toolkit Project ─────────────────────────────────────────────────────────
+- name: "Execution Environment — Netbox EE"
+  ansible.controller.execution_environment:
+    name: "Netbox EE"
+    image: "quay.io/acme_corp/netbox-ee"
+    pull: missing
+    organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+# ── Workshop Project ─────────────────────────────────────────────────────────
 - name: "Project — Workshop Project (network-automation/toolkit)"
   ansible.controller.project:
     name: "Workshop Project"
     organization: "Red Hat network organization"
     scm_type: git
-    scm_url: "https://github.com/network-automation/toolkit"
+    scm_url: "https://gitea-${guid}.${domain}/gitea/201-multi-vendor-vxlan-workshop.git"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
