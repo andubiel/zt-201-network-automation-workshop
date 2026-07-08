@@ -402,6 +402,37 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
+# ── Netbox Inventory ────────────────────────────────────────────────────────
+- name: Netbox Inventory
+  ansible.controller.inventory:
+    name: "Netbox"
+    description: ""
+    organization: "Red Hat network organization"
+    prevent_instance_group_fallback: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: Netbox Inventory Source
+  ansible.controller.inventory_source:
+    name: "netbox-source"
+    description: ""
+    organization: "Red Hat network organization"
+    inventory: "Netbox"
+    source: scm
+    source_project: "Workshop Project"
+    source_path: "netbox_inventory.yml"
+    credential: "Netbox Credential"
+    update_on_launch: true
+    overwrite: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
 # ── Execution Environment ──────────────────────────────────────────────────
 - name: "Execution Environment — Network EE"
   ansible.controller.execution_environment:
@@ -463,8 +494,7 @@
     playbook: "1-dynamic_inventory/netbox_setup.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
-    survey_enabled: true
+      - "Netbox Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -480,7 +510,7 @@
     playbook: "1-dynamic_inventory/netbox_facts.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -496,7 +526,7 @@
     playbook: "1-dynamic_inventory/netbox_remove.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Netbox Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -512,8 +542,9 @@
     playbook: "2-backups_as_code/backups.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
       - "Controller Credential"
+      - "Gitea Credential"
     survey_enabled: true
     survey_spec:
       name: ""
@@ -542,7 +573,9 @@
     playbook: "2-backups_as_code/git_intent.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
+      - "Gitea Credential"
+
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -558,7 +591,8 @@
     playbook: "2-backups_as_code/git_restore.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
+      - "Gitea Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -574,7 +608,8 @@
     playbook: "2-backups_as_code/git_restore_artifact.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
+      - "Gitea Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -590,7 +625,7 @@
     playbook: "3-network_compliance/compliance_check.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     diff_mode: true
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -607,7 +642,7 @@
     playbook: "3-network_compliance/compliance_run.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -623,7 +658,7 @@
     playbook: "4-base_configs/base_configs_deploy.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -639,7 +674,7 @@
     playbook: "4-base_configs/base_configs_test.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -655,7 +690,7 @@
     playbook: "4-base_configs/base_configs_deploy_error.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -671,7 +706,7 @@
     playbook: "5-underlay_configs/deploy_underlay.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -687,7 +722,7 @@
     playbook: "5-underlay_configs/underlay_test.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -703,7 +738,7 @@
     playbook: "6-overlay_configs/deploy_overlay.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -719,7 +754,7 @@
     playbook: "6-overlay_configs/overlay_test.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -735,7 +770,7 @@
     playbook: "7-tuning_for_scale/configure_snmp.yml"
     inventory: "Workshop Inventory"
     credentials:
-      - "Workshop Credential"
+      - "Containerlab_Network Credential"
     survey_enabled: true
     survey_spec:
       name: ""
