@@ -63,15 +63,43 @@ You should have:
 
 The lab environment includes the following devices:
 
-[cols="1,1,1,1",options="header"]
-|===
-| Device | Platform | Connection | Data Center
+=== Network Devices
 
-| rtr1 | Cisco IOS-XE | network_cli | dc1
-| rtr2 | Arista EOS | network_cli | dc2
-| rtr3 | Juniper Junos | netconf | dc1
-| rtr4 | Arista EOS | network_cli | dc2
+[cols="1,1,1,1,1",options="header"]
 |===
+| Device | Platform | Role | Connection | Port
+
+| leaf1 | Arista EOS | Leaf Switch | network_cli | 2222
+| leaf2 | Arista EOS | Leaf Switch | network_cli | 2223
+| leaf3 | Cisco NX-OS | Leaf Switch | network_cli | 2224
+| leaf4 | Cisco NX-OS | Leaf Switch | network_cli | 2225
+| spine1 | Arista EOS | Spine Switch | network_cli | 2226
+| spine2 | Arista EOS | Spine Switch | network_cli | 2227
+|===
+
+=== Supporting Infrastructure
+
+[cols="1,1",options="header"]
+|===
+| Host | Description
+
+| ansible-1 | Containerlab VM (reachable from execution environment)
+| backup-server | Network configuration backup server
+|===
+
+=== Automation Platform Components
+
+The workshop provisions the following in Ansible Automation Platform:
+
+* **Organizations**: Red Hat network organization, Red Hat compute organization
+* **Credential Types**: Gitea Type, netbox-source
+* **Credentials**: Workshop Credential, Controller Credential, Netbox Credential, Containerlab_Network Credential
+* **Inventories**: Workshop Inventory (static), Netbox (dynamic SCM-based source)
+* **Execution Environments**: Network EE, Netbox EE
+* **Job Templates**: Dynamic inventory (Netbox), Backups as Code, Network Compliance, Base/Underlay/Overlay Configs, Tuning for Scale
+* **Workflows**: Compliance workflow, Base/Underlay/Overlay Config workflows, Configuration Drift Restore
+* **Teams**: Netops, Netadmin, Compute T1, Compute T2
+* **RBAC**: Pre-configured roles for network-admin and network-operator users
 
 // TODO: Add network topology diagram
 // image::ansible_network_diagram.png[Network Topology,align="center",link=self,window=blank,width=700,title="Workshop Network Topology"]
