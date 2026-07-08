@@ -66,8 +66,8 @@
         - NETBOX_API_KEY
     injectors:
       env:
-        NETBOX_API: "{{ NETBOX_API }}"
-        NETBOX_API_KEY: "{{ NETBOX_API_KEY }}"
+        NETBOX_API: !unsafe '{{ NETBOX_API }}'
+        NETBOX_API_KEY: !unsafe '{{ NETBOX_API_KEY }}'
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
