@@ -1,0 +1,33 @@
+# AAP Configuration Export - Ignore auto-generated and sensitive files
+
+# Ignore all files by default
+*
+
+# Allow specific configuration files we want to track
+!.gitignore
+!*.yaml
+!*.yml
+!*.md
+
+# Ignore sensitive credential data
+*credential*.yaml
+*credential*.yml
+*password*.yaml
+*password*.yml
+*secret*.yaml
+*secret*.yml
+
+# Ignore user-specific data
+*user*.yaml
+*user*.yml
+
+# Ignore instance-specific data
+controller_instance_groups.yaml
+controller_settings.yaml
+gateway_*.yaml
+eda_*.yaml
+
+# Ignore backup/temporary files
+*.bak
+*.tmp
+*~
