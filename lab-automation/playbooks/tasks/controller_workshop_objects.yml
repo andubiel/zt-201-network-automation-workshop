@@ -698,6 +698,194 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
+# ── Workflows ────────────────────────────────────────────────────────────────────
+- name: "Workflow — 3-Solution-Network-Complaince-Workflow"
+  ansible.controller.workflow_job_template:
+    name: "3-Solution-Network-Complaince-Workflow"
+    organization: "Red Hat network organization"
+    survey_enabled: true
+    survey_spec:
+      name: ""
+      description: ""
+      spec:
+        - question_name: "Which Compliance Roles would you like to check?"
+          question_description: ""
+          required: true
+          type: multiselect
+          variable: tag
+          min: 0
+          max: 1024
+          choices: "logging\nntp"
+          new_question: false
+    simplified_workflow_nodes:
+      - identifier: "Compliance Check"
+        unified_job_template: "3-Network_Compliance-Check"
+        organization: "Red Hat network organization"
+        success_nodes:
+          - "Human Approval"
+      - identifier: "Human Approval"
+        approval_node:
+          name: "Human Approval"
+        organization: "Red Hat network organization"
+        success_nodes:
+          - "Compliance Run"
+      - identifier: "Compliance Run"
+        unified_job_template: "3-Network_Compliance-Run"
+        organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Workflow — 4-Base_Configs-Workflow"
+  ansible.controller.workflow_job_template:
+    name: "4-Base_Configs-Workflow"
+    organization: "Red Hat network organization"
+    simplified_workflow_nodes:
+      - identifier: "Backups"
+        unified_job_template: "2-Backups_as_Code-Backup-GIT"
+        organization: "Red Hat network organization"
+        extra_data:
+          branch_name: "Base_Config"
+        success_nodes:
+          - "Deploy"
+      - identifier: "Deploy"
+        unified_job_template: "4-Base_Configs-Deploy"
+        organization: "Red Hat network organization"
+        success_nodes:
+          - "Test"
+      - identifier: "Test"
+        unified_job_template: "4-Base_Configs-Test"
+        organization: "Red Hat network organization"
+        failure_nodes:
+          - "Restore"
+      - identifier: "Restore"
+        unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+        organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Workflow — 4-Base_Configs-Workflow-Error"
+  ansible.controller.workflow_job_template:
+    name: "4-Base_Configs-Workflow-Error"
+    organization: "Red Hat network organization"
+    simplified_workflow_nodes:
+      - identifier: "Backups"
+        unified_job_template: "2-Backups_as_Code-Backup-GIT"
+        organization: "Red Hat network organization"
+        extra_data:
+          branch_name: "Base_Config"
+        success_nodes:
+          - "Deploy"
+      - identifier: "Deploy"
+        unified_job_template: "4-Base_Configs-Deploy-Error"
+        organization: "Red Hat network organization"
+        success_nodes:
+          - "Test"
+      - identifier: "Test"
+        unified_job_template: "4-Base_Configs-Test"
+        organization: "Red Hat network organization"
+        failure_nodes:
+          - "Restore"
+      - identifier: "Restore"
+        unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+        organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Workflow — 5-Underlay_Configs-Workflow"
+  ansible.controller.workflow_job_template:
+    name: "5-Underlay_Configs-Workflow"
+    organization: "Red Hat network organization"
+    simplified_workflow_nodes:
+      - identifier: "Backups"
+        unified_job_template: "2-Backups_as_Code-Backup-GIT"
+        organization: "Red Hat network organization"
+        extra_data:
+          branch_name: "Underlay_config"
+        success_nodes:
+          - "Deploy"
+      - identifier: "Deploy"
+        unified_job_template: "5-Underlay_Configs-Deploy"
+        organization: "Red Hat network organization"
+        success_nodes:
+          - "Test"
+      - identifier: "Test"
+        unified_job_template: "5-Underlay_Configs-Test"
+        organization: "Red Hat network organization"
+        failure_nodes:
+          - "Restore"
+      - identifier: "Restore"
+        unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+        organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Workflow — 6-Overlay_Configs-Workflow"
+  ansible.controller.workflow_job_template:
+    name: "6-Overlay_Configs-Workflow"
+    organization: "Red Hat network organization"
+    simplified_workflow_nodes:
+      - identifier: "Backups"
+        unified_job_template: "2-Backups_as_Code-Backup-GIT"
+        organization: "Red Hat network organization"
+        extra_data:
+          branch_name: "Overlay_config"
+        success_nodes:
+          - "Deploy"
+      - identifier: "Deploy"
+        unified_job_template: "6-Overlay_Configs-Deploy"
+        organization: "Red Hat network organization"
+        success_nodes:
+          - "Test"
+      - identifier: "Test"
+        unified_job_template: "6-Overlay_Configs-Test"
+        organization: "Red Hat network organization"
+        failure_nodes:
+          - "Restore"
+      - identifier: "Restore"
+        unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+        organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Workflow — 8-Configuration_Drift_Restore-Workflow"
+  ansible.controller.workflow_job_template:
+    name: "8-Configuration_Drift_Restore-Workflow"
+    organization: "Red Hat network organization"
+    simplified_workflow_nodes:
+      - identifier: "Base Configs"
+        unified_job_template: "4-Base_Configs-Workflow"
+        organization: "Red Hat network organization"
+        success_nodes:
+          - "Underlay Configs"
+      - identifier: "Underlay Configs"
+        unified_job_template: "5-Underlay_Configs-Workflow"
+        organization: "Red Hat network organization"
+        success_nodes:
+          - "Overlay Configs"
+      - identifier: "Overlay Configs"
+        unified_job_template: "6-Overlay_Configs-Workflow"
+        organization: "Red Hat network organization"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
 # ── Teams ────────────────────────────────────────────────────────────────────
 - name: Create teams
   ansible.controller.team:
