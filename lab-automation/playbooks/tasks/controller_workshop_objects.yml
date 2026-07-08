@@ -367,7 +367,7 @@
   ansible.controller.project_update:
     project: "Workshop Project"
     wait: true
-    timeout: 600
+    timeout: 6001
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
     controller_password: "{{ controller_password }}"
@@ -627,6 +627,215 @@
   loop:
     - "Network-Restore"
     - "Network Automation - Restore"
+
+# ── Additional Workshop Job Templates ────────────────────────────────────────
+- name: "Job template — 1-Dynamic_inventory-Netbox-Setup"
+  ansible.controller.job_template:
+    name: "1-Dynamic_inventory-Netbox-Setup"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "1-dynamic_inventory/netbox_setup.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    survey_enabled: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 1-Dynamic_Inventory-Netbox-Facts"
+  ansible.controller.job_template:
+    name: "1-Dynamic_Inventory-Netbox-Facts"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "1-dynamic_inventory/netbox_facts.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 1-Dynamic_inventory-Netbox-Remove"
+  ansible.controller.job_template:
+    name: "1-Dynamic_inventory-Netbox-Remove"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "1-dynamic_inventory/netbox_remove.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 2-Backups_as_Code-Backup-GIT"
+  ansible.controller.job_template:
+    name: "2-Backups_as_Code-Backup-GIT"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "2-backups_as_code/backups.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+      - "Controller Credential"
+    survey_enabled: true
+    survey_spec:
+      name: ""
+      description: ""
+      spec:
+        - question_name: "Enter the name for the backup branch"
+          question_description: ""
+          required: true
+          type: text
+          variable: branch_name
+          min: 1
+          max: 1024
+          new_question: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 2-Backups_as_Code-Git-Intent"
+  ansible.controller.job_template:
+    name: "2-Backups_as_Code-Git-Intent"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "2-backups_as_code/git_intent.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 2-Backups_as_Code-Git-Restore"
+  ansible.controller.job_template:
+    name: "2-Backups_as_Code-Git-Restore"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "2-backups_as_code/git_restore.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 2-Backups_as_Code-Git-Restore-Artifact"
+  ansible.controller.job_template:
+    name: "2-Backups_as_Code-Git-Restore-Artifact"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "2-backups_as_code/git_restore_artifact.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 3-Network_Compliance-Check"
+  ansible.controller.job_template:
+    name: "3-Network_Compliance-Check"
+    job_type: check
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "3-network_compliance/compliance_check.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    diff_mode: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 3-Network_Compliance-Run"
+  ansible.controller.job_template:
+    name: "3-Network_Compliance-Run"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "3-network_compliance/compliance_run.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 4-Base_Configs-Deploy"
+  ansible.controller.job_template:
+    name: "4-Base_Configs-Deploy"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "4-base_configs/base_configs_deploy.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 4-Base_Configs-Test"
+  ansible.controller.job_template:
+    name: "4-Base_Configs-Test"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "4-base_configs/base_configs_test.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Job template — 4-Base_Configs-Deploy-Error"
+  ansible.controller.job_template:
+    name: "4-Base_Configs-Deploy-Error"
+    job_type: run
+    organization: "Red Hat network organization"
+    project: "Workshop Project"
+    playbook: "4-base_configs/base_configs_deploy_error.yml"
+    inventory: "Workshop Inventory"
+    credentials:
+      - "Workshop Credential"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 # ── Teams ────────────────────────────────────────────────────────────────────
 - name: Create teams
