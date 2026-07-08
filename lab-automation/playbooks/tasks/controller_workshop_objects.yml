@@ -27,6 +27,53 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
+# ── Credential Types ────────────────────────────────────────────────────────
+- name: "Credential Type — Gitea Type"
+  ansible.controller.credential_type:
+    name: "Gitea Type"
+    description: ""
+    kind: "cloud"
+    inputs:
+      fields: []
+    injectors:
+      extra_vars:
+        email: gitea@example.com
+        token: gitea123  # notsecret
+        password: gitea123  # notsecret
+        username: gitea
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Credential Type — netbox-source"
+  ansible.controller.credential_type:
+    name: "netbox-source"
+    description: ""
+    kind: "cloud"
+    inputs:
+      fields:
+        - id: NETBOX_API
+          type: string
+          label: NetBox Host URL
+        - id: NETBOX_API_KEY
+          type: string
+          label: NetBox API Token
+          secret: true
+      required:
+        - NETBOX_API
+        - NETBOX_API_KEY
+    injectors:
+      env:
+        NETBOX_API: "{{ NETBOX_API }}"
+        NETBOX_API_KEY: "{{ NETBOX_API_KEY }}"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
 # ── Workshop Credential (Machine) ───────────────────────────────────────────
 - name: Workshop Credential — SSH to routers and hosts
   ansible.controller.credential:
@@ -64,6 +111,36 @@
       username: "{{ controller_username }}"
       password: "{{ controller_password }}"
       verify_ssl: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: Netbox Credential — Netbox API access
+  ansible.controller.credential:
+    name: "Netbox Credential"
+    description: ""
+    organization: "Red Hat network organization"
+    credential_type: "netbox-source"
+    inputs:
+      NETBOX_API: "https://netbox-{{ lookup('ansible.builtin.env', 'GUID') }}.{{ lookup('ansible.builtin.env', 'DOMAIN') }}/"
+      NETBOX_API_KEY: ""
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: Containerlab_Network Credential — Containerlab network device access
+  ansible.controller.credential:
+    name: "Containerlab_Network Credential"
+    description: ""
+    organization: "Red Hat network organization"
+    credential_type: "Machine"
+    inputs:
+      username: admin
+      password: admin@123  # notsecret
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
