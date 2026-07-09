@@ -402,37 +402,6 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-# ── Netbox Inventory ────────────────────────────────────────────────────────
-- name: Netbox Inventory
-  ansible.controller.inventory:
-    name: "Netbox"
-    description: ""
-    organization: "Red Hat network organization"
-    prevent_instance_group_fallback: false
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: Netbox Inventory Source
-  ansible.controller.inventory_source:
-    name: "netbox-source"
-    description: ""
-    organization: "Red Hat network organization"
-    inventory: "Netbox"
-    source: scm
-    source_project: "Workshop Project"
-    source_path: "netbox_inventory.yml"
-    credential: "Netbox Credential"
-    update_on_launch: true
-    overwrite: true
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
 # ── Execution Environment ──────────────────────────────────────────────────
 - name: "Execution Environment — Network EE"
   ansible.controller.execution_environment:
@@ -481,6 +450,37 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
   failed_when: false
+
+# ── Netbox Inventory ────────────────────────────────────────────────────────
+- name: Netbox Inventory
+  ansible.controller.inventory:
+    name: "Netbox"
+    description: ""
+    organization: "Red Hat network organization"
+    prevent_instance_group_fallback: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: Netbox Inventory Source
+  ansible.controller.inventory_source:
+    name: "netbox-source"
+    description: ""
+    organization: "Red Hat network organization"
+    inventory: "Netbox"
+    source: scm
+    source_project: "Workshop Project"
+    source_path: "netbox_inventory.yml"
+    credential: "Netbox Credential"
+    update_on_launch: true
+    overwrite: true
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 # ── Job Templates ────────────────────────────────────────────────────────────
 
