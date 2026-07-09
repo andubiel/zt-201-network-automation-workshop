@@ -847,7 +847,7 @@
 
 # ── Workflows ────────────────────────────────────────────────────────────────────
 - name: "Workflow — 3-Solution-Network-Complaince-Workflow"
-  ansible.controller.workflow_job_template:
+  infra.controller_configuration.workflow_job_template:
     name: "3-Solution-Network-Complaince-Workflow"
     organization: "Red Hat network organization"
     survey_enabled: true
@@ -894,7 +894,7 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 4-Base_Configs-Workflow"
-  ansible.controller.workflow_job_template:
+  infra.controller_configuration.workflow_job_template:
     name: "4-Base_Configs-Workflow"
     organization: "Red Hat network organization"
     workflow_nodes:
@@ -937,7 +937,7 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 4-Base_Configs-Workflow-Error"
-  ansible.controller.workflow_job_template:
+  infra.controller_configuration.workflow_job_template:
     name: "4-Base_Configs-Workflow-Error"
     organization: "Red Hat network organization"
     workflow_nodes:
@@ -980,7 +980,7 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 5-Underlay_Configs-Workflow"
-  ansible.controller.workflow_job_template:
+  infra.controller_configuration.workflow_job_template:
     name: "5-Underlay_Configs-Workflow"
     organization: "Red Hat network organization"
     workflow_nodes:
@@ -1023,7 +1023,7 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 6-Overlay_Configs-Workflow"
-  ansible.controller.workflow_job_template:
+  infra.controller_configuration.workflow_job_template:
     name: "6-Overlay_Configs-Workflow"
     organization: "Red Hat network organization"
     workflow_nodes:
@@ -1066,7 +1066,7 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 8-Configuration_Drift_Restore-Workflow"
-  ansible.controller.workflow_job_template:
+  infra.controller_configuration.workflow_job_template:
     name: "8-Configuration_Drift_Restore-Workflow"
     organization: "Red Hat network organization"
     workflow_nodes:
