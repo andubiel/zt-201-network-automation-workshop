@@ -433,7 +433,7 @@
     name: "Workshop Project"
     organization: "Red Hat network organization"
     scm_type: git
-    scm_url: "https://gitea-${guid}.${domain}/gitea/201-multi-vendor-vxlan-workshop.git"
+    scm_url: "https://gitea-{{ lookup('ansible.builtin.env', 'GUID') }}.{{ lookup('ansible.builtin.env', 'DOMAIN') }}/gitea/201-multi-vendor-vxlan-workshop.git"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
