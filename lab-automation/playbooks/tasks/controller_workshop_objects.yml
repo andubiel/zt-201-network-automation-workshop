@@ -899,9 +899,7 @@
     identifier: "Human Approval"
     workflow: "3-Solution-Network-Complaince-Workflow"
     organization: "Red Hat network organization"
-    approval_node:
-      name: "Human Approval"
-      timeout: 0
+    # The approval_node dictionary has been removed here
     success_nodes:
       - "Compliance Run"
     state: present
@@ -909,6 +907,7 @@
     controller_username: "{{ controller_username }}"
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
+    ignore_errors: true  # Ignore errors if the link already exists
 
 - name: "Node — Compliance Check"
   ansible.controller.workflow_job_template_node:
