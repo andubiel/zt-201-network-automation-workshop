@@ -606,12 +606,11 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "2-backups_as_code/git_intent.yml"
+    playbook: "2-backups_as_code/intended.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
       - "Gitea Credential"
-
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -624,7 +623,7 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "2-backups_as_code/git_restore.yml"
+    playbook: "2-backups_as_code/restore_selection.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -641,7 +640,7 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "2-backups_as_code/git_restore_artifact.yml"
+    playbook: "2-backups_as_code/restore.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
