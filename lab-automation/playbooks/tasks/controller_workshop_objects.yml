@@ -907,7 +907,7 @@
     controller_username: "{{ controller_username }}"
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
-    ignore_errors: true  # Ignore errors if the link already exists
+  ignore_errors: true  # Ignore errors if the link already exists
 
 - name: "Node — Compliance Check"
   ansible.controller.workflow_job_template_node:
