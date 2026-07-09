@@ -1,6 +1,6 @@
-= Ansible Network Automation Workshop
+= Advanced Ansible Network Automation Workshop
 
-Welcome to the Ansible Network Automation Workshop!
+Welcome to the Advanced Ansible Network Automation Workshop!
 
 == What you'll learn
 
