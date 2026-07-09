@@ -34,13 +34,32 @@
     description: ""
     kind: "cloud"
     inputs:
-      fields: []
+      fields:
+        - id: username
+          type: string
+          label: Gitea Username
+        - id: password
+          type: string
+          label: Gitea Password
+          secret: true
+        - id: token
+          type: string
+          label: Gitea API Token
+          secret: true
+        - id: email
+          type: string
+          label: Gitea Email
+      required:
+        - username
+        - password
+        - token
+        - email
     injectors:
       extra_vars:
-        email: gitea@example.com
-        token: gitea123  # notsecret
-        password: gitea123  # notsecret
-        username: gitea
+        email: !unsafe '{{ email }}'
+        token: !unsafe '{{ token }}'
+        password: !unsafe '{{ password }}'
+        username: !unsafe '{{ username }}'
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
