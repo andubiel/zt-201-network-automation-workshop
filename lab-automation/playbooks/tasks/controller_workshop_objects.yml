@@ -147,6 +147,23 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
+- name: Gitea Credential — Gitea Git repository access
+  ansible.controller.credential:
+    name: "Gitea Credential"
+    description: ""
+    organization: "Red Hat network organization"
+    credential_type: "Gitea Type"
+    inputs:
+      username: gitea
+      password: gitea123  # notsecret
+      token: gitea123  # notsecret
+      email: gitea@example.com
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
 # ── Workshop Inventory ──────────────────────────────────────────────────────
 - name: Workshop Inventory
   ansible.controller.inventory:
