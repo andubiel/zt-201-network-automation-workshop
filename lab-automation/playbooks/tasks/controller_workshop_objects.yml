@@ -864,7 +864,7 @@
           max: 1024
           choices: "logging\nntp"
           new_question: false
-    simplified_workflow_nodes:
+    workflow_nodes:
       - identifier: "Compliance Check"
         unified_job_template: "3-Network_Compliance-Check"
         organization: "Red Hat network organization"
@@ -889,7 +889,7 @@
   ansible.controller.workflow_job_template:
     name: "4-Base_Configs-Workflow"
     organization: "Red Hat network organization"
-    simplified_workflow_nodes:
+    workflow_nodes:
       - identifier: "Backups"
         unified_job_template: "2-Backups_as_Code-Backup-GIT"
         organization: "Red Hat network organization"
@@ -920,7 +920,7 @@
   ansible.controller.workflow_job_template:
     name: "4-Base_Configs-Workflow-Error"
     organization: "Red Hat network organization"
-    simplified_workflow_nodes:
+    workflow_nodes:
       - identifier: "Backups"
         unified_job_template: "2-Backups_as_Code-Backup-GIT"
         organization: "Red Hat network organization"
@@ -951,7 +951,7 @@
   ansible.controller.workflow_job_template:
     name: "5-Underlay_Configs-Workflow"
     organization: "Red Hat network organization"
-    simplified_workflow_nodes:
+    workflow_nodes:
       - identifier: "Backups"
         unified_job_template: "2-Backups_as_Code-Backup-GIT"
         organization: "Red Hat network organization"
@@ -982,7 +982,7 @@
   ansible.controller.workflow_job_template:
     name: "6-Overlay_Configs-Workflow"
     organization: "Red Hat network organization"
-    simplified_workflow_nodes:
+    workflow_nodes:
       - identifier: "Backups"
         unified_job_template: "2-Backups_as_Code-Backup-GIT"
         organization: "Red Hat network organization"
@@ -1013,7 +1013,7 @@
   ansible.controller.workflow_job_template:
     name: "8-Configuration_Drift_Restore-Workflow"
     organization: "Red Hat network organization"
-    simplified_workflow_nodes:
+    workflow_nodes:
       - identifier: "Base Configs"
         unified_job_template: "4-Base_Configs-Workflow"
         organization: "Red Hat network organization"
