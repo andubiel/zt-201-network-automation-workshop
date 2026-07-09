@@ -124,7 +124,7 @@
     organization: "Red Hat network organization"
     credential_type: "netbox-source"
     inputs:
-      NETBOX_API: "https://netbox-{{ lookup('ansible.builtin.env', 'GUID') }}.{{ lookup('ansible.builtin.env', 'DOMAIN') }}/"
+      NETBOX_API: ""
       NETBOX_API_KEY: ""
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
