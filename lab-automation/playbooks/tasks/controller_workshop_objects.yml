@@ -847,46 +847,63 @@
 
 # ── Workflows ────────────────────────────────────────────────────────────────────
 - name: "Workflow — 3-Solution-Network-Complaince-Workflow"
-  infra.controller_configuration.workflow_job_template:
+  ansible.controller.workflow_job_template:
     name: "3-Solution-Network-Complaince-Workflow"
     organization: "Red Hat network organization"
     survey_enabled: true
-    survey_spec:
+    survey:
       name: ""
       description: ""
       spec:
         - question_name: "Which Compliance Roles would you like to check?"
-          question_description: ""
-          required: true
           type: multiselect
           variable: tag
-          min: 0
-          max: 1024
-          choices: "logging\nntp"
-          new_question: false
-    workflow_nodes:
-      - identifier: "Compliance Check"
-        workflow_job_template: "3-Solution-Network-Complaince-Workflow"
-        unified_job_template: "3-Network_Compliance-Check"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        success_nodes:
-          - "Human Approval"
-      - identifier: "Human Approval"
-        workflow_job_template: "3-Solution-Network-Complaince-Workflow"
-        unified_job_template: "Human Approval"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        success_nodes:
-          - "Compliance Run"
-      - identifier: "Compliance Run"
-        workflow_job_template: "3-Solution-Network-Complaince-Workflow"
-        unified_job_template: "3-Network_Compliance-Run"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
+          required: true
+          choices:
+            - "logging"
+            - "ntp"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Compliance Check"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Compliance Check"
+    workflow: "3-Solution-Network-Complaince-Workflow"
+    unified_job_template: "3-Network_Compliance-Check"
+    organization: "Red Hat network organization"
+    success_nodes:
+      - "Human Approval"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Human Approval"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Human Approval"
+    workflow: "3-Solution-Network-Complaince-Workflow"
+    organization: "Red Hat network organization"
+    approval_node:
+      name: "Human Approval"
+      timeout: 0
+    success_nodes:
+      - "Compliance Run"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Compliance Run"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Compliance Run"
+    workflow: "3-Solution-Network-Complaince-Workflow"
+    unified_job_template: "3-Network_Compliance-Run"
+    organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -894,42 +911,65 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 4-Base_Configs-Workflow"
-  infra.controller_configuration.workflow_job_template:
+  ansible.controller.workflow_job_template:
     name: "4-Base_Configs-Workflow"
     organization: "Red Hat network organization"
-    workflow_nodes:
-      - identifier: "Backups"
-        workflow_job_template: "4-Base_Configs-Workflow"
-        unified_job_template: "2-Backups_as_Code-Backup-GIT"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        extra_data:
-          branch_name: "Base_Config"
-        success_nodes:
-          - "Deploy"
-      - identifier: "Deploy"
-        workflow_job_template: "4-Base_Configs-Workflow"
-        unified_job_template: "4-Base_Configs-Deploy"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        success_nodes:
-          - "Test"
-      - identifier: "Test"
-        workflow_job_template: "4-Base_Configs-Workflow"
-        unified_job_template: "4-Base_Configs-Test"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        failure_nodes:
-          - "Restore"
-      - identifier: "Restore"
-        workflow_job_template: "4-Base_Configs-Workflow"
-        unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Backups (Base Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Backups"
+    workflow: "4-Base_Configs-Workflow"
+    unified_job_template: "2-Backups_as_Code-Backup-GIT"
+    organization: "Red Hat network organization"
+    extra_data:
+      branch_name: "Base_Config"
+    success_nodes:
+      - "Deploy"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Deploy (Base Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Deploy"
+    workflow: "4-Base_Configs-Workflow"
+    unified_job_template: "4-Base_Configs-Deploy"
+    organization: "Red Hat network organization"
+    success_nodes:
+      - "Test"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Test (Base Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Test"
+    workflow: "4-Base_Configs-Workflow"
+    unified_job_template: "4-Base_Configs-Test"
+    organization: "Red Hat network organization"
+    failure_nodes:
+      - "Restore"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Restore (Base Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Restore"
+    workflow: "4-Base_Configs-Workflow"
+    unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+    organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -937,42 +977,65 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 4-Base_Configs-Workflow-Error"
-  infra.controller_configuration.workflow_job_template:
+  ansible.controller.workflow_job_template:
     name: "4-Base_Configs-Workflow-Error"
     organization: "Red Hat network organization"
-    workflow_nodes:
-      - identifier: "Backups"
-        workflow_job_template: "4-Base_Configs-Workflow-Error"
-        unified_job_template: "2-Backups_as_Code-Backup-GIT"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        extra_data:
-          branch_name: "Base_Config"
-        success_nodes:
-          - "Deploy"
-      - identifier: "Deploy"
-        workflow_job_template: "4-Base_Configs-Workflow-Error"
-        unified_job_template: "4-Base_Configs-Deploy-Error"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        success_nodes:
-          - "Test"
-      - identifier: "Test"
-        workflow_job_template: "4-Base_Configs-Workflow-Error"
-        unified_job_template: "4-Base_Configs-Test"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        failure_nodes:
-          - "Restore"
-      - identifier: "Restore"
-        workflow_job_template: "4-Base_Configs-Workflow-Error"
-        unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Backups (Base Configs Error)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Backups"
+    workflow: "4-Base_Configs-Workflow-Error"
+    unified_job_template: "2-Backups_as_Code-Backup-GIT"
+    organization: "Red Hat network organization"
+    extra_data:
+      branch_name: "Base_Config"
+    success_nodes:
+      - "Deploy"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Deploy (Base Configs Error)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Deploy"
+    workflow: "4-Base_Configs-Workflow-Error"
+    unified_job_template: "4-Base_Configs-Deploy-Error"
+    organization: "Red Hat network organization"
+    success_nodes:
+      - "Test"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Test (Base Configs Error)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Test"
+    workflow: "4-Base_Configs-Workflow-Error"
+    unified_job_template: "4-Base_Configs-Test"
+    organization: "Red Hat network organization"
+    failure_nodes:
+      - "Restore"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Restore (Base Configs Error)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Restore"
+    workflow: "4-Base_Configs-Workflow-Error"
+    unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+    organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -980,42 +1043,65 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 5-Underlay_Configs-Workflow"
-  infra.controller_configuration.workflow_job_template:
+  ansible.controller.workflow_job_template:
     name: "5-Underlay_Configs-Workflow"
     organization: "Red Hat network organization"
-    workflow_nodes:
-      - identifier: "Backups"
-        workflow_job_template: "5-Underlay_Configs-Workflow"
-        unified_job_template: "2-Backups_as_Code-Backup-GIT"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        extra_data:
-          branch_name: "Underlay_config"
-        success_nodes:
-          - "Deploy"
-      - identifier: "Deploy"
-        workflow_job_template: "5-Underlay_Configs-Workflow"
-        unified_job_template: "5-Underlay_Configs-Deploy"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        success_nodes:
-          - "Test"
-      - identifier: "Test"
-        workflow_job_template: "5-Underlay_Configs-Workflow"
-        unified_job_template: "5-Underlay_Configs-Test"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        failure_nodes:
-          - "Restore"
-      - identifier: "Restore"
-        workflow_job_template: "5-Underlay_Configs-Workflow"
-        unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Backups (Underlay Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Backups"
+    workflow: "5-Underlay_Configs-Workflow"
+    unified_job_template: "2-Backups_as_Code-Backup-GIT"
+    organization: "Red Hat network organization"
+    extra_data:
+      branch_name: "Underlay_config"
+    success_nodes:
+      - "Deploy"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Deploy (Underlay Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Deploy"
+    workflow: "5-Underlay_Configs-Workflow"
+    unified_job_template: "5-Underlay_Configs-Deploy"
+    organization: "Red Hat network organization"
+    success_nodes:
+      - "Test"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Test (Underlay Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Test"
+    workflow: "5-Underlay_Configs-Workflow"
+    unified_job_template: "5-Underlay_Configs-Test"
+    organization: "Red Hat network organization"
+    failure_nodes:
+      - "Restore"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Restore (Underlay Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Restore"
+    workflow: "5-Underlay_Configs-Workflow"
+    unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+    organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -1023,42 +1109,65 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 6-Overlay_Configs-Workflow"
-  infra.controller_configuration.workflow_job_template:
+  ansible.controller.workflow_job_template:
     name: "6-Overlay_Configs-Workflow"
     organization: "Red Hat network organization"
-    workflow_nodes:
-      - identifier: "Backups"
-        workflow_job_template: "6-Overlay_Configs-Workflow"
-        unified_job_template: "2-Backups_as_Code-Backup-GIT"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        extra_data:
-          branch_name: "Overlay_config"
-        success_nodes:
-          - "Deploy"
-      - identifier: "Deploy"
-        workflow_job_template: "6-Overlay_Configs-Workflow"
-        unified_job_template: "6-Overlay_Configs-Deploy"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        success_nodes:
-          - "Test"
-      - identifier: "Test"
-        workflow_job_template: "6-Overlay_Configs-Workflow"
-        unified_job_template: "6-Overlay_Configs-Test"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        failure_nodes:
-          - "Restore"
-      - identifier: "Restore"
-        workflow_job_template: "6-Overlay_Configs-Workflow"
-        unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Backups (Overlay Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Backups"
+    workflow: "6-Overlay_Configs-Workflow"
+    unified_job_template: "2-Backups_as_Code-Backup-GIT"
+    organization: "Red Hat network organization"
+    extra_data:
+      branch_name: "Overlay_config"
+    success_nodes:
+      - "Deploy"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Deploy (Overlay Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Deploy"
+    workflow: "6-Overlay_Configs-Workflow"
+    unified_job_template: "6-Overlay_Configs-Deploy"
+    organization: "Red Hat network organization"
+    success_nodes:
+      - "Test"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Test (Overlay Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Test"
+    workflow: "6-Overlay_Configs-Workflow"
+    unified_job_template: "6-Overlay_Configs-Test"
+    organization: "Red Hat network organization"
+    failure_nodes:
+      - "Restore"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Restore (Overlay Configs)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Restore"
+    workflow: "6-Overlay_Configs-Workflow"
+    unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+    organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -1066,32 +1175,49 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Workflow — 8-Configuration_Drift_Restore-Workflow"
-  infra.controller_configuration.workflow_job_template:
+  ansible.controller.workflow_job_template:
     name: "8-Configuration_Drift_Restore-Workflow"
     organization: "Red Hat network organization"
-    workflow_nodes:
-      - identifier: "Base Configs"
-        workflow_job_template: "8-Configuration_Drift_Restore-Workflow"
-        unified_job_template: "4-Base_Configs-Workflow"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        success_nodes:
-          - "Underlay Configs"
-      - identifier: "Underlay Configs"
-        workflow_job_template: "8-Configuration_Drift_Restore-Workflow"
-        unified_job_template: "5-Underlay_Configs-Workflow"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
-        success_nodes:
-          - "Overlay Configs"
-      - identifier: "Overlay Configs"
-        workflow_job_template: "8-Configuration_Drift_Restore-Workflow"
-        unified_job_template: "6-Overlay_Configs-Workflow"
-        limit: ""
-        organization: "Red Hat network organization"
-        all_parents_must_converge: false
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Base Configs (Drift Restore)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Base Configs"
+    workflow: "8-Configuration_Drift_Restore-Workflow"
+    unified_job_template: "4-Base_Configs-Workflow"
+    organization: "Red Hat network organization"
+    success_nodes:
+      - "Underlay Configs"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Underlay Configs (Drift Restore)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Underlay Configs"
+    workflow: "8-Configuration_Drift_Restore-Workflow"
+    unified_job_template: "5-Underlay_Configs-Workflow"
+    organization: "Red Hat network organization"
+    success_nodes:
+      - "Overlay Configs"
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Node — Overlay Configs (Drift Restore)"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Overlay Configs"
+    workflow: "8-Configuration_Drift_Restore-Workflow"
+    unified_job_template: "6-Overlay_Configs-Workflow"
+    organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
