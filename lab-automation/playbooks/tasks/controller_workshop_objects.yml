@@ -888,6 +888,20 @@
     approval_node:
       name: "Human Approval"
       timeout: 0
+    state: present
+    controller_host: "{{ controller_endpoint.rstrip('/') }}"
+    controller_username: "{{ controller_username }}"
+    controller_password: "{{ controller_password }}"
+    validate_certs: "{{ controller_verify_ssl | default(false) }}"
+
+- name: "Link — Human Approval to Compliance Run"
+  ansible.controller.workflow_job_template_node:
+    identifier: "Human Approval"
+    workflow: "3-Solution-Network-Complaince-Workflow"
+    organization: "Red Hat network organization"
+    approval_node:
+      name: "Human Approval"
+      timeout: 0
     success_nodes:
       - "Compliance Run"
     state: present
