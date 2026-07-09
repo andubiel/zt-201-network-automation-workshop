@@ -866,19 +866,27 @@
           new_question: false
     workflow_nodes:
       - identifier: "Compliance Check"
+        workflow_job_template: "3-Solution-Network-Complaince-Workflow"
         unified_job_template: "3-Network_Compliance-Check"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         success_nodes:
           - "Human Approval"
       - identifier: "Human Approval"
-        approval_node:
-          name: "Human Approval"
+        workflow_job_template: "3-Solution-Network-Complaince-Workflow"
+        unified_job_template: "Human Approval"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         success_nodes:
           - "Compliance Run"
       - identifier: "Compliance Run"
+        workflow_job_template: "3-Solution-Network-Complaince-Workflow"
         unified_job_template: "3-Network_Compliance-Run"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -891,25 +899,37 @@
     organization: "Red Hat network organization"
     workflow_nodes:
       - identifier: "Backups"
+        workflow_job_template: "4-Base_Configs-Workflow"
         unified_job_template: "2-Backups_as_Code-Backup-GIT"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         extra_data:
           branch_name: "Base_Config"
         success_nodes:
           - "Deploy"
       - identifier: "Deploy"
+        workflow_job_template: "4-Base_Configs-Workflow"
         unified_job_template: "4-Base_Configs-Deploy"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         success_nodes:
           - "Test"
       - identifier: "Test"
+        workflow_job_template: "4-Base_Configs-Workflow"
         unified_job_template: "4-Base_Configs-Test"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         failure_nodes:
           - "Restore"
       - identifier: "Restore"
+        workflow_job_template: "4-Base_Configs-Workflow"
         unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -922,25 +942,37 @@
     organization: "Red Hat network organization"
     workflow_nodes:
       - identifier: "Backups"
+        workflow_job_template: "4-Base_Configs-Workflow-Error"
         unified_job_template: "2-Backups_as_Code-Backup-GIT"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         extra_data:
           branch_name: "Base_Config"
         success_nodes:
           - "Deploy"
       - identifier: "Deploy"
+        workflow_job_template: "4-Base_Configs-Workflow-Error"
         unified_job_template: "4-Base_Configs-Deploy-Error"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         success_nodes:
           - "Test"
       - identifier: "Test"
+        workflow_job_template: "4-Base_Configs-Workflow-Error"
         unified_job_template: "4-Base_Configs-Test"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         failure_nodes:
           - "Restore"
       - identifier: "Restore"
+        workflow_job_template: "4-Base_Configs-Workflow-Error"
         unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -953,25 +985,37 @@
     organization: "Red Hat network organization"
     workflow_nodes:
       - identifier: "Backups"
+        workflow_job_template: "5-Underlay_Configs-Workflow"
         unified_job_template: "2-Backups_as_Code-Backup-GIT"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         extra_data:
           branch_name: "Underlay_config"
         success_nodes:
           - "Deploy"
       - identifier: "Deploy"
+        workflow_job_template: "5-Underlay_Configs-Workflow"
         unified_job_template: "5-Underlay_Configs-Deploy"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         success_nodes:
           - "Test"
       - identifier: "Test"
+        workflow_job_template: "5-Underlay_Configs-Workflow"
         unified_job_template: "5-Underlay_Configs-Test"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         failure_nodes:
           - "Restore"
       - identifier: "Restore"
+        workflow_job_template: "5-Underlay_Configs-Workflow"
         unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -984,25 +1028,37 @@
     organization: "Red Hat network organization"
     workflow_nodes:
       - identifier: "Backups"
+        workflow_job_template: "6-Overlay_Configs-Workflow"
         unified_job_template: "2-Backups_as_Code-Backup-GIT"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         extra_data:
           branch_name: "Overlay_config"
         success_nodes:
           - "Deploy"
       - identifier: "Deploy"
+        workflow_job_template: "6-Overlay_Configs-Workflow"
         unified_job_template: "6-Overlay_Configs-Deploy"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         success_nodes:
           - "Test"
       - identifier: "Test"
+        workflow_job_template: "6-Overlay_Configs-Workflow"
         unified_job_template: "6-Overlay_Configs-Test"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         failure_nodes:
           - "Restore"
       - identifier: "Restore"
+        workflow_job_template: "6-Overlay_Configs-Workflow"
         unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -1015,18 +1071,27 @@
     organization: "Red Hat network organization"
     workflow_nodes:
       - identifier: "Base Configs"
+        workflow_job_template: "8-Configuration_Drift_Restore-Workflow"
         unified_job_template: "4-Base_Configs-Workflow"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         success_nodes:
           - "Underlay Configs"
       - identifier: "Underlay Configs"
+        workflow_job_template: "8-Configuration_Drift_Restore-Workflow"
         unified_job_template: "5-Underlay_Configs-Workflow"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
         success_nodes:
           - "Overlay Configs"
       - identifier: "Overlay Configs"
+        workflow_job_template: "8-Configuration_Drift_Restore-Workflow"
         unified_job_template: "6-Overlay_Configs-Workflow"
+        limit: ""
         organization: "Red Hat network organization"
+        all_parents_must_converge: false
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
