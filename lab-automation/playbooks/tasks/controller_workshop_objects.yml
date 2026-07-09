@@ -690,7 +690,7 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "4-base_configs/base_configs_deploy.yml"
+    playbook: "4-base_configs/deploy_fabric.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -706,7 +706,7 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "4-base_configs/base_configs_test.yml"
+    playbook: "4-base_configs/test_base_connectivity.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -722,7 +722,7 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "4-base_configs/base_configs_deploy_error.yml"
+    playbook: "4-base_configs/broken_base_fabric.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
