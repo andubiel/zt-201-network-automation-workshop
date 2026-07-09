@@ -3,7 +3,8 @@
 :toc: macro
 :toclevels: 1
 
-TIP: You can start the lab exerircises below now or optionally review the workshop overview and details in a separate browser window here: link:https://rhpds.github.io/zt-network-automation-workshop[https://rhpds.github.io/zt-network-automation-workshop^]
+TIP: Please review the workshop overview and details in a separate browser window here: link:https://rhpds.github.io/zt-network-automation-workshop[https://rhpds.github.io/zt-network-automation-workshop^]
+or skip to below to start hands-on lab now.
 
 These first few lab exercises will focus on basic lab setup and exploring the existing inventory. This section will culminate on establishing a dynamic inventory source with Netbox.
 
@@ -18,7 +19,7 @@ By the end of this module, you will be able to:
 * Explore facts from the network devices using Ansible
 * Connect to network devices via SSH
 
-TIP: You can open these workshop directions in a separate browser window for easier reference: link:https://rhpds.github.io/zt-network-automation-workshop[https://rhpds.github.io/zt-network-automation-workshop^]
+TIP: You can also open these workshop directions in a separate browser window for easier reference: link:https://rhpds.github.io/zt-network-automation-workshop[https://rhpds.github.io/zt-network-automation-workshop^]
 
 NOTE: Subscribe to our link:https://www.youtube.com/ansibleautomation[Ansible YouTube channel^] to stay connected with the Tech Marketing team and get the latest videos on Ansible automation.
 
