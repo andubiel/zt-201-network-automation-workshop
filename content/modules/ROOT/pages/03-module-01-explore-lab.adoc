@@ -68,7 +68,7 @@ TIP: Useful Linux commands for navigation: +
 `cd` -- change directory +
 `pwd` -- print working directory (shows your current location)
 
-== Step 3: Examining the Inventory
+== Step 3: Examining the Inventory as Code
 
 The scope of a `play` within a `playbook` is limited to the groups of hosts declared within an Ansible **inventory**. Ansible supports multiple link:http://docs.ansible.com/ansible/latest/intro_inventory.html[inventory^] types. An inventory could be a simple flat file with a collection of hosts defined within it or it could be a dynamic script (potentially querying a CMDB backend) that generates a list of devices to run the playbook against.
 
@@ -327,6 +327,13 @@ See below playbook code from `controller_workshop_objects.yml`:
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 ----
+
+== Step 4: Examining the Inventory as the GUI
+
+Access the automation controler tab
+
+image::automation-controller-tab.png[Playbook,align="center",link=self,window=_blank,width=600]
+
 
 
 [source,bash]
