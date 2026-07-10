@@ -527,7 +527,7 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "1-dynamic_inventory/netbox_setup.yml"
+    playbook: "1-1-dynamic_inventory/netbox_setup.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Netbox Credential"
@@ -543,7 +543,7 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "1-dynamic_inventory/netbox_facts.yml"
+    playbook: "1-1-dynamic_inventory/netbox_facts.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -559,7 +559,7 @@
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "1-dynamic_inventory/netbox_remove.yml"
+    playbook: "1-1-dynamic_inventory/netbox_remove.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Netbox Credential"
@@ -569,13 +569,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 2-Backups_as_Code-Backup-GIT"
+- name: "Job template — 1-2-Backups_as_Code-Backup-GIT"
   ansible.controller.job_template:
-    name: "2-Backups_as_Code-Backup-GIT"
+    name: "1-2-Backups_as_Code-Backup-GIT"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "2-backups_as_code/backups.yml"
+    playbook: "1-2-backups_as_code/backups.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -600,13 +600,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 2-Backups_as_Code-Git-Intent"
+- name: "Job template — 1-2-Backups_as_Code-Git-Intent"
   ansible.controller.job_template:
-    name: "2-Backups_as_Code-Git-Intent"
+    name: "1-2-Backups_as_Code-Git-Intent"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "2-backups_as_code/intended.yml"
+    playbook: "1-2-backups_as_code/intended.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -617,13 +617,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 2-Backups_as_Code-Git-Restore"
+- name: "Job template — 1-2-Backups_as_Code-Git-Restore"
   ansible.controller.job_template:
-    name: "2-Backups_as_Code-Git-Restore"
+    name: "1-2-Backups_as_Code-Git-Restore"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "2-backups_as_code/restore_selection.yml"
+    playbook: "1-2-backups_as_code/restore_selection.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -634,13 +634,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 2-Backups_as_Code-Git-Restore-Artifact"
+- name: "Job template — 1-2-Backups_as_Code-Git-Restore-Artifact"
   ansible.controller.job_template:
-    name: "2-Backups_as_Code-Git-Restore-Artifact"
+    name: "1-2-Backups_as_Code-Git-Restore-Artifact"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "2-backups_as_code/restore.yml"
+    playbook: "1-2-backups_as_code/restore.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -651,13 +651,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 3-Network_Compliance-Check"
+- name: "Job template — 1-3-Network_Compliance-Check"
   ansible.controller.job_template:
-    name: "3-Network_Compliance-Check"
+    name: "1-3-Network_Compliance-Check"
     job_type: check
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "3-network_compliance/compliance_check.yml"
+    playbook: "1-3-network_compliance/compliance_check.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -668,13 +668,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 3-Network_Compliance-Run"
+- name: "Job template — 1-3-Network_Compliance-Run"
   ansible.controller.job_template:
-    name: "3-Network_Compliance-Run"
+    name: "1-3-Network_Compliance-Run"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "3-network_compliance/compliance_run.yml"
+    playbook: "1-3-network_compliance/compliance_run.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -684,13 +684,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 4-Base_Configs-Deploy"
+- name: "Job template — 1-4-Base_Configs-Deploy"
   ansible.controller.job_template:
-    name: "4-Base_Configs-Deploy"
+    name: "1-4-Base_Configs-Deploy"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "4-base_configs/deploy_fabric.yml"
+    playbook: "1-4-base_configs/deploy_fabric.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -700,13 +700,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 4-Base_Configs-Test"
+- name: "Job template — 1-4-Base_Configs-Test"
   ansible.controller.job_template:
-    name: "4-Base_Configs-Test"
+    name: "1-4-Base_Configs-Test"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "4-base_configs/test_base_connectivity.yml"
+    playbook: "1-4-base_configs/test_base_connectivity.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -716,13 +716,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 4-Base_Configs-Deploy-Error"
+- name: "Job template — 1-4-Base_Configs-Deploy-Error"
   ansible.controller.job_template:
-    name: "4-Base_Configs-Deploy-Error"
+    name: "1-4-Base_Configs-Deploy-Error"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "4-base_configs/broken_base_fabric.yml"
+    playbook: "1-4-base_configs/broken_base_fabric.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -732,13 +732,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 5-Underlay_Configs-Deploy"
+- name: "Job template — 1-5-Underlay_Configs-Deploy"
   ansible.controller.job_template:
-    name: "5-Underlay_Configs-Deploy"
+    name: "1-5-Underlay_Configs-Deploy"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "5-underlay_configs/deploy_underlay.yml"
+    playbook: "1-5-underlay_configs/deploy_underlay.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -748,13 +748,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 5-Underlay_Configs-Test"
+- name: "Job template — 1-5-Underlay_Configs-Test"
   ansible.controller.job_template:
-    name: "5-Underlay_Configs-Test"
+    name: "1-5-Underlay_Configs-Test"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "5-underlay_configs/underlay_test.yml"
+    playbook: "1-5-underlay_configs/underlay_test.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -764,13 +764,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 6-Overlay_Configs-Deploy"
+- name: "Job template — 1-6-Overlay_Configs-Deploy"
   ansible.controller.job_template:
-    name: "6-Overlay_Configs-Deploy"
+    name: "1-6-Overlay_Configs-Deploy"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "6-overlay_configs/deploy_overlay.yml"
+    playbook: "1-6-overlay_configs/deploy_overlay.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -780,13 +780,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 6-Overlay_Configs-Test"
+- name: "Job template — 1-6-Overlay_Configs-Test"
   ansible.controller.job_template:
-    name: "6-Overlay_Configs-Test"
+    name: "1-6-Overlay_Configs-Test"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "6-overlay_configs/overlay_test.yml"
+    playbook: "1-6-overlay_configs/overlay_test.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -796,13 +796,13 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 7-Tuning_For_Scale"
+- name: "Job template — 1-7-Tuning_For_Scale"
   ansible.controller.job_template:
-    name: "7-Tuning_For_Scale"
+    name: "1-7-Tuning_For_Scale"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
-    playbook: "7-tuning_for_scale/configure_snmp.yml"
+    playbook: "1-7-tuning_for_scale/configure_snmp.yml"
     inventory: "Workshop Inventory"
     credentials:
       - "Containerlab_Network Credential"
@@ -846,9 +846,9 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 # ── Workflows ────────────────────────────────────────────────────────────────────
-- name: "Workflow — 3-Solution-Network-Complaince-Workflow"
+- name: "Workflow — 1-3-Solution-Network-Complaince-Workflow"
   ansible.controller.workflow_job_template:
-    name: "3-Solution-Network-Complaince-Workflow"
+    name: "1-3-Solution-Network-Complaince-Workflow"
     organization: "Red Hat network organization"
     survey_enabled: true
     survey:
@@ -871,8 +871,8 @@
 - name: "Node — Compliance Run"
   ansible.controller.workflow_job_template_node:
     identifier: "Compliance Run"
-    workflow: "3-Solution-Network-Complaince-Workflow"
-    unified_job_template: "3-Network_Compliance-Run"
+    workflow: "1-3-Solution-Network-Complaince-Workflow"
+    unified_job_template: "1-3-Network_Compliance-Run"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -883,7 +883,7 @@
 - name: "Node — Human Approval"
   ansible.controller.workflow_job_template_node:
     identifier: "Human Approval"
-    workflow: "3-Solution-Network-Complaince-Workflow"
+    workflow: "1-3-Solution-Network-Complaince-Workflow"
     organization: "Red Hat network organization"
     approval_node:
       name: "Human Approval"
@@ -897,7 +897,7 @@
 - name: "Link — Human Approval to Compliance Run"
   ansible.controller.workflow_job_template_node:
     identifier: "Human Approval"
-    workflow: "3-Solution-Network-Complaince-Workflow"
+    workflow: "1-3-Solution-Network-Complaince-Workflow"
     organization: "Red Hat network organization"
     # The approval_node dictionary has been removed here
     success_nodes:
@@ -912,8 +912,8 @@
 - name: "Node — Compliance Check"
   ansible.controller.workflow_job_template_node:
     identifier: "Compliance Check"
-    workflow: "3-Solution-Network-Complaince-Workflow"
-    unified_job_template: "3-Network_Compliance-Check"
+    workflow: "1-3-Solution-Network-Complaince-Workflow"
+    unified_job_template: "1-3-Network_Compliance-Check"
     organization: "Red Hat network organization"
     success_nodes:
       - "Human Approval"
@@ -923,9 +923,9 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Workflow — 4-Base_Configs-Workflow"
+- name: "Workflow — 1-4-Base_Configs-Workflow"
   ansible.controller.workflow_job_template:
-    name: "4-Base_Configs-Workflow"
+    name: "1-4-Base_Configs-Workflow"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -936,8 +936,8 @@
 - name: "Node — Restore (Base Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Restore"
-    workflow: "4-Base_Configs-Workflow"
-    unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+    workflow: "1-4-Base_Configs-Workflow"
+    unified_job_template: "1-2-Backups_as_Code-Git-Restore-Artifact"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -948,8 +948,8 @@
 - name: "Node — Test (Base Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Test"
-    workflow: "4-Base_Configs-Workflow"
-    unified_job_template: "4-Base_Configs-Test"
+    workflow: "1-4-Base_Configs-Workflow"
+    unified_job_template: "1-4-Base_Configs-Test"
     organization: "Red Hat network organization"
     failure_nodes:
       - "Restore"
@@ -962,8 +962,8 @@
 - name: "Node — Deploy (Base Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Deploy"
-    workflow: "4-Base_Configs-Workflow"
-    unified_job_template: "4-Base_Configs-Deploy"
+    workflow: "1-4-Base_Configs-Workflow"
+    unified_job_template: "1-4-Base_Configs-Deploy"
     organization: "Red Hat network organization"
     success_nodes:
       - "Test"
@@ -976,8 +976,8 @@
 - name: "Node — Backups (Base Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Backups"
-    workflow: "4-Base_Configs-Workflow"
-    unified_job_template: "2-Backups_as_Code-Backup-GIT"
+    workflow: "1-4-Base_Configs-Workflow"
+    unified_job_template: "1-2-Backups_as_Code-Backup-GIT"
     organization: "Red Hat network organization"
     extra_data:
       branch_name: "Base_Config"
@@ -989,9 +989,9 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Workflow — 4-Base_Configs-Workflow-Error"
+- name: "Workflow — 1-4-Base_Configs-Workflow-Error"
   ansible.controller.workflow_job_template:
-    name: "4-Base_Configs-Workflow-Error"
+    name: "1-4-Base_Configs-Workflow-Error"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -1002,8 +1002,8 @@
 - name: "Node — Restore (Base Configs Error)"
   ansible.controller.workflow_job_template_node:
     identifier: "Restore"
-    workflow: "4-Base_Configs-Workflow-Error"
-    unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+    workflow: "1-4-Base_Configs-Workflow-Error"
+    unified_job_template: "1-2-Backups_as_Code-Git-Restore-Artifact"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -1014,8 +1014,8 @@
 - name: "Node — Test (Base Configs Error)"
   ansible.controller.workflow_job_template_node:
     identifier: "Test"
-    workflow: "4-Base_Configs-Workflow-Error"
-    unified_job_template: "4-Base_Configs-Test"
+    workflow: "1-4-Base_Configs-Workflow-Error"
+    unified_job_template: "1-4-Base_Configs-Test"
     organization: "Red Hat network organization"
     failure_nodes:
       - "Restore"
@@ -1028,8 +1028,8 @@
 - name: "Node — Deploy (Base Configs Error)"
   ansible.controller.workflow_job_template_node:
     identifier: "Deploy"
-    workflow: "4-Base_Configs-Workflow-Error"
-    unified_job_template: "4-Base_Configs-Deploy-Error"
+    workflow: "1-4-Base_Configs-Workflow-Error"
+    unified_job_template: "1-4-Base_Configs-Deploy-Error"
     organization: "Red Hat network organization"
     success_nodes:
       - "Test"
@@ -1042,8 +1042,8 @@
 - name: "Node — Backups (Base Configs Error)"
   ansible.controller.workflow_job_template_node:
     identifier: "Backups"
-    workflow: "4-Base_Configs-Workflow-Error"
-    unified_job_template: "2-Backups_as_Code-Backup-GIT"
+    workflow: "1-4-Base_Configs-Workflow-Error"
+    unified_job_template: "1-2-Backups_as_Code-Backup-GIT"
     organization: "Red Hat network organization"
     extra_data:
       branch_name: "Base_Config"
@@ -1055,9 +1055,9 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Workflow — 5-Underlay_Configs-Workflow"
+- name: "Workflow — 1-5-Underlay_Configs-Workflow"
   ansible.controller.workflow_job_template:
-    name: "5-Underlay_Configs-Workflow"
+    name: "1-5-Underlay_Configs-Workflow"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -1068,8 +1068,8 @@
 - name: "Node — Restore (Underlay Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Restore"
-    workflow: "5-Underlay_Configs-Workflow"
-    unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+    workflow: "1-5-Underlay_Configs-Workflow"
+    unified_job_template: "1-2-Backups_as_Code-Git-Restore-Artifact"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -1080,8 +1080,8 @@
 - name: "Node — Test (Underlay Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Test"
-    workflow: "5-Underlay_Configs-Workflow"
-    unified_job_template: "5-Underlay_Configs-Test"
+    workflow: "1-5-Underlay_Configs-Workflow"
+    unified_job_template: "1-5-Underlay_Configs-Test"
     organization: "Red Hat network organization"
     failure_nodes:
       - "Restore"
@@ -1094,8 +1094,8 @@
 - name: "Node — Deploy (Underlay Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Deploy"
-    workflow: "5-Underlay_Configs-Workflow"
-    unified_job_template: "5-Underlay_Configs-Deploy"
+    workflow: "1-5-Underlay_Configs-Workflow"
+    unified_job_template: "1-5-Underlay_Configs-Deploy"
     organization: "Red Hat network organization"
     success_nodes:
       - "Test"
@@ -1108,8 +1108,8 @@
 - name: "Node — Backups (Underlay Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Backups"
-    workflow: "5-Underlay_Configs-Workflow"
-    unified_job_template: "2-Backups_as_Code-Backup-GIT"
+    workflow: "1-5-Underlay_Configs-Workflow"
+    unified_job_template: "1-2-Backups_as_Code-Backup-GIT"
     organization: "Red Hat network organization"
     extra_data:
       branch_name: "Underlay_config"
@@ -1121,9 +1121,9 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Workflow — 6-Overlay_Configs-Workflow"
+- name: "Workflow — 1-6-Overlay_Configs-Workflow"
   ansible.controller.workflow_job_template:
-    name: "6-Overlay_Configs-Workflow"
+    name: "1-6-Overlay_Configs-Workflow"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -1134,8 +1134,8 @@
 - name: "Node — Restore (Overlay Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Restore"
-    workflow: "6-Overlay_Configs-Workflow"
-    unified_job_template: "2-Backups_as_Code-Git-Restore-Artifact"
+    workflow: "1-6-Overlay_Configs-Workflow"
+    unified_job_template: "1-2-Backups_as_Code-Git-Restore-Artifact"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -1146,8 +1146,8 @@
 - name: "Node — Test (Overlay Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Test"
-    workflow: "6-Overlay_Configs-Workflow"
-    unified_job_template: "6-Overlay_Configs-Test"
+    workflow: "1-6-Overlay_Configs-Workflow"
+    unified_job_template: "1-6-Overlay_Configs-Test"
     organization: "Red Hat network organization"
     failure_nodes:
       - "Restore"
@@ -1160,8 +1160,8 @@
 - name: "Node — Deploy (Overlay Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Deploy"
-    workflow: "6-Overlay_Configs-Workflow"
-    unified_job_template: "6-Overlay_Configs-Deploy"
+    workflow: "1-6-Overlay_Configs-Workflow"
+    unified_job_template: "1-6-Overlay_Configs-Deploy"
     organization: "Red Hat network organization"
     success_nodes:
       - "Test"
@@ -1174,8 +1174,8 @@
 - name: "Node — Backups (Overlay Configs)"
   ansible.controller.workflow_job_template_node:
     identifier: "Backups"
-    workflow: "6-Overlay_Configs-Workflow"
-    unified_job_template: "2-Backups_as_Code-Backup-GIT"
+    workflow: "1-6-Overlay_Configs-Workflow"
+    unified_job_template: "1-2-Backups_as_Code-Backup-GIT"
     organization: "Red Hat network organization"
     extra_data:
       branch_name: "Overlay_config"
@@ -1187,9 +1187,9 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Workflow — 8-Configuration_Drift_Restore-Workflow"
+- name: "Workflow — 1-8-Configuration_Drift_Restore-Workflow"
   ansible.controller.workflow_job_template:
-    name: "8-Configuration_Drift_Restore-Workflow"
+    name: "1-8-Configuration_Drift_Restore-Workflow"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -1200,8 +1200,8 @@
 - name: "Node — Overlay Configs (Drift Restore)"
   ansible.controller.workflow_job_template_node:
     identifier: "Overlay Configs"
-    workflow: "8-Configuration_Drift_Restore-Workflow"
-    unified_job_template: "6-Overlay_Configs-Workflow"
+    workflow: "1-8-Configuration_Drift_Restore-Workflow"
+    unified_job_template: "1-6-Overlay_Configs-Workflow"
     organization: "Red Hat network organization"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -1212,8 +1212,8 @@
 - name: "Node — Underlay Configs (Drift Restore)"
   ansible.controller.workflow_job_template_node:
     identifier: "Underlay Configs"
-    workflow: "8-Configuration_Drift_Restore-Workflow"
-    unified_job_template: "5-Underlay_Configs-Workflow"
+    workflow: "1-8-Configuration_Drift_Restore-Workflow"
+    unified_job_template: "1-5-Underlay_Configs-Workflow"
     organization: "Red Hat network organization"
     success_nodes:
       - "Overlay Configs"
@@ -1226,8 +1226,8 @@
 - name: "Node — Base Configs (Drift Restore)"
   ansible.controller.workflow_job_template_node:
     identifier: "Base Configs"
-    workflow: "8-Configuration_Drift_Restore-Workflow"
-    unified_job_template: "4-Base_Configs-Workflow"
+    workflow: "1-8-Configuration_Drift_Restore-Workflow"
+    unified_job_template: "1-4-Base_Configs-Workflow"
     organization: "Red Hat network organization"
     success_nodes:
       - "Underlay Configs"

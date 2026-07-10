@@ -3,69 +3,70 @@
 :toc: macro
 :toclevels: 1
 
-TIP: Please review the workshop overview and details in a separate browser window here: link:https://rhpds.github.io/zt-network-automation-workshop[https://rhpds.github.io/zt-network-automation-workshop^]
-or skip to below to start hands-on lab now.
+This module introduces the lab environment and guides you through setting up a dynamic inventory source with Netbox. You'll explore different inventory options, connect to network devices, and learn how Ansible gathers facts from multi-vendor network infrastructure.
 
-These first few lab exercises will focus on basic lab setup and exploring the existing inventory. This section will culminate on establishing a dynamic inventory source with Netbox.
+TIP: Keep the workshop overview open in a separate browser window: link:https://rhpds.github.io/zt-network-automation-workshop[https://rhpds.github.io/zt-network-automation-workshop^]
+
+NOTE: Subscribe to our link:https://www.youtube.com/ansibleautomation[Ansible YouTube channel^] to stay connected with the latest Ansible automation content.
 
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Connect to the lab environment with Visual Studio Code
-* Explore various inventory source options
-* Automate configuring Netbox using Ansible
-* Using Netbox as a dynamic inventory source
-* Explore facts from the network devices using Ansible
+* Connect to the lab environment using Visual Studio Code
+* Examine inventory files and understand groups, hosts, and variables
+* Use Ansible to configure Netbox programmatically
+* Configure Netbox as a dynamic inventory source
+* Gather and explore facts from network devices
 * Connect to network devices via SSH
 
-TIP: You can also open these workshop directions in a separate browser window for easier reference: link:https://rhpds.github.io/zt-network-automation-workshop[https://rhpds.github.io/zt-network-automation-workshop^]
-
-NOTE: Subscribe to our link:https://www.youtube.com/ansibleautomation[Ansible YouTube channel^] to stay connected with the Tech Marketing team and get the latest videos on Ansible automation.
+TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 
 == Step 1: Connecting via VS Code
 
-It is highly encouraged to use Visual Studio Code to complete the workshop exercises. Visual Studio Code provides:
+Use Visual Studio Code to complete the workshop exercises. VS Code provides:
 
-* A file browser
-* A text editor with syntax highlighting
-* An in-browser terminal
+* **File browser** -- navigate the project structure
+* **Text editor** -- syntax highlighting for Ansible YAML and Jinja2
+* **Integrated terminal** -- run commands without leaving the editor
 
-Direct SSH access is available as a backup, or if Visual Studio Code is not sufficient to the student.
-
-Click the **VS Code** tab at the top of the Showroom window to open the editor. No login is required -- it opens directly.
+Click the **VS Code** tab at the top of the Showroom window. The editor opens directly with no login required.
 
 image::launch_page.png[VS Code tab,align="center",link=self,window=_blank,width=600]
 
-TIP: For the best experience (especially copy/paste in the terminal), open VS Code in its own browser tab. Right-click the **VS Code** tab and copy the link, or navigate directly to link:https://vscode-{guid}.{domain}/[https://vscode-{guid}.{domain}/^].
+TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by right-clicking the **VS Code** tab and selecting "Open Link in New Tab", or navigate directly to `https://vscode-{guid}.{domain}/`
 
-Open the `201-multi-vendor-vxlan-workshop/` directory in Visual Studio Code:
+In the VS Code file browser, open the `201-multi-vendor-vxlan-workshop/` directory:
 
 image::vscode-networkworkshop.png[File browser,align="center",link=self,window=_blank,width=600]
 
-Click on the `inventory.yml` to view the content. This YAML inventory file could be used as a project sourced inventory for the automation controller. We will discuss more about the inventory choices in later steps.
+Click `inventory.yml` to view its contents. This YAML inventory file can be used as a project-sourced inventory in Automation Controller. You'll explore inventory options in detail in the following steps.
 
 image::vscode-inventory.png[Playbook,align="center",link=self,window=_blank,width=600]
 
 == Step 2: Using the Terminal
 
-Open a terminal in Visual Studio Code:
+Open a terminal in Visual Studio Code by clicking **Terminal** → **New Terminal** from the menu, or use the keyboard shortcut `Ctrl+Shift+` ` (backtick).
 
 image::vscode-new-terminal.png[New terminal,align="center",link=self,window=_blank,width=600]
 
-The terminal should open up in `201-multi-vendor-vxlan-workshop/` directory in the VS Code terminal.
+The terminal opens in the `201-multi-vendor-vxlan-workshop/` directory. Verify your location with:
 
 [source,bash]
 ----
- pwd
+pwd
 ----
-output
+
+Expected output:
+[source,bash]
+----
 /home/rhel/201-multi-vendor-vxlan-workshop/
+----
 
-
-* `~` -- the tilde in this context is a shortcut for the home directory, i.e. `/home/rhel`
-* `cd` -- Linux command to change directory
-* `pwd` -- Linux command for print working directory. This will show the full path to the current working directory.
+TIP: Useful Linux commands for navigation: +
+`~` -- shortcut for your home directory (`/home/rhel`) +
+`cd` -- change directory +
+`pwd` -- print working directory (shows your current location)
 
 == Step 3: Examining the Inventory
 
