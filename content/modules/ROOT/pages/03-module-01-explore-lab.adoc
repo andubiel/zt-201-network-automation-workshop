@@ -98,8 +98,6 @@ See below playbook code from `controller_workshop_objects.yml`:
       ansible_host: containerlab
       ansible_network_os: arista.eos.eos
       ansible_connection: ansible.netcommon.network_cli
-      ansible_user: admin
-      ansible_password: "admin@123"
       ansible_become: 'true'
       ansible_become_method: enable
     state: present
@@ -116,8 +114,6 @@ See below playbook code from `controller_workshop_objects.yml`:
       ansible_host: containerlab
       ansible_network_os: cisco.nxos.nxos
       ansible_connection: ansible.netcommon.network_cli
-      ansible_user: admin
-      ansible_password: "admin@123"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -132,8 +128,6 @@ See below playbook code from `controller_workshop_objects.yml`:
       ansible_host: containerlab
       ansible_network_os: arista.eos.eos
       ansible_connection: ansible.netcommon.network_cli
-      ansible_user: admin
-      ansible_password: "admin@123"
       ansible_become: 'true'
       ansible_become_method: enable
     state: present
