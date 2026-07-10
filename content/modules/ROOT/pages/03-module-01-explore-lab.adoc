@@ -5,7 +5,7 @@
 
 This module introduces the lab environment and guides you through setting up a dynamic inventory source with Netbox. You'll explore different inventory options, connect to network devices, and learn how Ansible gathers facts from multi-vendor network infrastructure.
 
-TIP: Keep the workshop overview open in a separate browser window: link:https://rhpds.github.io/zt-network-automation-workshop[https://rhpds.github.io/zt-network-automation-workshop^]
+TIP: Keep the workshop overview open in a separate browser window: link:https://github.com/andubiel/zt-201-network-automation-workshop/blob/main/content/modules/ROOT/pages/01-overview.adoc[https://https://github.com/andubiel/zt-201-network-automation-workshop/blob/main/content/modules/ROOT/pages/01-overview.adoc^]
 
 NOTE: Subscribe to our link:https://www.youtube.com/ansibleautomation[Ansible YouTube channel^] to stay connected with the latest Ansible automation content.
 
