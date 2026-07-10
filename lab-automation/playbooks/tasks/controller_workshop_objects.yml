@@ -1197,46 +1197,6 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Node — Overlay Configs (Drift Restore)"
-  ansible.controller.workflow_job_template_node:
-    identifier: "Overlay Configs"
-    workflow: "1-8-Configuration_Drift_Restore-Workflow"
-    unified_job_template: "1-6-Overlay_Configs-Workflow"
-    organization: "Red Hat network organization"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Node — Underlay Configs (Drift Restore)"
-  ansible.controller.workflow_job_template_node:
-    identifier: "Underlay Configs"
-    workflow: "1-8-Configuration_Drift_Restore-Workflow"
-    unified_job_template: "1-5-Underlay_Configs-Workflow"
-    organization: "Red Hat network organization"
-    success_nodes:
-      - "Overlay Configs"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Node — Base Configs (Drift Restore)"
-  ansible.controller.workflow_job_template_node:
-    identifier: "Base Configs"
-    workflow: "1-8-Configuration_Drift_Restore-Workflow"
-    unified_job_template: "1-4-Base_Configs-Workflow"
-    organization: "Red Hat network organization"
-    success_nodes:
-      - "Underlay Configs"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
 # ── Teams ────────────────────────────────────────────────────────────────────
 - name: Create teams
   ansible.controller.team:
