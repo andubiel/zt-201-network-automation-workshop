@@ -32,8 +32,10 @@ Before starting this workshop, you should have:
 Your lab environment includes:
 
 * A containerlab host with `ansible-navigator`, VS Code, and a pre-built execution environment
-* Four network devices: Cisco NXOS (leaf3,leaf4), Arista EOS (spine1, spine2, leaf1, leaf2)
+* Six network devices: Cisco NXOS (leaf3,leaf4), Arista EOS (spine1, spine2, leaf1, leaf2)
 * An Ansible Automation Platform instance for the web-based exercises
+* Netbox for a Dynamic Inventory source.
+* Gitea for a remote GIT repository to read and write files.
 
 All environment details and credentials are available in the lab interface tabs.
 
