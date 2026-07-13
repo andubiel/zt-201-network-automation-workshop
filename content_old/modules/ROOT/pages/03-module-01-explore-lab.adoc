@@ -3,9 +3,9 @@
 :toc: macro
 :toclevels: 1
 
-This section introduces the lab environment and guides you through setting up a dynamic inventory source with Netbox. You'll explore different inventory options, connect to network devices, and learn how Ansible gathers facts from multi-vendor network infrastructure.
+This module introduces the lab environment and guides you through setting up a dynamic inventory source with Netbox. You'll explore different inventory options, connect to network devices, and learn how Ansible gathers facts from multi-vendor network infrastructure.
 
-TIP: Keep the workshop overview open in a separate browser window: link:https://github.com/andubiel/zt-201-network-automation-workshop/blob/main/content/modules/ROOT/pages/01-overview.adoc[Workshop Overview^]
+TIP: Keep the workshop overview open in a separate browser window: link:https://github.com/andubiel/zt-201-network-automation-workshop/blob/main/content/modules/ROOT/pages/01-overview.adoc[https://https://github.com/andubiel/zt-201-network-automation-workshop/blob/main/content/modules/ROOT/pages/01-overview.adoc^]
 
 NOTE: Subscribe to our link:https://www.youtube.com/ansibleautomation[Ansible YouTube channel^] to stay connected with the latest Ansible automation content.
 
@@ -40,11 +40,11 @@ In the VS Code file browser, open the `201-multi-vendor-vxlan-workshop/` directo
 
 image::vscode-networkworkshop.png[File browser,align="center",link=self,window=_blank,width=600]
 
-Click `inventory.yml` to view its contents. This YAML inventory file could be used to source an inventory from a project. Review the yaml file to understand how the parent and child groups were constructed for the network devices. You'll explore additional nventory options in subsequent steps.
+Click `inventory.yml` to view its contents. This YAML inventory file can be used as a project-sourced inventory in Automation Controller. You'll explore inventory options in detail in the following steps.
 
 image::vscode-inventory.png[Playbook,align="center",link=self,window=_blank,width=600]
 
-== Step 2: Using the Terminal.
+== Step 2: Using the Terminal
 
 Open a terminal in Visual Studio Code by clicking **Terminal** → **New Terminal** from the menu, or use the keyboard shortcut `Ctrl+Shift+` ` (backtick).
 
@@ -72,9 +72,9 @@ TIP: Useful Linux commands for navigation: +
 
 The scope of a `play` within a `playbook` is limited to the groups of hosts declared within an Ansible **inventory**. Ansible supports multiple link:http://docs.ansible.com/ansible/latest/intro_inventory.html[inventory^] types. An inventory could be a simple flat file with a collection of hosts defined within it or it could be a dynamic script (potentially querying a CMDB backend) that generates a list of devices to run the playbook against.
 
-In this lab you will work with an automation controller GUI based inventory called "Workshop Inventory". The "Workshop Inventory" was pre-configured during the lab setup using controller_as_code. 
+In this lab you will work with an automation controller GUI based inventory called "Workshop Inventory". The "Workshop Inventory" was pre configured during the lab setup phase using controller as code. 
 
-See below snipit of code from the playbook `controller_workshop_objects.yml` Observe how the groups, hosts and associate groups were constructed. The following playbook uses modules from the ansible.controller collection:
+See below playbook code from `controller_workshop_objects.yml`:
 
 [source,yaml]
 ----
@@ -328,20 +328,13 @@ See below snipit of code from the playbook `controller_workshop_objects.yml` Obs
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 ----
 
-== Step 4: Examining the Inventory from the GUI
+== Step 4: Examining the Inventory as the GUI
 
 Access the automation controler tab
 
 image::automation-controller-tab.png[Playbook,align="center",link=self,window=_blank,width=600]
 
-* username: admin
-* password: ansible123!
 
-image::controller_login.png[Playbook,align="center",link=self,window=_blank,width=400]
-
-navigate to | Inventories | Workshop Inventory
-
-image::select_inventories_workshop_inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
 
 [source,bash]
 ----

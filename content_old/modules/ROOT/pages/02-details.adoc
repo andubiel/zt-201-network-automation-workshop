@@ -5,23 +5,24 @@
 
 == Timing and schedule
 
-=== Phase 1:  workshop (3 hours)
-Multi-Vendor VXLAN
+=== Full workshop (6 hours)
 
-* Section 1-1: Introduction to the Workshop and Setup (30 minutes)
-* Section 1-2: Backups as Code (20 minutes)
-* Section 1-3: Network Compliance (30 minutes)
-* Section 1-4: Basic Configuration and Validation (20 minutes)
-* Section 1-5: Underlay Configuration Configuration and Validation (20 minutes)
-* Section 1-6: Overlay Configurationand Validation (20 minutes)
-* Section 1-7: Tuning Ansible for Scale (20 minutes)
-* Section 1-8: Managing Configuration Drift and Restore (20 minutes)
+* **1-1**: Explore the lab environment (30 minutes)
+* **1-2**: First network automation playbook (30 minutes)
+* **1-3**: Ansible facts on network devices (30 minutes)
+* **1-4**: Network resource modules (45 minutes)
+* **2-1**: Explore Ansible Automation Platform (30 minutes)
+* **2-2**: Create a job template (30 minutes)
+* **2-3**: Create a survey (30 minutes)
+* **2-4**: Role Based Access Control (45 minutes)
+* **2-5**: Create a workflow (45 minutes)
+* **Break time**: As needed between modules
 
-=== Phase 2:  workshop (3 hours)
-Multi-Vendor Network Security
+=== Abbreviated workshop (3 hours)
 
-* Future - Work in progress
-
+* **1-1 through 1-4**: Module 1: Network Basics (90 minutes)
+* **2-1 through 2-2**: Intro to AAP basics (60 minutes)
+* **2-5**: Workflow (30 minutes)
 
 == Technical environment
 
@@ -29,13 +30,13 @@ Multi-Vendor Network Security
 
 * Red Hat Ansible Automation Platform 2.x
 * Ansible Navigator (latest)
-* Execution environment: `network-ee` `netbox-ee (pre-built with all required network collections)
+* Execution environment: `network-ee` (pre-built with all required network collections)
 
 === Network collections included
 
 * `cisco.ios` -- Cisco IOS-XE modules
 * `arista.eos` -- Arista EOS modules
-* `ansible.scm` -- SCM modules
+* `junipernetworks.junos` -- Juniper Junos modules
 * `ansible.netcommon` -- Common network modules
 
 === Environment access
@@ -45,8 +46,6 @@ Participants have access to:
 * **AAP terminal** -- Web-based shell on the **control** VM (the host where Automation Platform runs)
 * **Containerlab terminal** -- Web-based shell on the **containerlab** VM (bastion: `ansible-navigator`, lab tooling, and access toward the network topology)
 * **Ansible Automation Platform** -- Web UI (`https://control-...`)
-* **Netbox** -- Web UI (`https://netbox-...`)
-* **GITEA** -- Web UI (`https://gitea-...`)
 
 All credentials are provided in the lab interface.
 
@@ -67,16 +66,16 @@ The VMs are defined in the lab config by these **names** (they are the `virtualm
 | Matches the **AAP terminal** tab and the **Ansible Automation Platform** web UI. Cloud-init in the lab commonly creates user `rhel` with password `ansible123!` unless your instructor says otherwise.
 |===
 
-=== Connecting to network devices
+=== Connecting to routers
 
-SSH to the switches (leaf1, leaf2, leaf3, leaf4, spine1, spine2) works from the Containerlab terminal. The SSH config is set up on all hosts, so you can simply type:
+SSH to the routers (rtr1, rtr2, rtr3, rtr4) works from **any** lab node -- VS Code terminal, Containerlab terminal, or AAP terminal. The SSH config is set up on all hosts, so you can simply type:
 
 [source,bash]
 ----
-ssh leaf1
+ssh rtr1
 ----
 
-No password is required. This works from the Containerlab terminal.
+No password is required. This works from any terminal in the lab environment, including the VS Code integrated terminal which is the recommended way to work through the exercises.
 
 === Using VS Code
 
@@ -94,8 +93,6 @@ If that does not resolve, check what your deployment actually injected: run `get
 == Authors and contributors
 
 **Adapted and maintained by**: link:https://github.com/IPvSean[Sean Cavanaugh (@IPvSean)^]
-
-**Adapted and maintained by**: link:https://github.com/andubiel[Tony Dubiel]
 
 **Based on**: link:https://github.com/ansible/workshops[Ansible Workshops^] by Red Hat
 

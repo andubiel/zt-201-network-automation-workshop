@@ -6,43 +6,40 @@ Welcome to the Advanced Ansible Network Automation Workshop!
 
 In this workshop, you will:
 
-* Explore the Ansible Automation Platform command-line tools and lab environment
-* Write and execute Ansible Playbooks to automate network device configuration
-* Gather and use Ansible facts from network devices
-* Use network resource modules for vendor-agnostic configuration management
-* Navigate and operate the Ansible Automation Platform web interface
-* Create and run job templates for network automation tasks
-* Build user-friendly surveys for job templates
-* Configure Role Based Access Control (RBAC) for multi-user environments
-* Design automation workflows with conditional logic and failure handling
+* Demonstrate the art of the possible:  Explore real-world network automation capabilities with Ansible Automation Platform
+* Establish source of truth: Use Netbox as a dynamic inventory source and Git for network device configurations
+* Manage network compliance and drift control: Validate configuration standards and restore devices to known-good states
+* Automate multi-vendor EVPN VXLAN:  Apply foundational knowledge and best practices for automating spine-leaf architectures
+* Tune Ansible for scale: Configure Ansible to execute changes across large network fabrics efficiently
 
 == Who this is for
 
 This workshop is designed for network engineers, systems administrators, and automation architects who want to learn how to automate network infrastructure using Red Hat Ansible Automation Platform.
 
-**Experience level**: Beginner -- no prior Ansible experience required.
+**Experience level**: Intermediate -- some prior Ansible experience required.
 
 == Prerequisites
 
 Before starting this workshop, you should have:
 
-* Basic networking knowledge (routers, VLANs, SNMP)
+* Basic networking knowledge (routing, switching, VLANs, VXLAN)
 * Familiarity with the Linux command line
 * A web browser for accessing the lab environment
+* Recommended to complete "Introduction to Ansible Automation Workshop" prior to completing this workshop
 
 == Workshop environment
 
 Your lab environment includes:
 
 * A containerlab host with `ansible-navigator`, VS Code, and a pre-built execution environment
-* Four network devices: Cisco IOS-XE (rtr1), Arista EOS (rtr2, rtr4), and Juniper Junos (rtr3)
+* Four network devices: Cisco NXOS (leaf3,leaf4), Arista EOS (spine1, spine2, leaf1, leaf2)
 * An Ansible Automation Platform instance for the web-based exercises
 
 All environment details and credentials are available in the lab interface tabs.
 
 == Estimated time
 
-This workshop takes approximately **6 hours** to complete.
+This workshop takes approximately **3 hours** to complete.
 
 You can work at your own pace.
 
