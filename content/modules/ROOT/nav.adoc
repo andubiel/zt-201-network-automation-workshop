@@ -2,7 +2,7 @@
 * xref:01-overview.adoc[Workshop overview]
 * xref:02-details.adoc[Workshop details]
 
-.Module 1: Multi-Vendor Network Automation VXLA
+.Module 1: Multi-Vendor Network Automation VXLAN
 * xref:03-module-01-dynamic-inventory.adoc[1-1: Dynamic Inventory]
 * xref:04-module-02-first-playbook.adoc[1-2: First Ansible Playbook]
 * xref:05-module-03-facts.adoc[1-3: Ansible facts]
