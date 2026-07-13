@@ -51,7 +51,7 @@ This workshop is designed for:
 * Network security engineers looking to automate compliance and remediations
 * Anyone interested in hands-on network automation experience
 
-== What you need to succeed
+== What you need to succeed with Module-1
 
 You should have:
 
@@ -60,11 +60,11 @@ You should have:
 * A web browser for accessing the lab environment
 * Recommended to complete "Introduction to Ansible Automation Workshop" prior to completing this workshop
 
-== Lab topology
+== Module-1 Lab topology
 
 This workshop showcases real-world network automation capabilities using a multi-vendor EVPN VXLAN spine-leaf topology.
 
-=== Network Devices
+=== Module-1 Network Devices
 
 [cols="1,1,1,1,1",options="header"]
 |===
@@ -77,7 +77,7 @@ This workshop showcases real-world network automation capabilities using a multi
 | spine1 | Arista EOS | Spine Switch | network_cli | 2226
 | spine2 | Arista EOS | Spine Switch | network_cli | 2227
 |===
-## Lab Topology Summary
+## Module-1 Lab Topology Summary
 
 ### Network Fabric Devices
 - **6 total devices** in spine-leaf EVPN VXLAN topology
@@ -97,11 +97,11 @@ This workshop showcases real-world network automation capabilities using a multi
 - **5+ Workflows**: Automated multi-step processes
 - **4 Teams with RBAC**: Network-admin, network-operator roles
 
-### Network Topology Diagram VXLAN
+### Module-1 Network Topology Diagram VXLAN
 image::201_vxlan_topology.png[Network Topology,align="center",link=self,window=blank,width=700,title="Workshop Network Topology"]
 
 
-### Network Topology Diagram Network Security
+### Modeule-2 Network Topology Diagram Network Security
 (Future)
 
 image::topology_security.png[Network Topology,align="center",link=self,window=blank,width=700,title="Workshop Security Topology"]
