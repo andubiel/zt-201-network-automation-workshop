@@ -286,7 +286,6 @@
     inventory: "Workshop Inventory"
     variables:
       ansible_port: 2222
-      note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -299,7 +298,8 @@
     inventory: "Workshop Inventory"
     variables:
       ansible_port: 2223
-      note: "in production these passwords would be encrypted in vault"
+     
+     
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -312,7 +312,6 @@
     inventory: "Workshop Inventory"
     variables:
       ansible_port: 2224
-      note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -337,7 +336,6 @@
     inventory: "Workshop Inventory"
     variables:
       ansible_port: 2226
-      note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -350,7 +348,6 @@
     inventory: "Workshop Inventory"
     variables:
       ansible_port: 2227
-      note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -382,7 +379,6 @@
       ansible_connection: ssh
       ansible_user: rhel
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
-      note: "in production these passwords would be encrypted in vault"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
