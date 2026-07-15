@@ -442,7 +442,7 @@
 - name: "Execution Environment — Netbox EE"
   ansible.controller.execution_environment:
     name: "Netbox EE"
-    image: "quay.io/acme_corp/netbox-ee"
+    image: "quay.io/acme_corp/network-netbox-eda-ee:latest"
     pull: missing
     organization: "Red Hat network organization"
     state: present
@@ -458,6 +458,7 @@
     organization: "Red Hat network organization"
     scm_type: git
     scm_url: "https://gitea-{{ lookup('ansible.builtin.env', 'GUID') }}.{{ lookup('ansible.builtin.env', 'DOMAIN') }}/gitea/201-multi-vendor-vxlan-workshop.git"
+    scm_update_on_launch: true
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
