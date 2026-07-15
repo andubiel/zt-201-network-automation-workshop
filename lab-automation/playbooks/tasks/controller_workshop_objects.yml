@@ -298,8 +298,6 @@
     inventory: "Workshop Inventory"
     variables:
       ansible_port: 2223
-     
-     
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -529,7 +527,7 @@
 
 - name: "Job template — 1-Dynamic_Inventory-Netbox-Facts"
   ansible.controller.job_template:
-    name: "1-Dynamic_Inventory-Netbox-Facts"
+    name: "1-1-Dynamic_Inventory-Netbox-Facts"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
@@ -543,9 +541,9 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Job template — 1-Dynamic_inventory-Netbox-Remove"
+- name: "Job template — 1-1-Dynamic_inventory-Netbox-Remove"
   ansible.controller.job_template:
-    name: "1-Dynamic_inventory-Netbox-Remove"
+    name: "1-1-Dynamic_inventory-Netbox-Remove"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
