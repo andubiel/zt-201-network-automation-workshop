@@ -536,7 +536,7 @@
     organization: "Red Hat network organization"
     project: "Workshop Project"
     playbook: "1-1-dynamic_inventory/netbox_facts.yml"
-    inventory: "Workshop Inventory"
+    inventory: "Netbox Inventory"
     execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
