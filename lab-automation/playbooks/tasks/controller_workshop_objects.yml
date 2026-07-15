@@ -517,6 +517,7 @@
     project: "Workshop Project"
     playbook: "1-1-dynamic_inventory/netbox_setup.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Netbox EE"
     credentials:
       - "Netbox Credential"
     state: present
@@ -533,6 +534,7 @@
     project: "Workshop Project"
     playbook: "1-1-dynamic_inventory/netbox_facts.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -549,6 +551,7 @@
     project: "Workshop Project"
     playbook: "1-1-dynamic_inventory/netbox_remove.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Netbox EE"
     credentials:
       - "Netbox Credential"
     state: present
@@ -565,6 +568,7 @@
     project: "Workshop Project"
     playbook: "1-2-backups_as_code/backups.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
       - "Controller Credential"
@@ -596,6 +600,7 @@
     project: "Workshop Project"
     playbook: "1-2-backups_as_code/intended.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
       - "Gitea Credential"
@@ -613,6 +618,7 @@
     project: "Workshop Project"
     playbook: "1-2-backups_as_code/restore_selection.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
       - "Gitea Credential"
@@ -630,6 +636,7 @@
     project: "Workshop Project"
     playbook: "1-2-backups_as_code/restore.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
       - "Gitea Credential"
@@ -647,6 +654,7 @@
     project: "Workshop Project"
     playbook: "1-3-network_compliance/compliance_check.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     diff_mode: true
@@ -664,6 +672,7 @@
     project: "Workshop Project"
     playbook: "1-3-network_compliance/compliance_run.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -680,6 +689,7 @@
     project: "Workshop Project"
     playbook: "1-4-base_configs/deploy_fabric.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -696,6 +706,7 @@
     project: "Workshop Project"
     playbook: "1-4-base_configs/test_base_connectivity.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -712,6 +723,7 @@
     project: "Workshop Project"
     playbook: "1-4-base_configs/broken_base_fabric.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -728,6 +740,7 @@
     project: "Workshop Project"
     playbook: "1-5-underlay_configs/deploy_underlay.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -744,6 +757,7 @@
     project: "Workshop Project"
     playbook: "1-5-underlay_configs/underlay_test.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -760,6 +774,7 @@
     project: "Workshop Project"
     playbook: "1-6-overlay_configs/deploy_overlay.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -776,6 +791,7 @@
     project: "Workshop Project"
     playbook: "1-6-overlay_configs/overlay_test.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     state: present
@@ -792,6 +808,7 @@
     project: "Workshop Project"
     playbook: "1-7-tuning_for_scale/configure_snmp.yml"
     inventory: "Workshop Inventory"
+    execution environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
     survey_enabled: true
