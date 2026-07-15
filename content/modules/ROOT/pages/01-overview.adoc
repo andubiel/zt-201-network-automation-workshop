@@ -23,7 +23,7 @@ By the end of this workshop, you will be able to:
 
 The workshop is organized into two modules:
 
-=== Module 1: Multi-Vendor Network Automation (sections 1-1 - 1-8)
+=== Module 1: 201-Multi-Vendor-Network-Automation (sections 1-1 - 1-8)
 
 * Section 1-1: Introduction to the Workshop and Setup (20 minutes)
 * Section 1-2: Backups as Code (10 minutes)
@@ -35,7 +35,7 @@ The workshop is organized into two modules:
 * Section 1-8: Managing Configuration Drift and Restore (15 minutes)
 
 
-=== (future) Module 2: Multi-Vendor Network Security Automation (sections 2-1 - 2-4)
+=== (future) Module 2: 301-Multi-Vendor-Network-Security-Automation (sections 2-1 - 2-4)
 
 Place holder for future lab exercises: 
 
@@ -97,11 +97,11 @@ This workshop showcases real-world network automation capabilities using a multi
 - **5+ Workflows**: Automated multi-step processes
 - **4 Teams with RBAC**: Network-admin, network-operator roles
 
-### Module 1: Network Topology Diagram VXLAN
+### Module 1: 201-Multi-Vendor-Network-VXLAN Topology Diagram 
 image::201_vxlan_topology.png[Network Topology,align="center",link=self,window=blank,width=700,title="Workshop Network Topology"]
 
 
-### Modeule 2: Network Topology Diagram Network Security
+### Module 2: 301-Multi-Vendor-Network-Topology Diagram Network Security
 (Future)
 
 image::topology_security.png[Network Topology,align="center",link=self,window=blank,width=700,title="Workshop Security Topology"]

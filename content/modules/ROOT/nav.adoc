@@ -2,15 +2,16 @@
 * xref:01-overview.adoc[Workshop overview]
 * xref:02-details.adoc[Workshop details]
 
-.Module 1: Multi-Vendor Network Automation VXLAN
+.Module 1: 201-Multi-Vendor-Network-Automation-VXLAN
 * xref:03-module-01-dynamic-inventory.adoc[1-1: Dynamic Inventory]
-* xref:04-module-02-first-playbook.adoc[1-2: First Ansible Playbook]
-* xref:05-module-03-facts.adoc[1-3: Ansible facts]
-* xref:06-module-04-resource-modules.adoc[1-4: Resource modules]
+* xref:04-module-02-backups-as-code.adoc[1-2: Backups as Code]
+* xref:05-module-03-network-compliance.adoc[1-3: Network Compliance]
+* xref:06-module-04-base-configs.adoc[1-4: Base Configs]
+* xref:07-module-05-underlay-configs.adoc[1-5: Underlay Configs]
+* xref:08-module-06-ovrlay-configs.adoc[1-6: Overlay Configs]
+* xref:09-module-07-tuning-for-scale.adoc[1-7: Tuning for Scale]
+* xref:10-module-08-confuration-drift-restore.adoc[1-8: Configuration Drift Restore]
 
-.Module 2: Intro to AAP
-* xref:07-module-05-explore-controller.adoc[2-1: Explore Ansible Automation Platform]
-* xref:08-module-06-job-template.adoc[2-2: Job templates]
-* xref:09-module-07-survey.adoc[2-3: Surveys]
-* xref:10-module-08-rbac.adoc[2-4: RBAC]
-* xref:11-module-09-workflow.adoc[2-5: Workflows]
+.Module 2: 301-Multi-Vendor-Network-Security-Automation (Future)
+* xref:11-module-09-future.adoc[2-1: Future Module]
+
