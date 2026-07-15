@@ -511,7 +511,7 @@
 # ── Additional Workshop Job Templates ────────────────────────────────────────
 - name: "Job template — 1-Dynamic_inventory-Netbox-Setup"
   ansible.controller.job_template:
-    name: "1-Dynamic_inventory-Netbox-Setup"
+    name: "1-1-Dynamic_inventory-Netbox-Setup"
     job_type: run
     organization: "Red Hat network organization"
     project: "Workshop Project"
