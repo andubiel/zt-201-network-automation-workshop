@@ -143,7 +143,7 @@
     organization: "Red Hat network organization"
     credential_type: "netbox-source"
     inputs:
-      NETBOX_API: ""
+      NETBOX_API: "http://containerlab:8282"
       NETBOX_API_KEY: ""
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
@@ -499,8 +499,10 @@
     source_project: "Workshop Project"
     source_path: "netbox_inventory.yml"
     credential: "Netbox Credential"
+    execution_environment: "Netbox EE"
     update_on_launch: true
     overwrite: true
+    overwrite_vars: true
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
