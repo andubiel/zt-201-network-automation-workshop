@@ -479,7 +479,7 @@
 # ── Netbox Inventory ────────────────────────────────────────────────────────
 - name: Netbox Inventory
   ansible.controller.inventory:
-    name: "Netbox"
+    name: "Netbox Inventory"
     description: ""
     organization: "Red Hat network organization"
     prevent_instance_group_fallback: false
@@ -494,7 +494,7 @@
     name: "netbox-source"
     description: ""
     organization: "Red Hat network organization"
-    inventory: "Netbox"
+    inventory: "Netbox Inventory"
     source: scm
     source_project: "Workshop Project"
     source_path: "netbox_inventory.yml"
