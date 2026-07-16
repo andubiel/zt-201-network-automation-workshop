@@ -33,7 +33,7 @@ Click the **VS Code** tab at the top of the Showroom window. The editor opens di
 
 image::launch_page.png[VS Code tab,align="center",link=self,window=_blank,width=600]
 
-TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by right-clicking the **VS Code** tab and selecting "Open Link in New Tab", or navigate directly to `https://vscode-{guid}.{domain}/`
+TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by right-clicking the **VS Code** tab and selecting "Open Link in New Tab".
 
 In the VS Code file browser, open the `201-multi-vendor-vxlan-workshop/` directory:
 
@@ -69,9 +69,19 @@ TIP: Useful Linux commands for navigation: +
 
 == Step 3: Examining the Inventory as Code
 
+NOTE: **Level Set -- Why Inventories Matter** +
+An Ansible inventory defines _what_ you automate against. Without an inventory, Ansible has no targets -- no playbook can run. Inventories organize hosts into groups with shared variables, enabling you to apply the right configuration to the right devices at scale. In network automation, where you manage dozens or hundreds of switches and routers across multiple vendors, a well-structured inventory is the foundation for consistent, repeatable automation.
+
 The scope of a `play` within a `playbook` is limited to the groups of hosts declared within an Ansible **inventory**. Ansible supports multiple link:http://docs.ansible.com/ansible/latest/intro_inventory.html[inventory^] types. An inventory could be a simple flat file with a collection of hosts defined within it or it could be a dynamic script (potentially querying a CMDB backend) that generates a list of devices to run the playbook against.
 
 In this lab you will work with an automation controller GUI based inventory called "Workshop Inventory". The "Workshop Inventory" was pre-configured during the lab setup using controller_as_code. 
+
+NOTE: **Level Set -- What is Controller as Code?** +                                                                                                             
+Controller as Code is the practice of defining your entire Ansible Automation Platform configuration -- inventories, credentials, job templates, workflows, team
+s, and RBAC -- as Ansible playbooks rather than clicking through the GUI. It uses the `ansible.controller` collection, which provides modules like `ansible.cont
+roller.inventory`, `ansible.controller.group`, `ansible.controller.host`, and `ansible.controller.job_template` to create and manage controller objects programm
+atically. This approach makes your automation platform reproducible, version-controlled, and auditable: you can rebuild a controller from scratch, track every c
+hange in Git, and promote configurations consistently across dev, staging, and production environments.        
 
 See below snipit of code from the playbook `controller_workshop_objects.yml` Observe how the groups, hosts and related groups were constructed. The following playbook uses modules from the ansible.controller collection:
 
@@ -302,23 +312,11 @@ NetBox Overview
   * password: admin@123
  
  
-NetBox is an open-source web application that serves as an Infrastructure Resource Modeling (IRM) tool and source of truth for network infrastructure.
- 
-It's designed to document and manage:
-
-  * IP address management (IPAM)
-  * Data center infrastructure (racks, devices, cables)
-  * Network equipment inventory
-  * Virtualization resources
-  * Circuits and connections
-
-Why Use NetBox as an Ansible Inventory Source?
-
-Dynamic, Always Current Inventory
-
-  * Instead of maintaining static YAML/INI files, Ansible queries NetBox in real-time
-  * Inventory automatically reflects infrastructure changes without manual updates
-  * Eliminates drift between documentation and automation
+NOTE: **Level Set -- What is NetBox?** +
+NetBox is an open-source web application that serves as an Infrastructure Resource Modeling (IRM) tool and source of truth for network infrastructure. It's designed to document and manage IP address management (IPAM), data center infrastructure (racks, devices, cables), network equipment inventory, virtualization resources, and circuits and connections. +
+ +
+**Why use NetBox as an Ansible inventory source?** +
+Instead of maintaining static YAML/INI files, Ansible queries NetBox in real-time. Inventory automatically reflects infrastructure changes without manual updates, eliminating drift between documentation and automation.
 
 == Step 6 : Create API Token for Netbox
 
@@ -331,7 +329,7 @@ image::add_new_token.png[Playbook,align="center",link=self,window=_blank,width=8
 
 image::copy_new_token.png[Playbook,align="center",link=self,window=_blank,width=800]
 
-Copy token to VSCode or local notepad for later usage.
+**Important:** Copy the API token to VSCode or local notepad for later usage.
 
 
 == Step 8: Update Netbox Credential 

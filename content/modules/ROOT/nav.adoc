@@ -12,6 +12,6 @@
 * xref:09-module-07-tuning-for-scale.adoc[1-7: Tuning for Scale]
 * xref:10-module-08-confuration-drift-restore.adoc[1-8: Configuration Drift Restore]
 
-.Module 2: 301-Multi-Vendor-Network-Security-Automation (Future)
+.Module 2: 201-Multi-Vendor-Network-Security-Automation (Future)
 * xref:11-module-09-future.adoc[2-1: Future Module]
 
