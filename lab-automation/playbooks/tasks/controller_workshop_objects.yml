@@ -858,6 +858,7 @@
   ansible.controller.workflow_job_template:
     name: "1-3-Solution-Network-Complaince-Workflow"
     organization: "Red Hat network organization"
+    inventory: "Workshop Inventory"
     survey_enabled: true
     survey:
       name: ""
@@ -935,6 +936,7 @@
   ansible.controller.workflow_job_template:
     name: "1-4-Base_Configs-Workflow"
     organization: "Red Hat network organization"
+    inventory: "Workshop Inventory"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -1001,6 +1003,7 @@
   ansible.controller.workflow_job_template:
     name: "1-4-Base_Configs-Workflow-Error"
     organization: "Red Hat network organization"
+    inventory: "Workshop Inventory"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -1067,6 +1070,7 @@
   ansible.controller.workflow_job_template:
     name: "1-5-Underlay_Configs-Workflow"
     organization: "Red Hat network organization"
+    inventory: "Workshop Inventory"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -1133,6 +1137,7 @@
   ansible.controller.workflow_job_template:
     name: "1-6-Overlay_Configs-Workflow"
     organization: "Red Hat network organization"
+    inventory: "Workshop Inventory"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -1199,6 +1204,7 @@
   ansible.controller.workflow_job_template:
     name: "1-8-Configuration_Drift_Restore-Workflow"
     organization: "Red Hat network organization"
+    inventory: "Workshop Inventory"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
