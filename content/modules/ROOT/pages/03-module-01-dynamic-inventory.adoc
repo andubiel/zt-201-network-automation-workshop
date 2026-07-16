@@ -1,532 +1,226 @@
-= 1-1: Dynamic Inventory and Basic Setup
+= 1-2: Backups as Code
 :source-highlighter: rouge
 :toc: macro
 :toclevels: 1
 
-This section introduces the lab environment and guides you through setting up a dynamic inventory source with Netbox. You'll explore different inventory options, connect to network devices, and learn how Ansible gathers facts from multi-vendor network infrastructure.
+This lab uses the ansible.scm collection to backup router configurations to git branches in the Gitea repo.
 
-TIP: Keep the workshop overview open in a separate browser window: link:https://github.com/andubiel/zt-201-network-automation-workshop/blob/main/content/modules/ROOT/pages/01-overview.adoc[Workshop Overview^]
+TIP: **Level Set -- Git Integration with ansible.scm** +
+The `ansible.scm` collection enables Ansible playbooks to read from and write to remote Git repositories like Gitea, GitLab, or GitHub -- all within a single playbook run. It can clone a repository, create or switch branches, stage changed files, commit them with a message, and push the results back to the remote. This means automation workflows can treat Git as a first-class destination: a backup playbook captures device configurations and commits them directly to a branch, producing versioned, auditable snapshots without any manual `git` commands.
 
-NOTE: Subscribe to our link:https://www.youtube.com/ansibleautomation[Ansible YouTube channel^] to stay connected with the latest Ansible automation content.
+
+Additionally, controller as code is used to create job-templates and self service surveys for a later lab 
+to manage configuration drift and configuration restore.
 
 == Learning objectives
 
 By the end of this module, you will be able to:
 
-* Connect to the lab environment using Visual Studio Code
-* Examine inventory files and understand groups, hosts, and variables
-* Use Ansible to configure Netbox programmatically
-* Configure Netbox as a dynamic inventory source
-* Gather and explore facts from network devices
+* 
 
-TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 
-== Step 1: Connecting via VS Code
+== Step 1:  Collect the intitial Backup Configuration
 
-Use Visual Studio Code to complete the workshop exercises. VS Code provides:
+NOTE: **Level Set -- Why Backup Network Configurations?** +
+Network device configurations represent hours of engineering work and are critical to keeping your infrastructure running. Without backups, a misconfiguration, hardware failure, or unauthorized change can mean hours of manual recovery -- or worse, lost configurations that no one remembers. Saving backups to Git branches in a repo like Gitea adds powerful capabilities: every backup is versioned, so you can compare any two points in time with a simple `diff`. Named branches let you capture snapshots at meaningful moments -- `initial_config` before a change window, `pre_upgrade` before a firmware update, or `post_remediation` after a fix. This makes it easy to pinpoint exactly what changed, roll back to a known-good state, and maintain an auditable history of your network's configuration over time.
 
-* **File browser** -- navigate the project structure
-* **Text editor** -- syntax highlighting for Ansible YAML and Jinja2
-* **Integrated terminal** -- run commands without leaving the editor
+Access the AAP Controller from the tab and run the `1-2-Backups_as_Code-Backup-GIT` job template. 
+The survey will prompt for naming your branch. For this exercise, when prompted, name your backup branch initial_config
 
-Click the **VS Code** tab at the top of the Showroom window. The editor opens directly with no login required.
 
-image::launch_page.png[VS Code tab,align="center",link=self,window=_blank,width=600]
+== Step 2: Locate the device backups
 
-TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by right-clicking the **VS Code** tab and selecting "Open Link in New Tab".
+1. Access the gitea tab and login
 
-In the VS Code file browser, open the `201-multi-vendor-vxlan-workshop/` directory:
+user: gitea
+password: gitea123
 
-image::vscode-networkworkshop.png[File browser,align="center",link=self,window=_blank,width=600]
+image::gitea.png[Playbook,align="center",link=self,window=_blank,width=800]
 
-Click `inventory.yml` to view its contents. This YAML inventory file could be used to source an inventory from a project. Review the yaml file to understand how the parent and child groups were constructed for the network devices. You'll explore additional nventory options in subsequent steps.
+Navigate to | repository | gitea/201-multi-vendor-vxlan-workshop | 
 
-image::inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
 
-== Step 2: Using the Terminal.
+Navigate to the `network-workshop` directory if you are not already there.
 
-Open a terminal in Visual Studio Code by clicking **Terminal** → **New Terminal** from the menu, or use the keyboard shortcut `Ctrl+Shift+` ` (backtick).
 
-image::vscode-new-terminal.png[New terminal,align="center",link=self,window=_blank,width=600]
+== Step 3: Understand the `backups.yml` playbook
 
-The terminal opens in the `201-multi-vendor-vxlan-workshop/` directory. Verify your location with:
+Below are the key code snippets with explanations.
 
-[source,bash]
-----
-pwd
-----
+=== Play 1: Backup Router Configs to Gitea in Branches
 
-Expected output:
-[source,bash]
-----
-/home/rhel/201-multi-vendor-vxlan-workshop/
-----
-
-TIP: Useful Linux commands for navigation: +
-`~` -- shortcut for your home directory (`/home/rhel`) +
-`cd` -- change directory +
-`pwd` -- print working directory (shows your current location)
-
-== Step 3: Examining the Inventory as Code
-
-NOTE: **Level Set -- Why Inventories Matter** +
-An Ansible inventory defines _what_ you automate against. Without an inventory, Ansible has no targets -- no playbook can run. Inventories organize hosts into groups with shared variables, enabling you to apply the right configuration to the right devices at scale. In network automation, where you manage dozens or hundreds of switches and routers across multiple vendors, a well-structured inventory is the foundation for consistent, repeatable automation.
-
-The scope of a `play` within a `playbook` is limited to the groups of hosts declared within an Ansible **inventory**. Ansible supports multiple link:http://docs.ansible.com/ansible/latest/intro_inventory.html[inventory^] types. An inventory could be a simple flat file with a collection of hosts defined within it or it could be a dynamic script (potentially querying a CMDB backend) that generates a list of devices to run the playbook against.
-
-In this lab you will work with an automation controller GUI based inventory called "Workshop Inventory". The "Workshop Inventory" was pre-configured during the lab setup using controller_as_code. 
-
-NOTE: **Level Set -- What is Controller as Code?** +                                                                                                             
-Controller as Code is the practice of defining your entire Ansible Automation Platform configuration -- inventories, credentials, job templates, workflows, team
-s, and RBAC -- as Ansible playbooks rather than clicking through the GUI. It uses the `ansible.controller` collection, which provides modules like `ansible.cont
-roller.inventory`, `ansible.controller.group`, `ansible.controller.host`, and `ansible.controller.job_template` to create and manage controller objects programm
-atically. This approach makes your automation platform reproducible, version-controlled, and auditable: you can rebuild a controller from scratch, track every c
-hange in Git, and promote configurations consistently across dev, staging, and production environments.        
-
-See below snipit of code from the playbook `controller_workshop_objects.yml` Observe how the groups, hosts and related groups were constructed. The following playbook uses modules from the ansible.controller collection:
+==== Capturing a Timestamp
 
 [source,yaml]
 ----
-# ── Workshop Inventory ──────────────────────────────────────────────────────
-- name: Workshop Inventory
-  ansible.controller.inventory:
-    name: "Workshop Inventory"
+- name: Grab Current Time
+  ansible.builtin.setup:
+  delegate_to: localhost
+  run_once: true
+----
+
+Runs the setup module on localhost (not on the network devices) to populate `ansible_date_time` facts. `run_once: true` ensures this only executes a single time regardless of how many hosts are in the inventory. The resulting timestamp is used later to create a uniquely named Git branch for this backup run.
+
+==== Cloning the Git Repository into a New Branch
+
+[source,yaml]
+----
+- name: Retrieve a repository from a distant location and make it available to the local EE
+  ansible.scm.git_retrieve:
+    origin:
+      url: "http://gitea:{{password}}@containerlab:8181/gitea/201-multi-vendor-vxlan-workshop.git"
+    parent_directory: /tmp/
+    branch:
+      name: "{{ branch_name | default('ansible-{play_name}') }}-{{ansible_date_time.iso8601_basic_short}}"
+      duplicate_detection: no
+  register: repository
+  delegate_to: localhost
+  run_once: true
+----
+
+Uses the `ansible.scm.git_retrieve` module to clone the repository from the Gitea server into `/tmp/` inside the Execution Environment. A new branch is created with a name that combines either a user-supplied `branch_name` or the play name, appended with a compact ISO 8601 timestamp (e.g., `ansible-backup-20260716T1430`). This gives every backup run its own uniquely named branch. The result is registered as `repository` so the path can be referenced when publishing later. `delegate_to: localhost` keeps this operation on the Ansible controller, not on the network devices.
+
+==== Creating Per-Device Backup Directories
+
+[source,yaml]
+----
+- name: Create backup directory structure
+  ansible.builtin.file:
+    path: "/tmp/201-multi-vendor-vxlan-workshop/201_network_backup_files/{{ inventory_hostname }}"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+----
+
+Creates a subdirectory for each network device inside the cloned repo. Unlike the previous tasks, this does not use `run_once` -- it runs once per host in the inventory, producing a folder per device (e.g., `.../spine1/`, `.../leaf1/`). This organizes backup configs by hostname within the Git repository.
+
+==== Multi-Vendor Config Backup (Arista EOS and Cisco NX-OS)
+
+[source,yaml]
+----
+- name: Backup running config (EOS)
+  arista.eos.eos_config:
+    backup: yes
+    backup_options:
+      filename: "{{ inventory_hostname }}.cfg"
+      dir_path: "/tmp/201-multi-vendor-vxlan-workshop/201_network_backup_files/{{ inventory_hostname }}"
+  when: ansible_network_os == 'arista.eos.eos'
+
+- name: Backup running config (NXOS)
+  cisco.nxos.nxos_config:
+    backup: yes
+    backup_options:
+      filename: "{{ inventory_hostname }}.cfg"
+      dir_path: "/tmp/201-multi-vendor-vxlan-workshop/201_network_backup_files/{{ inventory_hostname }}"
+  when: ansible_network_os == 'cisco.nxos.nxos'
+----
+
+These two tasks handle multi-vendor support. Each uses the vendor-specific config module (`arista.eos.eos_config` or `cisco.nxos.nxos_config`) with `backup: yes` to pull the running configuration from the device. The `when` conditional ensures only the correct module runs for each device based on its `ansible_network_os` variable. The backup file is saved as `<hostname>.cfg` into the per-device directory created in the previous step -- landing it directly inside the cloned Git repo's working tree.
+
+==== Publishing Backups to Git
+
+[source,yaml]
+----
+- name: Publish the changes
+  ansible.scm.git_publish:
+    path: "{{ repository['path'] }}"
+    token: "{{ password }}"
+    user:
+      name: "{{ username }}"
+      email: "{{ email }}"
+  delegate_to: localhost
+  run_once: true
+----
+
+After all device configs have been backed up into the repo's working tree, `ansible.scm.git_publish` stages, commits, and pushes all changes on the new branch back to Gitea in a single operation. It uses the path registered from the `git_retrieve` step. This is the step that turns local backup files into a versioned, auditable Git record.
+
+==== Exposing the Branch Name for Downstream Jobs
+
+[source,yaml]
+----
+- name: Set stats for latest branch name
+  ansible.builtin.set_stats:
+    data:
+      latest_branch_name: "{{ branch_name | default('ansible-{play_name}') }}-{{ansible_date_time.iso8601_basic_short}}"
+  delegate_to: localhost
+  run_once: true
+----
+
+Uses `set_stats` to persist the branch name as an Ansible artifact. In Ansible Automation Controller (AAP), `set_stats` data is visible in the job results and can be consumed by downstream jobs in a workflow. This allows subsequent workflow steps (like intent verification or restore) to know which branch contains the latest backups.
+
+=== Play 2: Prepare Branches for Intent and Restore
+
+==== Listing Available Branches
+
+[source,yaml]
+----
+- name: List the Branches
+  ansible.builtin.shell:
+    cmd: "git branch -r"
+    chdir: /tmp/201-multi-vendor-vxlan-workshop/
+  register: branches
+  delegate_to: localhost
+  run_once: true
+----
+
+Runs `git branch -r` inside the cloned repository to enumerate all remote branches. The output is registered as `branches` and used in the next steps to dynamically populate survey choices. Each line of `branches.stdout_lines` contains one remote branch name (prefixed with `origin/`).
+
+==== Dynamically Creating AAP Job Templates with Survey Menus
+
+[source,yaml]
+----
+- name: Create a job-template - 201-Network-Git-Intent
+  ansible.controller.job_template:
+    name: "2-Backups_as_Code-Git-Intent"
     organization: "Red Hat network organization"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-# Groups
-- name: "Group — arista_leafs"
-  ansible.controller.group:
-    name: arista_leafs
     inventory: "Workshop Inventory"
-    variables:
-      ansible_host: containerlab
-      ansible_network_os: arista.eos.eos
-      ansible_connection: ansible.netcommon.network_cli
-      ansible_become: 'true'
-      ansible_become_method: enable
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Group — cisco_leafs"
-  ansible.controller.group:
-    name: cisco_leafs
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_host: containerlab
-      ansible_network_os: cisco.nxos.nxos
-      ansible_connection: ansible.netcommon.network_cli
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Group — spines"
-  ansible.controller.group:
-    name: spines
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_host: containerlab
-      ansible_network_os: arista.eos.eos
-      ansible_connection: ansible.netcommon.network_cli
-      ansible_become: 'true'
-      ansible_become_method: enable
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Group — leafs (parent of arista_leafs, cisco_leafs)"
-  ansible.controller.group:
-    name: leafs
-    inventory: "Workshop Inventory"
-    children:
-      - arista_leafs
-      - cisco_leafs
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Group — arista (parent of spines, arista_leafs)"
-  ansible.controller.group:
-    name: arista
-    inventory: "Workshop Inventory"
-    children:
-      - spines
-      - arista_leafs
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Group — cisco (parent of cisco_leafs)"
-  ansible.controller.group:
-    name: cisco
-    inventory: "Workshop Inventory"
-    children:
-      - cisco_leafs
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-# Switch hosts — accessed from AAP/control via containerlab port forwarding
-- name: "Host — leaf1 (Arista EOS)"
-  ansible.controller.host:
-    name: leaf1
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2222
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Host — leaf2 (Arista EOS)"
-  ansible.controller.host:
-    name: leaf2
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2223
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Host — leaf3 (Cisco NX-OS)"
-  ansible.controller.host:
-    name: leaf3
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2224
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Host — leaf4 (Cisco NX-OS)"
-  ansible.controller.host:
-    name: leaf4
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2225
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Host — spine1 (Arista EOS)"
-  ansible.controller.host:
-    name: spine1
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2226
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Host — spine2 (Arista EOS)"
-  ansible.controller.host:
-    name: spine2
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2227
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-Truncated
-
+    project: "Workshop Project"
+    playbook: "2-backups_as_code/intended.yml"
+    credentials:
+      - "Containerlab_Network Credential"
+      - "Gitea Credential"
+    execution_environment: "Network EE"
+    survey_enabled: true
+    survey_spec:
+      spec:
+        - question_name: Which Branch would you like to Check Config Drift from?
+          type: multiplechoice
+          variable: branch_name
+          required: true
+          choices:
+            - "{{ branches.stdout_lines[1] | default('') | replace('  origin/','') }}"
+            - "{{ branches.stdout_lines[2] | default('') | replace('  origin/','') }}"
+            # ... up to index [22]
 ----
 
-== Step 4: Examining the Inventory from the GUI
+This is the most architecturally significant task. It uses the `ansible.controller.job_template` module to create (or update) a job template in Ansible Automation Controller itself -- Ansible configuring Ansible. Key mechanics:
 
-Access the automation controler tab
+* `survey_enabled: true` with a `survey_spec` attaches an interactive form to the job template. When a user launches this template from the AAP UI, they are presented with a dropdown menu.
+* The choices are populated dynamically from the `branches` variable captured earlier. Each entry strips the `origin/` prefix with `replace('  origin/','')` so users see clean branch names. The `default('')` filter prevents errors if fewer than 22 branches exist.
+* The selected branch name is passed as the `branch_name` variable to the downstream playbook (`intended.yml` for drift checking, `restore_selection.yml` for restoring).
+* `diff_mode: true` is enabled so the intent/restore jobs show what would change before applying.
 
-image::automation-controller-tab.png[Playbook,align="center",link=self,window=_blank,width=600]
+The same pattern is repeated for the Restore job template, pointing to a different playbook (`restore_selection.yml`) and prompting "Which Branch would you like to Restore from?"
 
-* username: admin
-* password: ansible123!
+=== Overall Flow Summary
 
-image::controller_login.png[Playbook,align="center",link=self,window=_blank,width=400]
+The playbook implements a Backups-as-Code pipeline:
 
-navigate to | Inventories | Workshop Inventory
+. Timestamp the run
+. Clone the Git repo and create a timestamped branch
+. Backup each device's running config (multi-vendor aware) into the repo
+. Commit and push the branch to Gitea
+. Enumerate all backup branches
+. Create/update AAP job templates with dynamic survey menus so operators can select a branch to compare against (intent/drift) or restore from
 
-image::select_inventories_workshop_inventory.png[Playbook,align="center",link=self,window=_blank,width=900]
-
-Explore the groups, hosts and associated groups for the `Workshop Inventory`.
-
-* Groups
-
-image::workshop_inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-* Related Groups - Similar to parent/child groups
-
-In this example, navigate to group cisco | related groups | cisco_leafs
-
-image::related_groups.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-See below the cisco_leafs group_vars
-
-image::cisco_leaf_group_vars.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-* Hosts
-
-Navigate to | Inventories | Workshop Inventory | Hosts | leaf1
-
-* Notice the host_vars for leaf1:
-
-image::leaf1_host.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-
-== Step 5 : Open Netbox
-
-Navigate to the Netbox tab
-
-image::netbox_tab.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-NetBox Overview
-
-  * username: admin
-  * password: admin@123
- 
- 
-NOTE: **Level Set -- What is NetBox?** +
-NetBox is an open-source web application that serves as an Infrastructure Resource Modeling (IRM) tool and source of truth for network infrastructure. It's designed to document and manage IP address management (IPAM), data center infrastructure (racks, devices, cables), network equipment inventory, virtualization resources, and circuits and connections. +
- +
-**Why use NetBox as an Ansible inventory source?** +
-Instead of maintaining static YAML/INI files, Ansible queries NetBox in real-time. Inventory automatically reflects infrastructure changes without manual updates, eliminating drift between documentation and automation.
-
-== Step 6 : Create API Token for Netbox
-
-Navigate to | Admin | API Tokens | Add a Token | Create |
-
-image::add_new_token.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-
-== Step 7 : Copy API Token
-
-image::copy_new_token.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-**Important:** Copy the API token to VSCode or local notepad for later usage.
-
-
-== Step 8: Update Netbox Credential 
-
-Access Ansible Controller Tab again to update the Netbox Credential to update the API Key.
-
-* username: admin
-* password: ansible123!
-
-image::netbox_credential.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-Paste in your Netbox Host and API Key.
-
-For the API Key remove the `Bearer` portion 
-----
-Bearer nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
-----
-
-For example:
-
-Only paste the remaining API key contents from `your` Netbox.
-
-----
-nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
-----
-
-
-== Step 9: Update Netbox Configuration with Anible automtion. 
-
-Launch the 1-1-Dynamic_inventory-Netbox-Setup Job-Template from the automation controller
-
-
-image::launch_setup_netbox.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-== Step 10: Validate Netbox Configuration
-
-Access Netbox tab 
-
-* user: admin
-* password: admin@123
-
-
-Navigate to | Devices |
-
-Click into a specific network devices to examine the Netbox configurations
-
-image::netbox_devices.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-== Step 11: Sync the Netbox Invntory from the Automation Controller
-
-Navigate to | Inventories | Nebox Inventory | Sources | netbox_source | Sync
-
-Ensure that your invetory sync is a success. If it fails check the API Token that was pasted into the credentials. 
-
-Review the source settings to review the configuration.
-
-image::inventory_source.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-At this point there should be groups and hosts available.
-
-**Groups**
-
-image::netbox_groups.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-**Hosts**
-
-image::netbox_hosts.png[Playbook,align="center",link=self,window=_blank,width=800]
-
-
- Take a look at the `netbox_inventory.yml` file from VSCode tab.
- The credentials needed to log into Netbox are read in automatically 
- as environment variables from the `Netbox Credential`.
-
-netbox_inventory.yml
-
-[source:yaml]
-----
----
-plugin: netbox.netbox.nb_inventory
-validate_certs: false
-config_context: false
-group_by:
-  #- sites
-  - device_types
-
-compose:
-  ansible_network_os: custom_fields.ansible_network_os
-  ansible_port: custom_fields.ansible_port
-  ansible_host: custom_fields.ansible_host
-  ansible_connection: custom_fields.ansible_connection
-  ansible_become: custom_fields.ansible_become
-----
-
-Lastly the ansible.cfg file will use the auto plugin to envoke the `netbox_inventory.yml file.
-
-[source:ini]
-----
-[inventory]
-enable_plugins = host_list, script, yaml, ini, auto
-----
-
-== Step 12: Launch the 1-1-Dynamic_Inventory-Netbox-Facts Job-Template
-
-This Job-Template will run a playbook that requests facts from each device using the Netbox Inventory
-
-Example Output:
-
-[source:yaml]
-----
-{
-  "ansible_facts": {
-    "ansible_network_resources": {},
-    "ansible_net_gather_network_resources": [],
-    "ansible_net_gather_subset": [
-      "interfaces",
-      "features",
-      "legacy",
-      "config",
-      "default",
-      "hardware"
-    ],
-    "ansible_net_all_ipv4_addresses": [
-      "10.0.0.15"
-    ],
-    "ansible_net_all_ipv6_addresses": [
-      "2001:db8::2/64"
-    ],
-    "ansible_net_neighbors": {
-      "Ethernet1/11": [
-        {
-          "port": "Ethernet1/12",
-          "host": "leaf3(9FR0HG1A8LJ)",
-          "sysname": "leaf3(9FR0HG1A8LJ)"
-        }
-      ],
-      "Ethernet1/12": [
-        {
-          "port": "Ethernet1/12",
-          "host": "leaf3(9FR0HG1A8LJ)",
-          "sysname": "leaf3(9FR0HG1A8LJ)"
-        }
-      ]
-    },
-    "ansible_net_interfaces": {
-      "mgmt0": {
-        "speed": "1000 Mb/s",
-        "macaddress": "0c00.436b.6a00",
-        "bandwidth": "1000000",
-        "duplex": "full",
-        "state": "up",
-        "mtu": "1500",
-        "type": "Ethernet",
-        "ipv4": {
-          "masklen": "24",
-          "address": "10.0.0.15"
-        },
-        "ipv6": {
-          "subnet": "2001:db8::/64"
-        }
-      },
-      "Ethernet1/1": {
-        "speed": "1000 Mb/s",
-        "macaddress": "0c6b.6a00.0101",
-        "bandwidth": "1000000",
-        "mode": "access",
-        "duplex": "full",
-        "state": "up",
-        "mtu": "1500",
-        "type": "100/1000/10000 Ethernet"
-      },
-      "Ethernet1/2": {
-        "speed": "1000 Mb/s",
-        "macaddress": "0c6b.6a00.0102",
-        "bandwidth": "1000000",
-        "mode": "access",
-        "duplex": "full",
-        "state": "up",
-        "mtu": "1500",
-        "type": "100/1000/10000 Ethernet"
-      
-      Truncated
-
-----
 
 == Module summary
 
 In this module, you learned how to:
 
-* Connect to the lab environment using Visual Studio Code
-* Examine inventory files and understand how groups, hosts, and variables are constructed using `ansible.controller` modules
-* Explore the Workshop Inventory in the Automation Controller GUI, including groups, related groups, and host variables
-* Set up Netbox as a source of truth — creating an API token and configuring the Netbox credential in the Automation Controller
-* Populate Netbox with device data by launching the Netbox Setup job template
-* Configure and sync a Netbox dynamic inventory source in the Automation Controller
-* Understand the `netbox_inventory.yml` plugin configuration and how it maps custom fields to Ansible variables
-* Gather and explore network device facts using the Netbox Inventory
-
-
-
-
+* Examine an existing Ansible Playbook that configures SNMP community strings on Cisco IOS-XE devices
+* Execute playbooks using `ansible-navigator run` with `--mode stdout`
+* Verify that the **config** modules (e.g. `cisco.ios.config`) are idempotent -- meaning they are stateful and only push changes when the desired configuration is not already present
+* Use **check mode** (`--check`) to preview changes without applying them to the remote device
+* Use **verbose mode** (`-v`) to see detailed output including which commands would be applied
+* This Ansible Playbook could be scheduled in **Ansible Automation Platform** to enforce the configuration. For example, the playbook could run once a day for a particular network. In combination with check mode, this could be a read-only playbook that detects and reports missing or modified configuration on the network.
