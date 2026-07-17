@@ -854,23 +854,11 @@
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 # ── Workflows ────────────────────────────────────────────────────────────────────
-- name: "Workflow — 1-3-Solution-Network-Complaince-Workflow"
+- name: "Workflow — 1-3-Network-Complaince-Workflow"
   ansible.controller.workflow_job_template:
     name: "1-3-Solution-Network-Complaince-Workflow"
     organization: "Red Hat network organization"
     inventory: "Workshop Inventory"
-    survey_enabled: true
-    survey:
-      name: ""
-      description: ""
-      spec:
-        - question_name: "Which Compliance Roles would you like to check?"
-          type: multiselect
-          variable: tag
-          required: true
-          choices:
-            - "logging"
-            - "ntp"
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
