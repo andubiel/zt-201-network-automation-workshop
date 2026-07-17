@@ -978,7 +978,7 @@
     unified_job_template: "1-2-Backups_as_Code-Backup-GIT"
     organization: "Red Hat network organization"
     extra_data:
-      branch_name: "Base_Config"
+      branch_name: "base_configs"
     success_nodes:
       - "Deploy"
     state: present
@@ -1112,7 +1112,7 @@
     unified_job_template: "1-2-Backups_as_Code-Backup-GIT"
     organization: "Red Hat network organization"
     extra_data:
-      branch_name: "Underlay_config"
+      branch_name: "underlay_configs"
     success_nodes:
       - "Deploy"
     state: present
@@ -1179,7 +1179,7 @@
     unified_job_template: "1-2-Backups_as_Code-Backup-GIT"
     organization: "Red Hat network organization"
     extra_data:
-      branch_name: "Overlay_config"
+      branch_name: "overlay_configs"
     success_nodes:
       - "Deploy"
     state: present
