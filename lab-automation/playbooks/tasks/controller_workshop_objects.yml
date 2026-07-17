@@ -1045,7 +1045,7 @@
     unified_job_template: "1-2-Backups_as_Code-Backup-GIT"
     organization: "Red Hat network organization"
     extra_data:
-      branch_name: "Base_Config"
+      branch_name: "base_configs_error"
     success_nodes:
       - "Deploy"
     state: present
