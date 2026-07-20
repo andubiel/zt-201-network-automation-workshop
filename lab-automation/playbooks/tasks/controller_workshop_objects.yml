@@ -1188,17 +1188,6 @@
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Workflow — 1-8-Configuration_Drift_Restore-Workflow"
-  ansible.controller.workflow_job_template:
-    name: "1-8-Configuration_Drift_Restore-Workflow"
-    organization: "Red Hat network organization"
-    inventory: "Workshop Inventory"
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
 # ── Teams ────────────────────────────────────────────────────────────────────
 - name: Create teams
   ansible.controller.team:
