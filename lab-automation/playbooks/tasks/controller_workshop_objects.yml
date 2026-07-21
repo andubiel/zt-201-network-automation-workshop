@@ -814,39 +814,6 @@
     execution_environment: "Network EE"
     credentials:
       - "Containerlab_Network Credential"
-    survey_enabled: true
-    survey_spec:
-      name: ""
-      description: ""
-      spec:
-        - question_name: "Do you want to send an error?"
-          question_description: ""
-          required: true
-          type: multiplechoice
-          variable: error
-          min: 0
-          max: 1024
-          default: "no"
-          choices: "yes\nno"
-          new_question: true
-        - question_name: "Please select the 'Serial' batch percentages"
-          question_description: ""
-          required: true
-          type: multiselect
-          variable: serials
-          min: 0
-          max: 1024
-          choices: "1\n35%\n50%\n75%\n100%"
-          new_question: false
-        - question_name: "Please select the Maximum_Failure_Percentage"
-          question_description: ""
-          required: true
-          type: multiplechoice
-          variable: max_fail
-          min: 0
-          max: 1024
-          choices: "0\n5\n10\n20\n50\n75\n100"
-          new_question: false
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
