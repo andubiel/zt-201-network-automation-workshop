@@ -348,7 +348,7 @@ Only paste the remaining API key contents from your Netbox:
 nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
 ----
 --
-
+`save`
 
 == Step 9: Update Netbox Configuration with Ansible Automation
 
