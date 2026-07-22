@@ -336,6 +336,8 @@ image::netbox_credential.png[Credential,align="center",link=self,window=_blank,w
 --
 For the API Key remove the `Bearer` portion:
 
+WARNING: Do not paste `Bearer`
+
 ----
 Bearer nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
 ----
