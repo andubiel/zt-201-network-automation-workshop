@@ -33,6 +33,10 @@ NOTE: **Level Set -- Why Backup Network Configurations?** +
 Network device configurations represent hours of engineering work and are critical to keeping your infrastructure running. Without backups, a misconfiguration, hardware failure, or unauthorized change can mean hours of manual recovery -- or worse, lost configurations that no one remembers. Saving backups to Git branches in a repo like Gitea adds powerful capabilities: every backup is versioned, so you can compare any two points in time with a simple `diff`. Named branches let you capture snapshots at meaningful moments -- `initial_config` before a change window, `pre_upgrade` before a firmware update, or `post_remediation` after a fix. This makes it easy to pinpoint exactly what changed, roll back to a known-good state, and maintain an auditable history of your network's configuration over time.
 
 . Access the AAP Controller from the tab and run the `1-2-Backups_as_Code-Backup-GIT` job template.
++
+username: admin +
+password: ansible123!
++
 . The survey will prompt for naming your branch. For this exercise, when prompted, name your backup branch initial_config and continue to run.
 +
 image::initial_config.png[Initial,align="center",link=self,window=_blank,width=800]
