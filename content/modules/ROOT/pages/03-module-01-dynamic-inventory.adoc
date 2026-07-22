@@ -354,6 +354,8 @@ nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
 
 . Launch the 1-1-Dynamic_inventory-Netbox-Setup Job-Template from the automation controller
 +
+This playbook will automate the Netbox intial configuration.
++
 image::launch_setup_netbox.png[Launch,align="center",link=self,window=_blank,width=800]
 
 == Step 10: Validate Netbox Configuration
