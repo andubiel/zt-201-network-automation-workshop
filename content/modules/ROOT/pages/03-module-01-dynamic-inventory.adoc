@@ -19,8 +19,6 @@ By the end of this module, you will be able to:
 * Configure Netbox as a dynamic inventory source
 * Gather and explore facts from network devices
 
-== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `1-1-dynamic_inventory`
-
 TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 
 == Step 1: Connecting via VS Code
