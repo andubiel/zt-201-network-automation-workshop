@@ -353,7 +353,7 @@ The output shows exactly which logging settings were added, removed, or changed 
 image::workflow_paused.png[compliance,align="center",link=self,window=blank,width=800]
 
 [start=2]
-. Click Approve
+. Click Approve | Confirm | Workflow Approvals
 
 image::click_approval.png[compliance,align="center",link=self,window=blank,width=800]
 
