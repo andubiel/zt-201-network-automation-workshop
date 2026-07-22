@@ -3,24 +3,24 @@ antora:
   name: modules
   dir: www
   modules:
-    - name: 03-module-01-explore-lab
-      label: "1-1: Explore the lab environment"
-    - name: 04-module-02-first-playbook
-      label: "1-2: First Ansible Playbook"
-    - name: 05-module-03-facts
-      label: "1-3: Ansible facts"
-    - name: 06-module-04-resource-modules
-      label: "1-4: Resource modules"
-    - name: 07-module-05-explore-controller
-      label: "2-1: Explore Automation controller"
-    - name: 08-module-06-job-template
-      label: "2-2: Job templates"
-    - name: 09-module-07-survey
-      label: "2-3: Surveys"
-    - name: 10-module-08-rbac
-      label: "2-4: RBAC"
-    - name: 11-module-09-workflow
-      label: "2-5: Workflows"
+    - name: 03-module-01-dynamic-inventory
+      label: "1-1: Dynamic Inventory"
+    - name: 04-module-02-backups-as-code
+      label: "1-2: Backups as Code"
+    - name: 05-module-03-network-compliance
+      label: "1-3: Network Compliance"
+    - name: 06-module-04-base-configs
+      label: "1-4: Base Configs"
+    - name: 07-module-05-underlay-configs
+      label: "1-5: Underlay Configs"
+    - name: 08-module-06-overlay-configs
+      label: "1-6: Overlay Configs"
+    - name: 09-module-07-tuning-for-scale
+      label: "1-7: Tuning for Scale"
+    - name: 10-module-08-configuration-drift-restore
+      label: "1-8: Configuration Drift Restore"
+    - name: 11-module-09-placeholder
+      label: "2-1: Future Module"
 
 tabs:
   # Browser terminals are all WeTTY; type: terminal = chart default route, url: /wetty_* = explicit VM.
