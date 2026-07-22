@@ -15,7 +15,7 @@ This module covers:
 * Comparing the blast radius of `max_fail_percentage: 0` vs. `50` -- seeing which healthy devices get configured and which are collateral damage
 * Understanding how `forks` controls parallelism within each serial batch and when it becomes the bottleneck in larger inventories
 
-== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `2-3-tuning_for_scale`
+== It's encouraged to visit the VSCode tab to review the playbooks and roles from `2-3-tuning_for_scale`
 
 TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 

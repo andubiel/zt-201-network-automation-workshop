@@ -19,7 +19,7 @@ This module covers:
 * Deciding how to resolve drift: restoring devices to a previous backup branch or updating the intended config to accept the current state
 * Restoring device configurations from named Git branches using the self-service restore workflow
 
-== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `1-2-backups_as_code`
+== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-2-backups_as_code`
 
 TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 

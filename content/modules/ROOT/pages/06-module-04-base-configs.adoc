@@ -24,7 +24,7 @@ This module covers:
 * Validating deployments with automated ping tests, interface checks, and hostname verification
 * Diagnosing and recovering from a broken configuration using the backup-and-restore workflow
 
-== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `1-4-base_configs`
+== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-4-base_configs`
 
 TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 

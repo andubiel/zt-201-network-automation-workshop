@@ -3,7 +3,7 @@
 :toc: macro
 :toclevels: 1
 
-Future
+Future Network Security Module
 
 == Learning objectives
 

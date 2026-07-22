@@ -21,7 +21,7 @@ By the end of this module, you will be able to:
 * Approve or deny changes at a human-in-the-loop approval node after reviewing check mode output
 * Validate that run mode remediation was applied by inspecting the device CLI and comparing the run mode `after` output to the intended state
 
-== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `1-3-network_complaince`
+== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-3-network_complaince`
 
 TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 
