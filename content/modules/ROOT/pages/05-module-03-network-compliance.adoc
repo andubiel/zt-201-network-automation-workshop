@@ -84,6 +84,8 @@ TIP: in multiple choice multiple select hit enter to bring up the next choice bo
 +
 image:survey_config.png[compliance,align="center",link=self,window=blank,width=800]
 +
+WARNING: Don't forget to enable the survey!
++
 click create survey button
 
 == Step 3: Launch the 1-3-Network-Compliance-Workflow
