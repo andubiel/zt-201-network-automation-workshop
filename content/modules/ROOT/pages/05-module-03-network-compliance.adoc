@@ -246,6 +246,10 @@ show run | i logging
 No output expected
 leaf3# 
 
+TIP: If the Containerlab Terminal is stuck refresh the tab.
+
+image::refresh.png[refresh,align="center",link=self,window=blank,width=800]
+
 [start=4]
 . Return to the automation controller 1-3-Network_Compliance-Check `job` output and examine the DIFF output for leaf3
 
