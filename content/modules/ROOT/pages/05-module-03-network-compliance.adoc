@@ -366,6 +366,8 @@ image::leaf3_run.png[compliance,align="center",link=self,window=blank,width=800]
 
 After the approval node is approved, the compliance workflow re-runs the playbook in **run mode**, applying the changes to the devices. Below is the output from `leaf3` after remediation:
 
+TASK [roles/logging : Check/Apply NXOS logging configuration]
+
 [source,json]
 ----
 {
