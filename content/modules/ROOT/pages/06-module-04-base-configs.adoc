@@ -33,7 +33,7 @@ TIP: Scroll all the way down and complete all steps in this lab guide before cli
 
  * Recommended read 
  * Optional to scroll down to step1 (skip reading)
- 
+
 ---
 
   The 1-4-base_configs folder provisions a multi-vendor leaf-spine topology. It contains three playbooks and
@@ -141,6 +141,9 @@ TIP: Scroll all the way down and complete all steps in this lab guide before cli
   3. Hostname verification -- the device's configured hostname matches inventory_hostname
 
 == Step 1: Launch the 1-4-Base_Configs-Workflow
+
+user: admin +
+password: ansible123!
 
 image::base_configs_workflow.png[compliance,align="center",link=self,window=blank,width=800]
 
