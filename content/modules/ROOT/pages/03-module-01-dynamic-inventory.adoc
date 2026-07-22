@@ -45,7 +45,7 @@ image::inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
 
 == Step 2: Using the Terminal
 
-Open a terminal in Visual Studio Code by clicking **Terminal** → **New Terminal** from the menu, or use the keyboard shortcut `Ctrl+Shift+` ` (backtick).
+Open a terminal in Visual Studio Code `...` by clicking **Terminal** → **New Terminal** from the menu, or use the keyboard shortcut `Ctrl+Shift+` ` (backtick).
 
 image::vscode-new-terminal.png[New terminal,align="center",link=self,window=_blank,width=600]
 
