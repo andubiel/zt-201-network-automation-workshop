@@ -424,7 +424,9 @@ enable_plugins = host_list, script, yaml, ini, auto
 
 . Run this Job-Template to launch a playbook that requests facts from each device using the Netbox Inventory.
 +
-Example Output:
+Example Output from leaf3:
++
+TASK [Gather all NXOS facts] click on leaf3
 
 [source:yaml]
 ----
