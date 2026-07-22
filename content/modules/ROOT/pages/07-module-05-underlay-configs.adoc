@@ -168,7 +168,9 @@ This is a standard `eos_config` warning. It is telling you that if you run this 
 
 image:workflow_underlay_test.png[Test,align="center",link=self,window=blank,width=600]
 
-== Recommended - Deep Explaination of the Test Output (Optional Scrolldown to skip to Module Summary)
+== Recommended - Deep Explaination of the Test Output 
++
+(Optional Scrolldown to skip to Module Summary)
 
 The `underlay_test.yml` playbook output validates that the underlay network deployed by `1-5-underlay_configs` is functioning correctly. It runs against all six fabric devices (spine1, spine2, leaf1--leaf4) and tests the three foundational requirements that must be healthy before the VXLAN EVPN overlay can be built on top: OSPF adjacencies, BGP EVPN sessions, and loopback-to-loopback reachability.
 
