@@ -47,6 +47,7 @@ Parameters:
   required: true
   type: multiplechoice
   choices: "yes\no"
+  the default is no
   variable: error
          
 * question_name: "Please select the 'Serial' batch percentages"
