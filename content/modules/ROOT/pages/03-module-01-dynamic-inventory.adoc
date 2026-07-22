@@ -356,6 +356,10 @@ nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
 +
 This playbook will automate the Netbox intial configuration.
 +
+user: admin
++
+password: admin@123
++
 image::launch_setup_netbox.png[Launch,align="center",link=self,window=_blank,width=800]
 
 == Step 10: Validate Netbox Configuration
