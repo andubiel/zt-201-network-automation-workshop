@@ -78,6 +78,8 @@ image:create_survey.png[compliance,align="center",link=self,window=blank,width=8
 +
 image:question_config.png[compliance,align="center",link=self,window=blank,width=800]
 +
+TIP: in multiple select hit enter to bring up the next choice box.
++
 image:survey_config.png[compliance,align="center",link=self,window=blank,width=800]
 
 == Step 3: Launch the 1-3-Network-Compliance-Workflow
