@@ -196,6 +196,8 @@ This restores all devices back to the baseline state captured before any EVPN VX
 
 **Output leaf1**
 
+* TASK [Restore configuration (EOS)]
+
 * The `intitial_configs` removes the `final_configs` to restore to the intitial backup state.
 
 [source:yaml]
@@ -345,6 +347,8 @@ This restores all devices to the fully configured EVPN VXLAN fabric state, inclu
 . Review the job output -- each device is returned to the completed fabric state captured at the beginning of this module
 
 **Output leaf1**
+
+* TASK [Restore configuration (EOS)]
 
 * The `final_configs` adds the completed config back the `leaf1` device.
 
