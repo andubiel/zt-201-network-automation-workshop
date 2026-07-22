@@ -347,7 +347,7 @@ ok: [leaf4] => {
 ----
 
 In the previous steps the workflow successfully deployed and tested so there was no need to launch the restore job-template.
-This section introducesan incorect IP addressing to fail the `Test` node on purpose to envoke the the restore job-template.
+This section introduces an incorect IP addressing to fail the `Test` node on purpose. This failure will envoke the the restore job-template.
 
 image::base_workflow_success.png[Workflow,align="center",link=self,window=blank,width=800]
 
