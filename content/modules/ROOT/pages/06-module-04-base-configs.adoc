@@ -28,8 +28,11 @@ This module covers:
 
 TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 
+
+**Base Configuration Overview**
+* Recommended read 
+* Optional to scroll down to step1 (skip reading)
 ---
-  Base Configuration Overview
 
   The 1-4-base_configs folder provisions a multi-vendor leaf-spine topology. It contains three playbooks and
   a role:
