@@ -153,15 +153,15 @@ TIP: Always take a backup before and after major configuration changes. The back
 
 == Step 2: Review the new backups for base_configs branch in Gitea
 
-image::base_configs_branch.png[compliance,align="center",link=self,window=blank,width=800]
+image::base_configs_branch.png[Base,align="center",link=self,window=blank,width=800]
 
 1. Navigate to leaf3.cfg
 
-image::base_leaf3.png[compliance,align="center",link=self,window=blank,width=800]
+image::base_leaf3.png[Leaf3,align="center",link=self,window=blank,width=800]
 
 == Step 3: Review the job output for the `1-4-Base_Configs-Deploy` job template
 
-image::base_deploy.png[compliance,align="center",link=self,window=blank,width=800]
+image::base_deploy.png[Deploy,align="center",link=self,window=blank,width=800]
 
 === Resource Module Usage
 
@@ -280,7 +280,7 @@ Each task pulls its configuration from `host_vars` or `group_vars` variables (`b
 
 == Step 4: Review the job output for the `1-4-Base_Configs-Test` job template
 
-image::base_test.png[compliance,align="center",link=self,window=blank,width=800]
+image::base_test.png[Test,align="center",link=self,window=blank,width=800]
 
 **Sucessfull Output**
 [source:yaml]
@@ -341,7 +341,7 @@ ok: [leaf4] => {
 In the previous steps the workflow successfully deployed and tested so there was no need to launch the restore job-template.
 This section introducesan incorect IP addressing to fail the `Test` node on purpose to envoke the the restore job-template.
 
-image::base_workflow_success.png[compliance,align="center",link=self,window=blank,width=800]
+image::base_workflow_success.png[Workflow,align="center",link=self,window=blank,width=800]
 
 == Step 5: Launch the `1-4-Base_Configs-Workflow-Error` workflow job template
 

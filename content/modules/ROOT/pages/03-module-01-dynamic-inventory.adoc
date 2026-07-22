@@ -266,39 +266,39 @@ Truncated
 
 . Access the automation controller tab
 +
-image::automation-controller-tab.png[Playbook,align="center",link=self,window=_blank,width=600]
+image::automation-controller-tab.png[Tab,align="center",link=self,window=_blank,width=600]
 +
 username: admin +
 password: ansible123!
 +
-image::controller_login.png[Playbook,align="center",link=self,window=_blank,width=400]
+image::controller_login.png[AAP,align="center",link=self,window=_blank,width=400]
 +
 . Navigate to | Inventories | Workshop Inventory
 +
-image::select_inventories_workshop_inventory.png[Playbook,align="center",link=self,window=_blank,width=900]
+image::select_inventories_workshop_inventory.png[Inventories,align="center",link=self,window=_blank,width=900]
 +
 . Explore the groups, hosts and associated groups for the `Workshop Inventory`.
 +
-image::workshop_inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::workshop_inventory.png[Workshop,align="center",link=self,window=_blank,width=800]
 +
 . In this example, navigate to group cisco | related groups | cisco_leafs
 +
-image::related_groups.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::related_groups.png[Groups,align="center",link=self,window=_blank,width=800]
 +
 . See below the cisco_leafs group_vars
 +
-image::cisco_leaf_group_vars.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::cisco_leaf_group_vars.png[Leaf,align="center",link=self,window=_blank,width=800]
 +
 . Navigate to | Inventories | Workshop Inventory | Hosts | leaf1. Notice the host_vars for leaf1:
 +
-image::leaf1_host.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::leaf1_host.png[Host,align="center",link=self,window=_blank,width=800]
 
 
 == Step 5 : Open Netbox
 
 . Navigate to the Netbox tab
 +
-image::netbox_tab.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::netbox_tab.png[Netbox,align="center",link=self,window=_blank,width=800]
 +
 username: admin +
 password: admin@123
@@ -314,12 +314,12 @@ Instead of maintaining static YAML/INI files, Ansible queries NetBox in real-tim
 
 . Navigate to | Admin | API Tokens | Add a Token | Create |
 +
-image::add_new_token.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::add_new_token.png[Token,align="center",link=self,window=_blank,width=800]
 
 
 == Step 7 : Copy API Token
 
-image::copy_new_token.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::copy_new_token.png[Copy,align="center",link=self,window=_blank,width=800]
 
 **Important:** Copy the API token to VSCode or local notepad for later usage.
 
@@ -331,7 +331,7 @@ image::copy_new_token.png[Playbook,align="center",link=self,window=_blank,width=
 username: admin +
 password: ansible123!
 +
-image::netbox_credential.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::netbox_credential.png[Credential,align="center",link=self,window=_blank,width=800]
 +
 . Paste in your Netbox Host and API Key.
 +
@@ -354,7 +354,7 @@ nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
 
 . Launch the 1-1-Dynamic_inventory-Netbox-Setup Job-Template from the automation controller
 +
-image::launch_setup_netbox.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::launch_setup_netbox.png[Launch,align="center",link=self,window=_blank,width=800]
 
 == Step 10: Validate Netbox Configuration
 
@@ -366,7 +366,7 @@ password: admin@123
 . Navigate to | Devices |
 . Click into a specific network device to examine the Netbox configurations
 +
-image::netbox_devices.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::netbox_devices.png[Devices,align="center",link=self,window=_blank,width=800]
 
 == Step 11: Sync the Netbox Inventory from the Automation Controller
 
@@ -374,17 +374,17 @@ image::netbox_devices.png[Playbook,align="center",link=self,window=_blank,width=
 . Ensure that your inventory sync is a success. If it fails check the API Token that was pasted into the credentials.
 . Review the source settings to review the configuration.
 +
-image::inventory_source.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::inventory_source.png[Source,align="center",link=self,window=_blank,width=800]
 +
 At this point there should be groups and hosts available.
 +
 **Groups**
 +
-image::netbox_groups.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::netbox_groups.png[Groups,align="center",link=self,window=_blank,width=800]
 +
 **Hosts**
 +
-image::netbox_hosts.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::netbox_hosts.png[Hosts,align="center",link=self,window=_blank,width=800]
 +
 . Take a look at the `netbox_inventory.yml` file from the VSCode tab. The credentials needed to log into Netbox are read in automatically as environment variables from the `Netbox Credential`.
 +
@@ -503,7 +503,7 @@ WARNING: Sometimes devices fail during setup!
 
 . Access the containerlab tab
 +
-image::containerlab_tab.png[Playbook,align="center",link=self,window=_blank,width=800]
+image::containerlab_tab.png[Tab,align="center",link=self,window=_blank,width=800]
 +
 . Run the following command to ensure all six network switches are running
 
