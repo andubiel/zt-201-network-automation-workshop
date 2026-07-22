@@ -271,7 +271,7 @@ password: ansible123!
 +
 image::controller_login.png[AAP,align="center",link=self,window=_blank,width=400]
 +
-. Navigate to | Inventories | Workshop Inventory
+. Navigate to | Automation Execution | Infrastructure | Inventories | Workshop Inventory
 +
 image::select_inventories_workshop_inventory.png[Inventories,align="center",link=self,window=_blank,width=900]
 +
