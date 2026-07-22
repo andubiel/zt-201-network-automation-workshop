@@ -22,7 +22,7 @@ This module covers:
 
 TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
 
-== Overlay Details 
+== Overlay Details (Recommended Read)
 **Optional** - Scroll down to skip to Step 1
 
 The overlay runs on a spine-leaf fabric hosted in Containerlab. All six devices connect to the Containerlab host via SSH on unique ports and share a common management address (`containerlab`).
