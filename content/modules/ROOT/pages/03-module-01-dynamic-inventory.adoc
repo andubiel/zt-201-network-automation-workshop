@@ -324,7 +324,7 @@ image::copy_new_token.png[Copy,align="center",link=self,window=_blank,width=800]
 
 == Step 8: Update Netbox Credential 
 
-. Access Ansible Controller Tab again to update the Netbox Credential to update the API Key.
+. Access Ansible Automation Platform Tab again to update the Netbox Credential to update the API Key.
 +
 username: admin +
 password: ansible123!
