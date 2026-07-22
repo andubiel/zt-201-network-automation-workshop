@@ -1,0 +1,254 @@
+= 1-2: Backups as Code
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+This lab uses the ansible.scm collection to backup router configurations to git branches in the Gitea repo.
+
+TIP: **Level Set -- Git Integration with ansible.scm** +
+The `ansible.scm` collection enables Ansible playbooks to read from and write to remote Git repositories like Gitea, GitLab, or GitHub -- all within a single playbook run. It can clone a repository, create or switch branches, stage changed files, commit them with a message, and push the results back to the remote. This means automation workflows can treat Git as a first-class destination: a backup playbook captures device configurations and commits them directly to a branch, producing versioned, auditable snapshots without any manual `git` commands.
+
+
+Additionally, controller as code is used to create job-templates and self service surveys for a later lab 
+to manage configuration drift and configuration restore.
+
+== Learning objectives
+
+By the end of this module, you will be able to:
+
+* Run a backup job template that captures running configurations from multi-vendor network devices
+* Locate and browse device backup files stored in Git branches on Gitea
+* Explain how `ansible.scm.git_retrieve` and `ansible.scm.git_publish` clone, branch, commit, and push to a remote Git repository
+* Describe how the backup playbook handles multi-vendor devices using conditional tasks and vendor-specific config modules
+* Understand how `set_stats` exposes data to downstream workflow jobs in Ansible Automation Controller
+* Explain how controller as code dynamically creates job templates with survey menus populated from Git branches
+
+== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `1-2-backups_as_code`
+
+TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
+
+== Step 1:  Collect the Initial Backup Configuration
+
+NOTE: **Level Set -- Why Backup Network Configurations?** +
+Network device configurations represent hours of engineering work and are critical to keeping your infrastructure running. Without backups, a misconfiguration, hardware failure, or unauthorized change can mean hours of manual recovery -- or worse, lost configurations that no one remembers. Saving backups to Git branches in a repo like Gitea adds powerful capabilities: every backup is versioned, so you can compare any two points in time with a simple `diff`. Named branches let you capture snapshots at meaningful moments -- `initial_config` before a change window, `pre_upgrade` before a firmware update, or `post_remediation` after a fix. This makes it easy to pinpoint exactly what changed, roll back to a known-good state, and maintain an auditable history of your network's configuration over time.
+
+. Access the AAP Controller from the tab and run the `1-2-Backups_as_Code-Backup-GIT` job template.
+. The survey will prompt for naming your branch. For this exercise, when prompted, name your backup branch initial_config and continue to run.
++
+image::initial_config.png[Playbook,align="center",link=self,window=_blank,width=800]
++
+. Observe the job output for a successful backup
+
+
+== Step 2: Locate the device backups
+
+. Access the gitea tab and login
++
+user: gitea +
+password: gitea123
++
+image::gitea.png[Playbook,align="center",link=self,window=_blank,width=800]
++
+. Navigate to | repository | gitea/201-multi-vendor-vxlan-workshop | branches
++
+WARNING: Don't use the main branch because it does not include your backups!
++
+. Select your `initial_config` branch
++
+image::gitiea-backups.png[Playbook,align="center",link=self,window=_blank,width=800]
++
+. Navigate to the backup files located in `201_network_backup_files/`
++
+NOTE: Your timestamp will be unique
+
+image::gitea_leaf3.png[Playbook,align="center",link=self,window=_blank,width=800]
+
+
+== Step 3: Understand the `backups.yml` playbook
+
+Below are the key code snippets with explanations.
+
+=== Play 1: Backup Router Configs to Gitea in Branches
+
+==== Capturing a Timestamp
+
+[source,yaml]
+----
+- name: Grab Current Time
+  ansible.builtin.setup:
+  delegate_to: localhost
+  run_once: true
+----
+
+Runs the setup module on localhost (not on the network devices) to populate `ansible_date_time` facts. `run_once: true` ensures this only executes a single time regardless of how many hosts are in the inventory. The resulting timestamp is used later to create a uniquely named Git branch for this backup run.
+
+==== Cloning the Git Repository into a New Branch
+
+[source,yaml]
+----
+- name: Retrieve a repository from a distant location and make it available to the local EE
+  ansible.scm.git_retrieve:
+    origin:
+      url: "http://gitea:{{password}}@containerlab:8181/gitea/201-multi-vendor-vxlan-workshop.git"
+    parent_directory: /tmp/
+    branch:
+      name: "{{ branch_name | default('ansible-{play_name}') }}-{{ansible_date_time.iso8601_basic_short}}"
+      duplicate_detection: no
+  register: repository
+  delegate_to: localhost
+  run_once: true
+----
+
+Uses the `ansible.scm.git_retrieve` module to clone the repository from the Gitea server into `/tmp/` inside the Execution Environment. A new branch is created with a name that combines either a user-supplied `branch_name` or the play name, appended with a compact ISO 8601 timestamp (e.g., `ansible-backup-20260716T1430`). This gives every backup run its own uniquely named branch. The result is registered as `repository` so the path can be referenced when publishing later. `delegate_to: localhost` keeps this operation on the Ansible controller, not on the network devices.
+
+==== Creating Per-Device Backup Directories
+
+[source,yaml]
+----
+- name: Create backup directory structure
+  ansible.builtin.file:
+    path: "/tmp/201-multi-vendor-vxlan-workshop/201_network_backup_files/{{ inventory_hostname }}"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+----
+
+Creates a subdirectory for each network device inside the cloned repo. Unlike the previous tasks, this does not use `run_once` -- it runs once per host in the inventory, producing a folder per device (e.g., `.../spine1/`, `.../leaf1/`). This organizes backup configs by hostname within the Git repository.
+
+==== Multi-Vendor Config Backup (Arista EOS and Cisco NX-OS)
+
+[source,yaml]
+----
+- name: Backup running config (EOS)
+  arista.eos.eos_config:
+    backup: yes
+    backup_options:
+      filename: "{{ inventory_hostname }}.cfg"
+      dir_path: "/tmp/201-multi-vendor-vxlan-workshop/201_network_backup_files/{{ inventory_hostname }}"
+  when: ansible_network_os == 'arista.eos.eos'
+
+- name: Backup running config (NXOS)
+  cisco.nxos.nxos_config:
+    backup: yes
+    backup_options:
+      filename: "{{ inventory_hostname }}.cfg"
+      dir_path: "/tmp/201-multi-vendor-vxlan-workshop/201_network_backup_files/{{ inventory_hostname }}"
+  when: ansible_network_os == 'cisco.nxos.nxos'
+----
+
+These two tasks handle multi-vendor support. Each uses the vendor-specific config module (`arista.eos.eos_config` or `cisco.nxos.nxos_config`) with `backup: yes` to pull the running configuration from the device. The `when` conditional ensures only the correct module runs for each device based on its `ansible_network_os` variable. The backup file is saved as `<hostname>.cfg` into the per-device directory created in the previous step -- landing it directly inside the cloned Git repo's working tree.
+
+==== Publishing Backups to Git
+
+[source,yaml]
+----
+- name: Publish the changes
+  ansible.scm.git_publish:
+    path: "{{ repository['path'] }}"
+    token: "{{ password }}"
+    user:
+      name: "{{ username }}"
+      email: "{{ email }}"
+  delegate_to: localhost
+  run_once: true
+----
+
+After all device configs have been backed up into the repo's working tree, `ansible.scm.git_publish` stages, commits, and pushes all changes on the new branch back to Gitea in a single operation. It uses the path registered from the `git_retrieve` step. This is the step that turns local backup files into a versioned, auditable Git record.
+
+==== Exposing the Branch Name for Downstream Jobs
+
+[source,yaml]
+----
+- name: Set stats for latest branch name
+  ansible.builtin.set_stats:
+    data:
+      latest_branch_name: "{{ branch_name | default('ansible-{play_name}') }}-{{ansible_date_time.iso8601_basic_short}}"
+  delegate_to: localhost
+  run_once: true
+----
+
+Uses `set_stats` to persist the branch name as an Ansible artifact. In Ansible Automation Controller (AAP), `set_stats` data is visible in the job results and can be consumed by downstream jobs in a workflow. This allows subsequent workflow steps (like intent verification or restore) to know which branch contains the latest backups.
+
+=== Play 2: Prepare Branches for Intent and Restore
+
+==== Listing Available Branches
+
+[source,yaml]
+----
+- name: List the Branches
+  ansible.builtin.shell:
+    cmd: "git branch -r"
+    chdir: /tmp/201-multi-vendor-vxlan-workshop/
+  register: branches
+  delegate_to: localhost
+  run_once: true
+----
+
+Runs `git branch -r` inside the cloned repository to enumerate all remote branches. The output is registered as `branches` and used in the next steps to dynamically populate survey choices. Each line of `branches.stdout_lines` contains one remote branch name (prefixed with `origin/`).
+
+==== Dynamically Creating AAP Job Templates with Survey Menus
+
+[source,yaml]
+----
+- name: Create a job-template - 201-Network-Git-Intent
+  ansible.controller.job_template:
+    name: "1-2-Backups_as_Code-Git-Intent"
+    organization: "Red Hat network organization"
+    inventory: "Workshop Inventory"
+    project: "Workshop Project"
+    playbook: "1-2-backups_as_code/intended.yml"
+    credentials:
+      - "Containerlab_Network Credential"
+      - "Gitea Credential"
+    execution_environment: "Network EE"
+    survey_enabled: true
+    survey_spec:
+      spec:
+        - question_name: Which Branch would you like to Check Config Drift from?
+          type: multiplechoice
+          variable: branch_name
+          required: true
+          choices:
+            - "{{ branches.stdout_lines[1] | default('') | replace('  origin/','') }}"
+            - "{{ branches.stdout_lines[2] | default('') | replace('  origin/','') }}"
+            # ... up to index [22]
+----
+
+This is the most architecturally significant task. It uses the `ansible.controller.job_template` module to create (or update) a job template in Ansible Automation Controller itself -- Ansible configuring Ansible. Key mechanics:
+
+* `survey_enabled: true` with a `survey_spec` attaches an interactive form to the job template. When a user launches this template from the AAP UI, they are presented with a dropdown menu.
+* The choices are populated dynamically from the `branches` variable captured earlier. Each entry strips the `origin/` prefix with `replace('  origin/','')` so users see clean branch names. The `default('')` filter prevents errors if fewer than 22 branches exist.
+* The selected branch name is passed as the `branch_name` variable to the downstream playbook (`intended.yml` for drift checking, `restore_selection.yml` for restoring).
+* `diff_mode: true` is enabled so the intent/restore jobs show what would change before applying.
+
+The same pattern is repeated for the Restore job template, pointing to a different playbook (`restore_selection.yml`) and prompting "Which Branch would you like to Restore from?"
+
+=== Overall Flow Summary
+
+The playbook implements a Backups-as-Code pipeline:
+
+. Timestamp the run
+. Clone the Git repo and create a timestamped branch
+. Backup each device's running config (multi-vendor aware) into the repo
+. Commit and push the branch to Gitea
+. Enumerate all backup branches
+. Create/update AAP job templates with dynamic survey menus so operators can select a branch to compare against (intent/drift) or restore from
+
+
+== Snapshots
+
+NOTE: It's important to complete the backups as directed throughout this workshop. Each backup can be used as a snapshot to effectively reconfigure devices in the event that your session is powered off. The Network devices will reboot to their
+startup configuration if your workshop session is shutdown and powered on. 
+
+The `1-2-Backups_as_Code-Git-Restore` Job Template provides a dropdown to select an appropriate backup to reload the switch configurations.
+
+== Module summary
+
+In this module:
+
+* You triggered the backup workflow from AAP and verified that device configurations were saved to a new Git branch in Gitea
+* You navigated the Gitea repository to inspect per-device backup files organized by hostname
+* You walked through the `backups.yml` playbook and saw how `ansible.scm` clones the repo, creates a timestamped branch, and pushes completed backups -- all without leaving the playbook
+* You observed how `when` conditionals route each device to the correct vendor module (`arista.eos.eos_config` or `cisco.nxos.nxos_config`) for a seamless multi-vendor backup
+* You learned that `set_stats` passes the branch name forward so downstream workflow jobs can reference the exact backup
+* You saw controller as code in action -- the playbook itself builds job templates with survey dropdowns drawn from live Git branches, giving operators self-service access to drift checks and restores

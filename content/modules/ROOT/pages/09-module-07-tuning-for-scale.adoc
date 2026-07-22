@@ -1,0 +1,529 @@
+= 2-3: Tuning for Scale
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+This module demonstrates why tuning playbooks for Ansible Automation Platform is critical to automation performance and protection against automation errors. As network fabrics grow, the default execution behavior -- running tasks one host at a time with no error boundaries -- becomes a bottleneck at best and a risk at worst. A playbook that works fine against 6 devices in a lab can overwhelm a controller or cascade failures across hundreds of devices in production if forks, serial execution, and error handling are not configured deliberately. Tuning controls like `forks`, `serial`, `max_fail_percentage`, and `throttle` let you balance speed against safety: pushing configuration fast enough to meet change windows while ensuring that a failure on one device does not propagate unchecked across the entire inventory. This module walks through these settings and shows how small adjustments to playbook execution parameters produce measurable improvements in job runtime, resource consumption, and fault isolation.
+
+== Learning objectives
+
+This module covers:
+
+* Building a survey-driven Job Template that lets operators choose `serial` batch sizes, `max_fail_percentage` thresholds, and whether to inject an error -- all at runtime
+* Running a canary deployment using stepped `serial` batches (`1, 50%, 100%`) to test on a single device before expanding to the rest of the inventory
+* Observing how `max_fail_percentage: 0` aborts the entire rollout when any host fails, protecting untouched devices from a bad configuration
+* Comparing the blast radius of `max_fail_percentage: 0` vs. `50` -- seeing which healthy devices get configured and which are collateral damage
+* Understanding how `forks` controls parallelism within each serial batch and when it becomes the bottleneck in larger inventories
+
+== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `2-3-tuning_for_scale`
+
+TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
+
+
+NOTE: **Level Set -- Ansible Execution Controls for Scale and Safety** +
+When Ansible runs a playbook, it processes each task across all targeted hosts before moving to the next task. Four key settings control how that execution is distributed, throttled, and protected from cascading failures: +
+ +
+**`forks`** +
+The number of hosts Ansible manages in parallel during a single task. The default is 5, meaning Ansible opens SSH connections to 5 devices simultaneously, waits for all 5 to complete the current task, then moves to the next batch of 5. Increasing forks (e.g., to 25 or 50) speeds up execution across large inventories, but each fork consumes memory and CPU on the controller. Setting forks too high can exhaust controller resources, cause SSH timeouts, or overwhelm network devices that cannot handle many concurrent configuration sessions. In AAP, forks is set on the Job Template -- it overrides the system default for that specific job. +
+ +
+**`serial`** +
+A play-level directive that splits the inventory into batches and runs the entire play (all tasks) against each batch before moving to the next. For example, `serial: 2` runs the full play on 2 hosts, then the next 2, then the next 2. This is different from `forks` -- forks controls parallelism _within_ a batch, while `serial` controls the batch size itself. `serial` is essential for rolling updates: you can push a configuration change to a small group of devices, verify it works, and then proceed to the next group. If a batch fails, the remaining batches are skipped, limiting the blast radius. You can also use percentages (`serial: "25%"`) or stepped lists (`serial: [1, 5, 10]`) to start cautiously and accelerate as confidence grows. +
+ +
+**`max_fail_percentage`** +
+Works with `serial` to define how many hosts in a batch can fail before Ansible aborts the entire play. The default behavior (without `max_fail_percentage`) is to abort only when _all_ hosts in a batch fail. Setting `max_fail_percentage: 25` means that if more than 25% of hosts in a serial batch fail, Ansible stops immediately -- the remaining hosts in that batch and all subsequent batches are skipped. This prevents a bad configuration from rolling out across the entire inventory when early failures signal a systemic problem. For network automation, a low `max_fail_percentage` (e.g., 10-20%) is a critical safety net: if the first few devices reject a configuration change, you want to stop before the same broken change reaches every switch in the fabric. +
+ +
+**`throttle`** +
+A task-level directive that limits how many hosts can execute that specific task concurrently, regardless of the `forks` setting. If `forks` is set to 50 but a particular task has `throttle: 5`, only 5 hosts will run that task at the same time. This is useful for tasks that interact with a shared resource -- for example, writing to a Git repository, calling a rate-limited API, or hitting a license server. Without `throttle`, all 50 forks would hit the shared resource simultaneously, causing contention or failures. `throttle` gives you fine-grained control at the task level without slowing down the entire playbook. +
+ +
+**How they work together** +
+In practice, these controls are layered. `serial` sets the batch size for a rolling deployment. Within each batch, `forks` controls how many devices are configured in parallel. `max_fail_percentage` decides when to abort a batch early. And `throttle` can further restrict individual tasks that touch shared resources. A well-tuned playbook might use `serial: "25%"` with `max_fail_percentage: 10` at the play level, `forks: 25` on the Job Template, and `throttle: 1` on any task that commits to a Git repository -- giving you fast parallel execution with controlled rollout and safe abort boundaries.
+
+
+== Step 1: Create a survey for the `1-7-Tuning_For_Scale` Job Template
+
+Parameters:
+
+* question_name: "Do you want to send an error?"
+  required: true
+  type: multiplechoice
+  choices: "yes\no"
+  variable: error
+         
+* question_name: "Please select the 'Serial' batch percentages"
+  required: true
+  type: multiselect
+  choices: 1 35% 50% 75% 100%
+  variable: serials
+  
+* question_name: "Please select the Maximum_Failure_Percentage"
+  required: true
+  type: multiplechoice
+  choices: 0 5 10 20 50 75 100
+  variable: max_fail
+          
+**Config** 
+WARNING: Remember to toggle the survey on!
+The completed survey configuration should look like the following: 
+
+image:survey4.png[Survey,align="center",link=self,window=blank,width=600]
+image:survey1.png[Survey,align="center",link=self,window=blank,width=600]
+image:survey2.png[Survey,align="center",link=self,window=blank,width=600]
+image:survey3.png[Survey,align="center",link=self,window=blank,width=600]
+
+== Step 2: Launch the Job Template with no error
+
+. Launch the `1-7-Tuning_For_Scale` Job Template
+
+. Enter the following answers into the prompt:
+
+* "Do you want to send an error?" no
+* "Please select the 'Serial' batch percentages" 1 50% 100%
+* "Please select the Maximum_Failure_Percentage" 0
+ 
+image:prompt1.png[Prompt,align="center",link=self,window=blank,width=800]
+
+== Output Explanation
+
+The `1-7-tuning_for_scale/configure_snmp.yml` playbook demonstrates how to safely roll out configuration changes across a fabric using Ansible's `serial`, `max_fail_percentage`, and `forks` settings. The playbook uses Ansible survey prompts to let the operator choose the rollout strategy at runtime.
+
+== Survey Inputs
+
+The playbook accepts three survey parameters at runtime:
+
+[cols="1,1,1", options="header"]
+|===
+|Parameter
+|Value
+|Meaning
+
+|`error`
+|`no`
+|Skip the intentional failure task on NX-OS devices
+
+|`serials`
+|`[1, "50%", "100%"]`
+|Canary -> half -> remainder batching
+
+|`max_fail`
+|`0`
+|Zero tolerance -- any single failure aborts the play
+|===
+
+== How `serial: [1, "50%", "100%"]` Produces Three Batches
+
+Ansible processes the `serial` list left to right against the 6-host inventory (`leafs, spines`):
+
+Batch 1 -- `1` (literal count)::
+Takes 1 host: *leaf1*. This is the canary. If leaf1 fails, no other device is touched.
+
+Batch 2 -- `"50%"` (percentage of total)::
+50% of 6 = 3 hosts: *leaf2, leaf3, leaf4*. A small expansion after the canary succeeds.
+
+Batch 3 -- `"100%"` (percentage of total)::
+All remaining hosts: *spine1, spine2*. The final value in the `serial` list repeats for any leftover hosts, so `100%` means "take everyone that's left."
+
+This is visible in the playbook output -- three separate `PLAY [Configure SNMP on Network Devices]` headers appear, each running the same task list against its batch:
+
+[source]
+----
+PLAY [Configure SNMP on Network Devices]    ← batch 1: leaf1
+
+PLAY [Configure SNMP on Network Devices]    ← batch 2: leaf2, leaf3, leaf4
+
+PLAY [Configure SNMP on Network Devices]    ← batch 3: spine1, spine2
+----
+
+== How `max_fail_percentage: 0` Guards Each Batch
+
+With `max_fail_percentage` set to `0`, Ansible aborts the entire play if *any* host in a batch fails. Combined with serial batching:
+
+* If leaf1 (the canary) fails -> batches 2 and 3 never run. Only 1 of 6 devices is affected.
+* If leaf3 fails during batch 2 -> batch 3 (the spines) never runs. At most 4 devices were attempted.
+* Since `error` was `no`, the `fail` task was skipped on all hosts, so nothing failed and all three batches completed successfully.
+
+== How `forks = 6` Fits In
+
+The `forks` setting in `ansible.cfg` controls parallelism *within* a batch -- how many SSH connections Ansible opens simultaneously. With `forks = 6`:
+
+[cols="1,1,1", options="header"]
+|===
+|Batch
+|Hosts
+|Forks Used
+
+|1
+|leaf1
+|1
+
+|2
+|leaf2, leaf3, leaf4
+|3 (parallel -- output is interleaved)
+
+|3
+|spine1, spine2
+|2 (parallel)
+|===
+
+Since no batch exceeds 6 hosts, forks is never the bottleneck here. It would matter in a larger fabric -- if you had 20 leafs and `serial: ["50%"]`, a batch of 10 hosts would only run 6 at a time, with the remaining 4 queued until a fork frees up.
+
+== How the Three Settings Work Together
+
+[cols="1,1,1", options="header"]
+|===
+|Setting
+|Value
+|Role
+
+|`forks`
+|6
+|Up to 6 hosts run tasks concurrently within a batch
+
+|`serial`
+|`[1, "50%", "100%"]`
+|Splits hosts into batches: 1 canary, then 3, then the rest
+
+|`max_fail_percentage`
+|0
+|If any host in a batch fails, abort remaining batches
+|===
+
+The combination is a controlled rollout: push to one device first (canary), if it succeeds push to a few more, if any failure occurs in any batch stop before touching the rest. This is a standard canary deployment pattern for network automation.
+
+== Step 3: Launch the Job Template with an error
+
+. Launch the `1-7-Tuning_For_Scale` Job Template
+
+. Enter the following answers into the prompt:
+
+* "Do you want to send an error?" yes
+* "Please select the 'Serial' batch percentages" 1 50% 100%
+* "Please select the Maximum_Failure_Percentage" 0
+
+== Output Explanation
+
+A second run uses the same `serial` and `max_fail_percentage` settings but with the error survey prompt set to `yes`, demonstrating how the safety net catches a failure and protects the remaining devices.
+
+=== Survey Inputs
+
+[cols="1,1,1", options="header"]
+|===
+|Parameter
+|Value
+|Change from Run 1
+
+|`error`
+|`yes`
+|NX-OS devices will now hit the intentional `fail` task
+
+|`serials`
+|`[1, "50%", "100%"]`
+|Same -- canary -> half -> remainder
+
+|`max_fail`
+|`0`
+|Same -- zero tolerance
+|===
+
+=== Batch 1: Canary Passes
+
+[source]
+----
+PLAY [Configure SNMP on Network Devices]
+
+TASK [Error] *******************************************************************
+skipping: [leaf1]
+
+TASK [Print the Name of the devices] *******************************************
+ok: [leaf1] => { "msg": "leaf1" }
+
+TASK [Configure SNMP on Cisco NX-OS devices] ***********************************
+skipping: [leaf1]
+
+TASK [Configure SNMP on Arista EOS devices] ************************************
+changed: [leaf1]
+----
+
+leaf1 is an EOS device, so the `Error` task's `when:` condition (`ansible_network_os == 'cisco.nxos.nxos'`) evaluates to false and the task is skipped. The canary completes successfully -- SNMP is configured, and Ansible proceeds to batch 2.
+
+=== Batch 2: Failure Triggers Abort
+
+[source]
+----
+PLAY [Configure SNMP on Network Devices]
+
+TASK [Error] *******************************************************************
+skipping: [leaf2]
+fatal: [leaf4]: FAILED! => {"changed": false, "msg": "This task just failed"}
+fatal: [leaf3]: FAILED! => {"changed": false, "msg": "This task just failed"}
+
+NO MORE HOSTS LEFT *************************************************************
+----
+
+Batch 2 contains leaf2 (EOS), leaf3 (NX-OS), and leaf4 (NX-OS). Since `forks = 6`, all three run the `Error` task in parallel:
+
+* *leaf2* (EOS) -- skips the error task (wrong `ansible_network_os`)
+* *leaf3* (NX-OS) -- `fatal: FAILED!` -- the `fail` module fires
+* *leaf4* (NX-OS) -- `fatal: FAILED!` -- same
+
+With `max_fail_percentage: 0`, *any* failure in the batch triggers an immediate abort. Two out of three hosts failed, which far exceeds the zero-tolerance threshold. Ansible prints `NO MORE HOSTS LEFT` and stops.
+
+Critically, no remaining tasks execute for *any* host in this batch -- leaf2 skipped the error but never reaches the `Print` or `Configure SNMP` tasks. When `max_fail_percentage` aborts a batch, it kills the entire batch, not just the failed hosts.
+
+=== Batch 3: Never Runs
+
+spine1 and spine2 were scheduled for batch 3 (`"100%"` -- the remainder). Because batch 2 was aborted, batch 3 is never attempted. The spines are completely untouched -- they don't even appear in the output.
+
+This is the protection that `serial` + `max_fail_percentage: 0` provides: the NX-OS failure in the leaf batch cannot propagate to the spine tier.
+
+=== Play Recap (Error Run)
+
+[source]
+----
+leaf1   : ok=2  changed=1  unreachable=0  failed=0  skipped=2  rescued=0  ignored=0
+leaf2   : ok=0  changed=0  unreachable=0  failed=0  skipped=1  rescued=0  ignored=0
+leaf3   : ok=0  changed=0  unreachable=0  failed=1  skipped=0  rescued=0  ignored=0
+leaf4   : ok=0  changed=0  unreachable=0  failed=1  skipped=0  rescued=0  ignored=0
+----
+
+[cols="1,1", options="header"]
+|===
+|Device
+|What Happened
+
+|leaf1
+|Canary batch -- fully configured (ok=2, changed=1). SNMP was applied.
+
+|leaf2
+|In the failed batch but is EOS, so it skipped the error task (skipped=1). However, the batch abort killed it before any further tasks ran. No SNMP was applied (changed=0).
+
+|leaf3
+|NX-OS -- hit the `fail` task (failed=1). No SNMP configured.
+
+|leaf4
+|NX-OS -- hit the `fail` task (failed=1). No SNMP configured.
+
+|spine1
+|Not listed -- batch 3 never ran. Completely untouched.
+
+|spine2
+|Not listed -- batch 3 never ran. Completely untouched.
+|===
+
+=== Impact Summary
+
+[cols="1,1,1", options="header"]
+|===
+|Batch
+|Devices
+|Outcome
+
+|1 (canary)
+|leaf1
+|Configured successfully
+
+|2 (50%)
+|leaf2, leaf3, leaf4
+|Aborted -- 2 failures exceeded `max_fail_percentage: 0`. No device in this batch received SNMP config.
+
+|3 (remainder)
+|spine1, spine2
+|Never attempted -- protected by batch 2 abort
+|===
+
+Only 1 of 6 devices (leaf1) was actually changed. The blast radius was limited to the canary -- exactly the outcome the controlled rollout pattern is designed to produce.
+
+== Step 4: Launch the Job Template with an error and different serial batches
+
+. Launch the `1-7-Tuning_For_Scale` Job Template
+
+. Enter the following answers into the prompt:
+
+* "Do you want to send an error?" yes
+* "Please select the 'Serial' batch percentages" 50% 100%
+* "Please select the Maximum_Failure_Percentage" 50
+
+== Output Explanation
+
+A third run changes two parameters: the `serial` batching removes the single-host canary in favor of larger percentage-based batches, and `max_fail_percentage` is raised from `0` to `50`, allowing up to half the hosts in a batch to fail before Ansible aborts.
+
+=== Survey Inputs
+
+[cols="1,1,1", options="header"]
+|===
+|Parameter
+|Value
+|Change from Run 2
+
+|`error`
+|`yes`
+|Same -- NX-OS devices hit the `fail` task
+
+|`serials`
+|`["50%", "100%"]`
+|No canary -- starts at half, then remainder
+
+|`max_fail`
+|`50`
+|Tolerates up to 50% failure per batch (was 0)
+|===
+
+=== Batch Formation
+
+With `serial: ["50%", "100%"]` against 6 hosts:
+
+Batch 1 -- `"50%"`::
+50% of 6 = 3 hosts: *leaf1, leaf2, leaf3*.
+
+Batch 2 -- `"100%"`::
+Remaining hosts: *leaf4, spine1, spine2*.
+
+=== Batch 1: 1 of 3 Fails -- Under the 50% Threshold
+
+[source]
+----
+PLAY [Configure SNMP on Network Devices]
+
+TASK [Error] *******************************************************************
+skipping: [leaf2]
+skipping: [leaf1]
+fatal: [leaf3]: FAILED! => {"changed": false, "msg": "This task just failed"}
+
+TASK [Print the Name of the devices] *******************************************
+ok: [leaf1] => { "msg": "leaf1" }
+ok: [leaf2] => { "msg": "leaf2" }
+
+TASK [Configure SNMP on Cisco NX-OS devices] ***********************************
+skipping: [leaf1]
+skipping: [leaf2]
+
+TASK [Configure SNMP on Arista EOS devices] ************************************
+ok: [leaf1]
+changed: [leaf2]
+----
+
+Batch 1 contains leaf1 (EOS), leaf2 (EOS), and leaf3 (NX-OS). All three run the `Error` task in parallel:
+
+* *leaf1* (EOS) -- skips the error task
+* *leaf2* (EOS) -- skips the error task
+* *leaf3* (NX-OS) -- `fatal: FAILED!`
+
+One out of three hosts failed -- that is 33%, which is *under* the `max_fail_percentage: 50` threshold. Ansible removes leaf3 from the batch but *continues running the remaining tasks* for leaf1 and leaf2. Both EOS leafs proceed through `Print`, skip the NX-OS SNMP task, and get their EOS SNMP configuration applied.
+
+NOTE: leaf1 shows `ok` (not `changed`) for the SNMP task because it was already configured in the earlier runs. leaf2 shows `changed` because this is the first time it successfully reached the SNMP task (in run 2, it was killed by the batch abort before the SNMP task could execute).
+
+This is the key difference from run 2: with `max_fail_percentage: 0`, the same leaf3 failure would have aborted the entire batch and leaf2 would never have been configured. With `max_fail_percentage: 50`, the healthy hosts survive.
+
+=== Batch 2: 1 of 3 Fails -- Under the 50% Threshold Again
+
+[source]
+----
+PLAY [Configure SNMP on Network Devices]
+
+TASK [Error] *******************************************************************
+skipping: [spine1]
+skipping: [spine2]
+fatal: [leaf4]: FAILED! => {"changed": false, "msg": "This task just failed"}
+
+TASK [Print the Name of the devices] *******************************************
+ok: [spine2] => { "msg": "spine2" }
+ok: [spine1] => { "msg": "spine1" }
+
+TASK [Configure SNMP on Cisco NX-OS devices] ***********************************
+skipping: [spine2]
+skipping: [spine1]
+
+TASK [Configure SNMP on Arista EOS devices] ************************************
+changed: [spine2]
+changed: [spine1]
+----
+
+Batch 2 contains leaf4 (NX-OS), spine1 (EOS), and spine2 (EOS):
+
+* *spine1* (EOS) -- skips the error task
+* *spine2* (EOS) -- skips the error task
+* *leaf4* (NX-OS) -- `fatal: FAILED!`
+
+Again, 1 of 3 hosts failed (33% < 50%), so Ansible drops leaf4 and continues. Both spines proceed through the remaining tasks and get SNMP configured.
+
+Because batch 1 succeeded (under the threshold), batch 2 was allowed to run at all. And because batch 2 also stayed under the threshold, it completed to the end. The spines -- which were completely untouched in run 2 -- are now configured.
+
+=== Play Recap (50% Tolerance Run)
+
+[source]
+----
+leaf1   : ok=2  changed=0  unreachable=0  failed=0  skipped=2  rescued=0  ignored=0
+leaf2   : ok=2  changed=1  unreachable=0  failed=0  skipped=2  rescued=0  ignored=0
+leaf3   : ok=0  changed=0  unreachable=0  failed=1  skipped=0  rescued=0  ignored=0
+leaf4   : ok=0  changed=0  unreachable=0  failed=1  skipped=0  rescued=0  ignored=0
+spine1  : ok=2  changed=1  unreachable=0  failed=0  skipped=2  rescued=0  ignored=0
+spine2  : ok=2  changed=1  unreachable=0  failed=0  skipped=2  rescued=0  ignored=0
+----
+
+[cols="1,1", options="header"]
+|===
+|Device
+|What Happened
+
+|leaf1
+|EOS -- configured in a previous run (`ok`, not `changed`). SNMP already present.
+
+|leaf2
+|EOS -- SNMP configured for the first time (`changed=1`). Survived the batch despite leaf3's failure.
+
+|leaf3
+|NX-OS -- hit the `fail` task in batch 1 (`failed=1`). No SNMP configured.
+
+|leaf4
+|NX-OS -- hit the `fail` task in batch 2 (`failed=1`). No SNMP configured.
+
+|spine1
+|EOS -- SNMP configured (`changed=1`). Batch 2 ran because batch 1 stayed under 50%.
+
+|spine2
+|EOS -- SNMP configured (`changed=1`). Same as spine1.
+|===
+
+=== Impact Comparison: `max_fail_percentage: 0` vs `50`
+
+[cols="1,1,1", options="header"]
+|===
+|Outcome
+|Run 2 (`max_fail: 0`)
+|Run 3 (`max_fail: 50`)
+
+|Devices configured
+|1 of 6 (leaf1 only)
+|4 of 6 (leaf1, leaf2, spine1, spine2)
+
+|Devices failed
+|2 (leaf3, leaf4)
+|2 (leaf3, leaf4)
+
+|Devices protected (never attempted)
+|3 (leaf2, spine1, spine2)
+|0
+
+|Spines touched
+|No
+|Yes
+
+|EOS devices skipped due to NX-OS failure
+|Yes (leaf2)
+|No
+|===
+
+The same two NX-OS devices fail in both runs. The difference is collateral damage: with zero tolerance, healthy EOS devices in the same batch are killed alongside the failed NX-OS devices, and subsequent batches never run. With 50% tolerance, the healthy hosts in each batch complete successfully, and later batches proceed because no batch exceeded the threshold.
+
+
+== Module summary
+
+In this module, you learned how to:
+
+* Create a survey-driven Job Template that exposes `serial`, `max_fail_percentage`, and error injection as operator-selectable parameters at launch time
+* Execute a controlled canary rollout using `serial: [1, "50%", "100%"]` -- deploying to a single device first, then half the inventory, then the remainder -- and observe the three separate batch executions in the job output
+* Verify that `max_fail_percentage: 0` provides zero-tolerance protection: a single NX-OS failure in batch 2 aborted the entire rollout and left the spines completely untouched
+* Compare the impact of raising `max_fail_percentage` to `50`: the same two NX-OS devices failed, but healthy EOS devices in each batch continued to completion and the spines were configured -- reducing collateral damage from 3 skipped devices to 0
+* Interpret the play recap to distinguish between devices that were configured (`changed`), devices that failed (`failed`), and devices that were protected by the batch abort (not listed in the recap at all)
+* Recognize that `forks` controls parallelism within each serial batch -- in this lab `forks: 6` was never the bottleneck, but in a larger inventory it determines how many devices run tasks concurrently within each batch
+
+These execution controls -- `serial`, `max_fail_percentage`, `forks`, and `throttle` -- are essential for scaling network automation safely. Without them, a single bad configuration change can propagate across an entire inventory before anyone notices the failure.

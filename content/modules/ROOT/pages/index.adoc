@@ -1,0 +1,50 @@
+= Advanced Ansible Network Automation Workshop
+
+Welcome to the Advanced Ansible Network Automation Workshop!
+
+== What you'll learn
+
+In this workshop, you will:
+
+* Demonstrate the art of the possible:  Explore real-world network automation capabilities with Ansible Automation Platform
+* Establish source of truth: Use Netbox as a dynamic inventory source and Git for network device configurations
+* Manage network compliance and drift control: Validate configuration standards and restore devices to known-good states
+* Automate multi-vendor EVPN VXLAN:  Apply foundational knowledge and best practices for automating spine-leaf architectures
+* Tune Ansible for scale: Configure Ansible to execute changes across large network fabrics efficiently
+
+== Who this is for
+
+This workshop is designed for network engineers, systems administrators, and automation architects who want to learn how to automate network infrastructure using Red Hat Ansible Automation Platform.
+
+**Experience level**: Intermediate -- some prior Ansible experience required.
+
+== Prerequisites
+
+Before starting this workshop, you should have:
+
+* Basic networking knowledge (routing, switching, VLANs, VXLAN)
+* Familiarity with the Linux command line
+* A web browser for accessing the lab environment
+* Recommended to complete "Introduction to Ansible Automation Workshop" prior to completing this workshop
+
+== Workshop environment
+
+Your lab environment includes:
+
+* A containerlab host with `ansible-navigator`, VS Code, and a pre-built execution environment
+* Six network devices: Cisco NXOS (leaf3,leaf4), Arista EOS (spine1, spine2, leaf1, leaf2)
+* An Ansible Automation Platform instance for the web-based exercises
+* Netbox for a Dynamic Inventory source.
+* Gitea for a remote GIT repository to read and write files.
+
+All environment details and credentials are available in the lab interface tabs.
+
+== Estimated time
+
+This workshop takes approximately **3 hours** to complete.
+
+You can work at your own pace.
+
+== Let's get started!
+
+Click on **Workshop overview** in the navigation to begin.

@@ -1,0 +1,517 @@
+= 1-8: Configuration Drift Restore
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+One of the key benefits of using Ansible Automation Platform is the ability to detect and remediate **configuration drift** -- the gradual divergence between a device's running configuration and its intended state. Drift happens constantly in production networks: an engineer makes a manual CLI change during a late-night outage, a firmware upgrade resets a default, or a misconfigured automation job overwrites a critical setting. Without a systematic way to detect these changes, drift accumulates silently until it causes an outage, a security exposure, or a compliance violation that is difficult to trace back to its origin.
+
+In the Backups as Code module (1-2), you built the foundation for drift detection and recovery. The backup workflow captures each device's running configuration and commits it to a named Git branch in Gitea, creating a versioned, timestamped snapshot of the entire fabric's state. Every backup branch is a restore point -- if drift is detected or a configuration change goes wrong, the restore workflow can select any previous backup branch from a self-service survey and push that exact configuration back to the devices, returning them to a known-good state.
+
+This module builds on that foundation. Where the backup module captured snapshots, this module uses those snapshots to **detect drift** by comparing the current running configuration against the last known-good backup, and to **restore** devices when drift is found. The combination of automated backups, drift detection, and one-click restores closes the loop: you can prove that your network matches its intended state at any point in time, and when it does not, you can fix it in minutes rather than hours of manual troubleshooting.
+
+== Learning objectives
+
+This module covers:
+
+* Creating a known-good backup snapshot (`final_configs`) that captures the completed fabric state after all configuration modules have been applied
+* Detecting configuration drift by comparing a device's running configuration against an intended state stored in a Git branch using `diff_against: intended`
+* Reading diff output to identify exactly which lines have been added, removed, or changed on each device -- and understanding why `changed: true` does not mean the device was modified
+* Deciding how to resolve drift: restoring devices to a previous backup branch or updating the intended config to accept the current state
+* Restoring device configurations from named Git branches using the self-service restore workflow
+
+== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `1-2-backups_as_code`
+
+TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
+
+== Step 1: Backing up the `final_configs`
+
+This snapshot will serve as the completed configuration.
+
+1. Launch the `1-2-Backups_as_Code-Backup-GIT` job template
+
+enter `final_configs` when prompted for the branch name.
+
+== Step 2: Compare the VXLAN backup with the device config. 
+
+In the previous lab section we confgured `SNMP`. We should see that as a `DIFF`.
+
+1. Launch the `1-2-Backups_as_Code-Git-Intent` job template
+
+2. When prompted select your `vxlan_configs`
+
+image::diff_vxlan.png[DIFF,align="center",link=self,window=_blank,width=800]
+
+== Overview
+
+The `1-2-backups_as_code/intended.yml` playbook compares the live running configuration on each device against an intended (golden) configuration stored in a Git branch on Gitea. It does not push any changes to the devices -- it only reports what differs between the intended state in Git and the actual state on the wire.
+
+This is a compliance-check pattern: the source of truth lives in version control, and the playbook tells you how far the network has drifted from it.
+
+== How It Works
+
+The playbook has two steps:
+
+=== Step 1: Clone the Intended Config from Gitea
+
+[source,yaml]
+----
+- name: Retrieve a repository from a distant location and make it available to the local EE
+  ansible.scm.git_retrieve:
+    origin:
+      url: "http://gitea:{{ password }}@containerlab:8181/gitea/201-multi-vendor-vxlan-workshop.git"
+    parent_directory: /tmp/
+    branch:
+      name: "{{ branch_name }}"
+  delegate_to: localhost
+  run_once: true
+----
+
+The `ansible.scm.git_retrieve` module clones the workshop repository from the Gitea server into `/tmp/` on the Ansible control node. The `branch_name` variable (passed as a survey prompt) selects which branch contains the intended configs. `run_once: true` ensures the clone only happens once (delegated to localhost via spine2), not once per device.
+
+The intended config files live at: `/tmp/201-multi-vendor-vxlan-workshop/201_network_backup_files/<hostname>/<hostname>.cfg`
+
+=== Step 2: Diff Against Running Config
+
+The playbook uses `diff_against: intended` on the vendor-specific config modules:
+
+* *NX-OS devices* -- `cisco.nxos.config` with `intended_config` loaded via `lookup('file', ...)`
+* *EOS devices* -- `arista.eos.eos_config` with the same pattern
+
+Each module pulls the running config from the device, compares it against the intended config from Git, and reports the diff. It does not apply any changes -- `diff_against: intended` is read-only.
+
+== What the Diff Shows
+
+Every device shows the same type of drift: the running config has an `snmp-server community vxlan` line that is *not* present in the intended config stored in Git.
+
+=== EOS Devices (spine1, spine2, leaf1, leaf2)
+
+[source,diff]
+----
+--- before
++++ after
+@@ -3,7 +3,6 @@
+ transceiver qsfp default-mode 4x10G
+ service routing protocols model multi-agent
+ hostname spine1
+-snmp-server community vxlan ro
+ spanning-tree mode mstp
+----
+
+The `-` prefix means this line exists in the running config (`before`) but not in the intended config (`after`). The SNMP community string `vxlan` with read-only access was added to the devices (by the `1-7-tuning_for_scale` SNMP playbook) but was never committed back to the intended config branch in Git.
+
+=== NX-OS Devices (leaf3, leaf4)
+
+[source,diff]
+----
+--- before
++++ after
+@@ -37,7 +37,6 @@
+ rmon event 5 log trap public description INFORMATION(5) owner PMON@INFO
+-snmp-server community vxlan group network-operator
+ fabric forwarding anycast-gateway-mac 0011.2233.4455
+----
+
+Same drift, different syntax. On NX-OS the SNMP community maps to the `network-operator` role group instead of EOS's `ro` keyword, but the meaning is the same -- the SNMP community was configured on the device but the intended config in Git doesn't include it.
+
+== Interpreting the Results
+
+[cols="1,1,1,1", options="header"]
+|===
+|Device
+|Platform
+|Drift Detected
+|Drift Detail
+
+|spine1
+|EOS
+|Yes
+|`snmp-server community vxlan ro`
+
+|spine2
+|EOS
+|Yes
+|`snmp-server community vxlan ro`
+
+|leaf1
+|EOS
+|Yes
+|`snmp-server community vxlan ro`
+
+|leaf2
+|EOS
+|Yes
+|`snmp-server community vxlan ro`
+
+|leaf3
+|NX-OS
+|Yes
+|`snmp-server community vxlan group network-operator`
+
+|leaf4
+|NX-OS
+|Yes
+|`snmp-server community vxlan group network-operator`
+|===
+
+All six devices have drifted from the intended config by exactly one line. The drift is consistent -- the same SNMP community was added to every device, which points to a deliberate configuration change (the `1-7-tuning_for_scale` SNMP playbook) that was not followed by a backup commit to this Git branch.
+These SNMP changes were saved as a backup on the `final_configs` branch. 
+
+== Play Recap
+
+[source]
+----
+leaf1   : ok=1  changed=1  unreachable=0  failed=0  skipped=1  rescued=0  ignored=0
+leaf2   : ok=1  changed=1  unreachable=0  failed=0  skipped=1  rescued=0  ignored=0
+leaf3   : ok=1  changed=1  unreachable=0  failed=0  skipped=1  rescued=0  ignored=0
+leaf4   : ok=1  changed=1  unreachable=0  failed=0  skipped=1  rescued=0  ignored=0
+spine1  : ok=1  changed=1  unreachable=0  failed=0  skipped=1  rescued=0  ignored=0
+spine2  : ok=2  changed=2  unreachable=0  failed=0  skipped=1  rescued=0  ignored=0
+----
+
+spine2 shows `ok=2, changed=2` because it ran both the `git_retrieve` task (delegated via `run_once`) and its own EOS diff. All other devices show `ok=1, changed=1` -- just their vendor-specific diff task. The 1 skipped task per device is the diff task for the other platform (EOS devices skip the NX-OS diff and vice versa).
+
+The `changed` status on the diff tasks is misleading -- no configuration was actually changed on any device. The modules report `changed` because a difference was detected between running and intended config, not because they modified anything. This is a known behavior of `diff_against: intended`.
+
+== What To Do With the Drift
+
+The operator has two options:
+
+Bring devices back to intended state::
+Run the `restore.yml` playbook to push the intended config from Git back to the devices, which would remove the SNMP community strings.
+
+Update the intended config to match::
+Run a backup playbook to export the current running configs and commit them to the Git branch, making the SNMP community part of the new intended state.
+
+Which option is correct depends on whether the SNMP change was intentional and should be kept. This is the value of the backups-as-code pattern -- drift is detected automatically, and the decision about how to resolve it is left to the operator.
+
+== Step 3: Restore the current configuration state to `initial_configs`
+
+This restores all devices back to the baseline state captured before any EVPN VXLAN configurations were applied.
+
+. Launch the `1-2-Backups_as_Code-Restore` job template
+
+. When prompted for the branch name, select `initial_configs`
+
+. Review the job output -- each device's running configuration is replaced with the config stored on the `initial_configs` branch, removing all base, underlay, overlay, and SNMP configurations
+
+**Output leaf1**
+
+* The `intitial_configs` removes the `final_configs` to restore to the intitial backup state.
+
+[source:yaml]
+----
+--- system:/running-config
++++ session:/ansible_178468752593-session-config
+-username admin privilege 15 role network-admin secret sha512 $6$KQkrbzBxLFk7xF7l$O8y1ljt4P1VRHzuJALEOfZ//JeoYbldFxAnuguIg7yoQ5iEgjhGBJzJr.EESion0bT8Kq/cgS.S5i5.MUtqbG0
++username admin privilege 15 role network-admin secret sha512 $6$k3ORdrv2rSbmnTYV$UQHRF9MkrkgOK7CoxQ7QJZtKJjnM8kEXcWx4zqOclM4oRlM9ID6x/BLjxEG5SJgAc.ea52YrSZu6qC25xNwm9/
+-!
+-vlan 40
+-   name Data_VLAN_40
+-vlan 50
+-   name Data_VLAN_50
+-vlan 60
+-   name Data_VLAN_60
+-vlan 101
+-   name L3VNI_Transit
+-!
+-vrf instance gold
+ !
+ interface Ethernet7
+-   description host1-connection
+-   switchport access vlan 50
+ !
+ interface Ethernet11
+-   description TO-SPINE1
+-   mtu 9214
+-   no switchport
+-   ip address 10.0.1.1/31
+-   ip ospf network point-to-point
+-   ip ospf mtu-ignore
+-   ip ospf area 0.0.0.0
+-   pim ipv4 sparse-mode
+ !
+ interface Ethernet12
+-   description TO-SPINE2
+-   mtu 9214
+-   no switchport
+-   ip address 10.0.20.1/31
+-   ip ospf network point-to-point
+-   ip ospf mtu-ignore
+-   ip ospf area 0.0.0.0
+-   pim ipv4 sparse-mode
+-!
+-interface Loopback0
+-   description BGP-Peering-RouterID
+-   ip address 10.0.250.11/32
+-   ip ospf area 0.0.0.0
+-!
+-interface Vlan40
+-   description Anycast-Gateway
+-   mtu 9214
+-   vrf gold
+-   ip address 10.40.40.2/24
+-   ip virtual-router address 10.40.40.1
+-!
+-interface Vlan50
+-   description Anycast-Gateway
+-   mtu 9214
+-   vrf gold
+-   ip address 10.50.50.2/24
+-   ip virtual-router address 10.50.50.1
+-!
+-interface Vlan60
+-   description Anycast-Gateway
+-   mtu 9214
+-   vrf gold
+-   ip address 10.60.60.2/24
+-   ip virtual-router address 10.60.60.1
+-!
+-interface Vlan101
+-   description L3VNI-Transit
+-   mtu 9214
+-   vrf gold
+-!
+-interface Vxlan1
+-   vxlan source-interface Loopback0
+-   vxlan udp-port 4789
+-   vxlan flood vtep learned data-plane
+-   vxlan vlan 40 vni 100040
+-   vxlan vlan 50 vni 100050
+-   vxlan vlan 60 vni 100060
+-   vxlan vrf gold vni 100001
+-!
+-ip virtual-router mac-address 00:11:22:33:44:55
+ !
+-ip routing
+-ip routing vrf gold
++no ip routing
+-!
+-router bgp 65001
+-   router-id 10.0.250.11
+-   no bgp default ipv4-unicast
+-   neighbor SPINES peer group
+-   neighbor SPINES remote-as 65000
+-   neighbor SPINES update-source Loopback0
+-   neighbor SPINES allowas-in 3
+-   neighbor SPINES ebgp-multihop 3
+-   neighbor SPINES send-community extended
+-   neighbor 10.0.255.101 peer group SPINES
+-   neighbor 10.0.255.102 peer group SPINES
+-   !
+-   vlan 40
+-      rd 10.0.250.11:40
+-      route-target import export 1:100040
+-   !
+-   vlan 50
+-      rd 10.0.250.11:50
+-      route-target import export 1:100050
+-      redistribute learned
+-   !
+-   vlan 60
+-      rd 10.0.250.11:60
+-      route-target import export 1:100060
+-   !
+-   address-family evpn
+-      neighbor SPINES activate
+-   !
+-   vrf gold
+-      rd 10.0.250.11:1
+-      route-target import evpn 1:100001
+-      route-target export evpn 1:100001
+-      redistribute connected
+-      !
+-      address-family ipv4
+-         redistribute connected
+-!
+-router ospf 1
+-   router-id 10.0.250.11
+-   max-lsa 12000
+-!
+-router pim sparse-mode
+-   ipv4
+-      rp address 10.0.255.254
+changed: [leaf1]
+----
+
+
+== Step 4: Restore the current configuration state to `final_configs`
+
+This restores all devices to the fully configured EVPN VXLAN fabric state, including the SNMP community string added during the tuning module.
+
+. Launch the `1-2-Backups_as_Code-Restore` job template
+
+. When prompted for the branch name, select `final_configs`
+
+. Review the job output -- each device is returned to the completed fabric state captured at the beginning of this module
+
+**Output leaf1**
+
+* The `final_configs` adds the completed config back the `leaf1` device.
+
+[source:yaml]
+----
+--- system:/running-config
++++ session:/ansible_178468627156-session-config
+-username admin privilege 15 role network-admin secret sha512 $6$k3ORdrv2rSbmnTYV$UQHRF9MkrkgOK7CoxQ7QJZtKJjnM8kEXcWx4zqOclM4oRlM9ID6x/BLjxEG5SJgAc.ea52YrSZu6qC25xNwm9/
++username admin privilege 15 role network-admin secret sha512 $6$KQkrbzBxLFk7xF7l$O8y1ljt4P1VRHzuJALEOfZ//JeoYbldFxAnuguIg7yoQ5iEgjhGBJzJr.EESion0bT8Kq/cgS.S5i5.MUtqbG0
++!
++vlan 40
++   name Data_VLAN_40
++!
++vlan 50
++   name Data_VLAN_50
++!
++vlan 60
++   name Data_VLAN_60
++!
++vlan 101
++   name L3VNI_Transit
++!
++vrf instance gold
+ !
+ interface Ethernet7
++   description host1-connection
++   switchport access vlan 50
+ !
+ interface Ethernet11
++   description TO-SPINE1
++   mtu 9214
++   no switchport
++   ip address 10.0.1.1/31
++   ip ospf network point-to-point
++   ip ospf mtu-ignore
++   ip ospf area 0.0.0.0
++   pim ipv4 sparse-mode
+ !
+ interface Ethernet12
++   description TO-SPINE2
++   mtu 9214
++   no switchport
++   ip address 10.0.20.1/31
++   ip ospf network point-to-point
++   ip ospf mtu-ignore
++   ip ospf area 0.0.0.0
++   pim ipv4 sparse-mode
++!
++interface Loopback0
++   description BGP-Peering-RouterID
++   ip address 10.0.250.11/32
++   ip ospf area 0.0.0.0
++!
++interface Vlan40
++   description Anycast-Gateway
++   mtu 9214
++   vrf gold
++   ip address 10.40.40.2/24
++   ip virtual-router address 10.40.40.1
++!
++interface Vlan50
++   description Anycast-Gateway
++   mtu 9214
++   vrf gold
++   ip address 10.50.50.2/24
++   ip virtual-router address 10.50.50.1
++!
++interface Vlan60
++   description Anycast-Gateway
++   mtu 9214
++   vrf gold
++   ip address 10.60.60.2/24
++   ip virtual-router address 10.60.60.1
++!
++interface Vlan101
++   description L3VNI-Transit
++   mtu 9214
++   vrf gold
++!
++interface Vxlan1
++   vxlan source-interface Loopback0
++   vxlan udp-port 4789
++   vxlan flood vtep learned data-plane
++   vxlan vlan 40 vni 100040
++   vxlan vlan 50 vni 100050
++   vxlan vlan 60 vni 100060
++   vxlan vrf gold vni 100001
++!
++ip virtual-router mac-address 00:11:22:33:44:55
+ !
+-no ip routing
++ip routing
++ip routing vrf gold
++!
++router bgp 65001
++   router-id 10.0.250.11
++   no bgp default ipv4-unicast
++   neighbor SPINES peer group
++   neighbor SPINES remote-as 65000
++   neighbor SPINES update-source Loopback0
++   neighbor SPINES allowas-in 3
++   neighbor SPINES ebgp-multihop 3
++   neighbor SPINES send-community extended
++   neighbor 10.0.255.101 peer group SPINES
++   neighbor 10.0.255.102 peer group SPINES
++   !
++   vlan 40
++      rd 10.0.250.11:40
++      route-target import export 1:100040
++   !
++   vlan 50
++      rd 10.0.250.11:50
++      route-target import export 1:100050
++      redistribute learned
++   !
++   vlan 60
++      rd 10.0.250.11:60
++      route-target import export 1:100060
++   !
++   address-family evpn
++      neighbor SPINES activate
++   !
++   vrf gold
++      rd 10.0.250.11:1
++      route-target import evpn 1:100001
++      route-target export evpn 1:100001
++      redistribute connected
++      !
++      address-family ipv4
++         redistribute connected
++!
++router ospf 1
++   router-id 10.0.250.11
++   max-lsa 12000
++!
++router pim sparse-mode
++   ipv4
++      rp address 10.0.255.254
+changed: [leaf1]
+----
+
+== Module summary
+
+In this module, you learned how to:
+
+* Capture a known-good fabric snapshot by running the backup workflow with a named branch (`final_configs`), preserving the fully configured EVPN VXLAN state as a Git-versioned restore point
+* Use `diff_against: intended` with `cisco.nxos.config` and `arista.eos.eos_config` to compare each device's running configuration against a stored intended config without pushing any changes to the network
+* Read the diff output to pinpoint exactly which lines differ between the running and intended configurations -- recognizing that `changed: true` in the play recap indicates a detected difference, not an applied modification
+* Identify drift caused by the SNMP community string (`snmp-server community vxlan`) that was added during the tuning module but never committed to the `vxlan_configs` branch
+* Choose between two remediation paths: restoring devices to a previous backup branch to remove the drift, or updating the intended config branch to accept the current state as the new baseline
+* Restore device configurations to any named Git branch (`initial_configs` or `final_configs`) using the self-service restore workflow, returning the fabric to a known-good state in minutes
+
+The backups-as-code pattern built across this workshop -- automated backups, versioned Git branches, drift detection, and one-click restores -- provides a complete lifecycle for network configuration management that eliminates manual troubleshooting and makes configuration state auditable at every point in time.
+
+== Congratulations!
+
+You have completed the **The Advanced Network Automation** workshop. Over the course of eight sections, you built a fully operational multi-vendor EVPN VXLAN fabric from the ground up -- entirely through automation.
+
+Here is what you accomplished:
+
+. **Dynamic Inventory** -- Connected Ansible Automation Platform to a live Containerlab topology and built inventory groups that automatically organize Arista EOS and Cisco NX-OS devices
+. **Backups as Code** -- Captured device configurations as versioned Git branches in Gitea, creating named restore points that any operator can select from a self-service survey
+. **Network Compliance** -- Validated device state against defined standards using resource modules in `state: gathered` and Ansible's `assert` module to catch misconfigurations before they reach production
+. **Base Configs** -- Deployed foundational settings (hostnames, VLANs, loopbacks, interfaces) across all six devices using resource modules with `state: merged`, establishing the platform the fabric runs on
+. **Underlay Configs** -- Built OSPF adjacencies and iBGP peering across the spine-leaf topology using a hybrid approach of resource modules and Jinja2 templates, then validated routing before moving to the overlay
+. **Overlay Configs** -- Deployed VXLAN tunnels, EVPN route targets, VRFs, and anycast gateways to complete the fabric, then validated end-to-end host connectivity across L2 stretch, inter-VLAN, and cross-platform scenarios
+. **Tuning for Scale** -- Configured AAP execution controls (`forks`, `serial`, `max_fail_percentage`, `throttle`) to protect production networks from automation errors and optimize job performance
+. **Configuration Drift and Restore** -- Detected configuration drift by comparing running configs against Git-stored intended state, then restored devices to known-good snapshots using the backup branches you created earlier
+
+From an empty topology to a fully validated, drift-protected EVPN VXLAN fabric -- all managed through Ansible Automation Platform. These same patterns scale from a six-device lab to production networks with ten thousands of devices across multiple vendors and sites.

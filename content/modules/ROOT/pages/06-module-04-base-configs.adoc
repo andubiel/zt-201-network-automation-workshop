@@ -1,0 +1,454 @@
+= 1-4: Base Configurations
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+NOTE: **Level Set -- What is EVPN VXLAN and Why Base Configs Come First** +
+EVPN VXLAN is a modern data center fabric architecture that combines two technologies: **VXLAN** (Virtual Extensible LAN) creates Layer 2 overlay tunnels across a Layer 3 underlay network, allowing VLANs to stretch across the entire fabric without traditional spanning tree limitations. **EVPN** (Ethernet VPN) is the control plane that distributes MAC and IP address information between switches, replacing flood-and-learn with efficient, targeted forwarding. Together, they enable scalable multi-tenant networks over a spine-leaf topology. +
+ +
+Building an EVPN VXLAN fabric follows a deliberate bottom-up order. Before configuring the **underlay** (the routed Layer 3 network between spines and leafs) or the **overlay** (the VXLAN tunnels and EVPN peering), you need the foundational **base configuration** in place: VLANs that define your Layer 2 segments, loopback interfaces that serve as VTEP (VXLAN Tunnel Endpoint) addresses, and basic interface settings. Without these building blocks, the underlay has nothing to route and the overlay has nothing to encapsulate. +
+ +
+**Why automate this with Ansible?** +
+Manually configuring base settings across a multi-vendor spine-leaf fabric is tedious and error-prone -- a mistyped VLAN ID on one leaf or an inconsistent loopback address can silently break VXLAN tunneling and take hours to troubleshoot. With Ansible resource modules, you define the intended base configuration once in structured YAML and push it consistently to every device, regardless of vendor. The modules are idempotent, so re-running the playbook corrects any drift without duplicating configuration. And because the same data model works across Arista EOS and Cisco NX-OS, you eliminate the need to maintain separate CLI scripts for each platform -- one playbook, one source of truth, applied uniformly across the entire fabric. This module focuses on automating that base layer using Ansible resource modules.
+
+== Learning objectives
+
+IMPORTANT: **The base configuration is the foundation that every subsequent layer depends on.** The underlay module builds OSPF and BGP peering on top of the loopback addresses and point-to-point links configured here. The overlay module then establishes VXLAN tunnels and EVPN peering using those same loopbacks as VTEP sources. A misconfigured VLAN, a missing loopback, or an incorrect /31 address at this stage will silently break underlay adjacencies and prevent overlay tunnels from forming -- and the failure may not surface until two modules later. Getting the base right, and proving it with automated tests, is not optional preparation; it is the critical first step of a working EVPN VXLAN fabric.
+
+This module covers:
+
+* Running a three-stage **Backup → Deploy → Test** workflow to safely provision base fabric configuration across a multi-vendor spine-leaf topology
+* Interpreting resource module output -- reading the `changed`, `commands`, `before`, and `after` fields to verify what was applied to each device
+* Understanding how the `base_fabric` role dispatches to vendor-specific task files and configures five resource layers: hostname, VLANs, interfaces, L2 switchports, and L3 addresses
+* Using `state: merged` to layer intended configuration onto devices without disturbing existing settings
+* Validating deployments with automated ping tests, interface checks, and hostname verification
+* Diagnosing and recovering from a broken configuration using the backup-and-restore workflow
+
+== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `1-4-base_configs`
+
+TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
+
+---
+  Base Configuration Overview
+
+  The 1-4-base_configs folder provisions a multi-vendor leaf-spine topology. It contains three playbooks and
+  a role:
+
+  ┌────────────────────────────┬─────────────────────────────────────────────────────────────────────────┐
+  │            File            │                                 Purpose                                 │
+  ├────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
+  │ deploy_fabric.yml          │ Deploys correct base config to all spines and leafs                     │
+  ├────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
+  │ broken_base_fabric.yml     │ Deploys intentionally broken spine1 IPs (for troubleshooting exercises) │
+  ├────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
+  │ test_base_connectivity.yml │ Validates the fabric with ping tests and hostname checks                │
+  ├────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
+  │ roles/base_fabric/         │ Role that dispatches to vendor-specific task files (eos.yml, nxos.yml)  │
+  └────────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
+
+  Device Inventory
+
+  ┌────────┬──────────────┬───────┬─────────────────┬─────────────────────┬───────────┐
+  │ Device │ Vendor / NOS │ Role  │    Loopback0    │  Host-Facing Port   │ Host VLAN │
+  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
+  │ spine1 │ Arista EOS   │ Spine │ 10.0.255.101/32 │ --                  │ --        │
+  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
+  │ spine2 │ Arista EOS   │ Spine │ 10.0.255.102/32 │ --                  │ --        │
+  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
+  │ leaf1  │ Arista EOS   │ Leaf  │ 10.0.250.11/32  │ Ethernet7 (host1)   │ VLAN 40   │
+  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
+  │ leaf2  │ Arista EOS   │ Leaf  │ 10.0.250.12/32  │ Ethernet7 (host2)   │ VLAN 50   │
+  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
+  │ leaf3  │ Cisco NXOS   │ Leaf  │ 10.0.250.13/32  │ Ethernet1/7 (host3) │ VLAN 40   │
+  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
+  │ leaf4  │ Cisco NXOS   │ Leaf  │ 10.0.250.14/32  │ Ethernet1/7 (host4) │ VLAN 60   │
+  └────────┴──────────────┴───────┴─────────────────┴─────────────────────┴───────────┘
+
+  Fabric Connectivity Map
+
+  All leafs are dual-homed to both spines using /31 point-to-point links across two subnets:
+
+  Spine1 Links (10.0.1.x/31)
+
+  spine1 Eth1 (10.0.1.0) ──── (10.0.1.1) Eth11  leaf1
+  spine1 Eth2 (10.0.1.2) ──── (10.0.1.3) Eth11  leaf2
+  spine1 Eth3 (10.0.1.4) ──── (10.0.1.5) Eth1/11 leaf3
+  spine1 Eth4 (10.0.1.6) ──── (10.0.1.7) Eth1/11 leaf4
+
+  Spine2 Links (10.0.20.x/31)
+
+  spine2 Eth1 (10.0.20.0) ──── (10.0.20.1) Eth12  leaf1
+  spine2 Eth2 (10.0.20.2) ──── (10.0.20.3) Eth12  leaf2
+  spine2 Eth3 (10.0.20.4) ──── (10.0.20.5) Eth1/12 leaf3
+  spine2 Eth4 (10.0.20.6) ──── (10.0.20.7) Eth1/12 leaf4
+
+  VLANs (Configured on All Leafs)
+
+  ┌──────┬───────────────┬────────────────────────────────────────┐
+  │ VLAN │     Name      │                Purpose                 │
+  ├──────┼───────────────┼────────────────────────────────────────┤
+  │ 40   │ Data_VLAN_40  │ Host data (leaf1, leaf3)               │
+  ├──────┼───────────────┼────────────────────────────────────────┤
+  │ 50   │ Data_VLAN_50  │ Host data (leaf2)                      │
+  ├──────┼───────────────┼────────────────────────────────────────┤
+  │ 60   │ Data_VLAN_60  │ Host data (leaf4)                      │
+  ├──────┼───────────────┼────────────────────────────────────────┤
+  │ 101  │ L3VNI_Transit │ VXLAN L3 VNI transit (used by overlay) │
+  └──────┴───────────────┴────────────────────────────────────────┘
+
+  Role Dispatch Pattern
+
+  The base_fabric role uses a single-line main.yml to route to vendor-specific task files:
+
+  - name: Route execution by Network Operating System
+    ansible.builtin.include_tasks: "{{ ansible_network_os.split('.')[-1] }}.yml"
+
+  This splits arista.eos.eos into eos and cisco.nxos.nxos into nxos, dynamically including the correct task file. Both vendor files
+  configure the same five resource categories using their respective collection modules: hostname, VLANs, interface state, L2 switchports,
+  and L3 IP addresses. The Arista file additionally enables ip routing.
+
+  Broken Fabric Playbook
+
+  broken_base_fabric.yml is a purpose-built troubleshooting exercise. It redeploys spine1 with incorrect IP addresses on all four
+  leaf-facing interfaces:
+
+  ┌───────────┬─────────────┬──────────────┐
+  │ Interface │ Correct IP  │  Broken IP   │
+  ├───────────┼─────────────┼──────────────┤
+  │ Ethernet1 │ 10.0.1.0/31 │ 10.0.1.10/31 │
+  ├───────────┼─────────────┼──────────────┤
+  │ Ethernet2 │ 10.0.1.2/31 │ 10.0.1.12/31 │
+  ├───────────┼─────────────┼──────────────┤
+  │ Ethernet3 │ 10.0.1.4/31 │ 10.0.1.14/31 │
+  ├───────────┼─────────────┼──────────────┤
+  │ Ethernet4 │ 10.0.1.6/31 │ 10.0.1.16/31 │
+  └───────────┴─────────────┴──────────────┘
+
+  Running test_base_connectivity.yml after this will show all four leaf-to-spine1 ping tests failing, while leaf-to-spine2 tests continue
+  to pass. Re-running deploy_fabric.yml restores correct addressing.
+
+  Connectivity Test Playbook
+
+  test_base_connectivity.yml runs from the leafs and validates three things per device:
+
+  1. Management interface is up (vendor-specific show commands)
+  2. Neighbor ping tests -- each leaf pings both its spine1 and spine2 neighbor IPs; results are asserted with pass/fail messages
+  3. Hostname verification -- the device's configured hostname matches inventory_hostname
+
+== Step 1: Launch the 1-4-Base_Configs-Workflow
+
+image::base_configs_workflow.png[compliance,align="center",link=self,window=blank,width=800]
+
+=== Workflow Overview
+
+The base configuration module follows a three-stage workflow: **Backup → Deploy → Test**. Each stage is run as a separate job template from the Ansible Automation Controller.
+
+. **Backup** -- Before making any changes, run the `1-2-Backups_as_Code-Backup-GIT` job template to capture a snapshot of every device's running configuration. Name the branch something meaningful like `pre_base_config` so you can identify it later. This backup serves as a recovery point -- if the base configuration introduces an issue or you need to return the devices to their pre-base state, you can use the `1-2-Backups_as_Code-Git-Restore` job template to select this branch and roll the devices back to their exact configuration before any base changes were applied.
+
+. **Deploy** -- Launch the `1-4-Base_Configs-Deploy` job template to push the base fabric configuration (hostnames, VLANs, loopback interfaces, point-to-point links, and switchport assignments) to all spines and leafs. The playbook uses the `base_fabric` role, which automatically dispatches to the correct vendor-specific task file based on each device's `ansible_network_os`.
+
+. **Test** -- Launch the `1-4-Base_Configs-Test` job template to validate the deployment. The test playbook verifies that management interfaces are up, runs ping tests from each leaf to both spine neighbors, and confirms that hostnames match the inventory. If any test fails, review the output to identify the misconfigured device before proceeding to the underlay module.
+
+TIP: Always take a backup before and after major configuration changes. The backup branches in Gitea give you named restore points at every stage of the fabric build -- `pre_base_config`, `post_base_config`, `pre_underlay`, and so on. If something goes wrong in a later module, you can restore to the last known-good state without manually reconfiguring devices.
+
+== Step 2: Review the new backups for base_configs branch in Gitea
+
+image::base_configs_branch.png[compliance,align="center",link=self,window=blank,width=800]
+
+1. Navigate to leaf3.cfg
+
+image::base_leaf3.png[compliance,align="center",link=self,window=blank,width=800]
+
+== Step 3: Review the job output for the `1-4-Base_Configs-Deploy` job template
+
+image::base_deploy.png[compliance,align="center",link=self,window=blank,width=800]
+
+=== Resource Module Usage
+
+. Review the output from leaf3 for TASK [base_fabric : Configure VLANs [Cisco NX-OS]]
++
+Below is the output from the `cisco.nxos.nxos_vlans` resource module on `leaf3`:
++
+[source,json]
+----
+{
+  "changed": true,                              // <1>
+  "commands": [                                 // <2>
+    "vlan 40",
+    "name Data_VLAN_40",
+    "vlan 50",
+    "name Data_VLAN_50",
+    "vlan 60",
+    "name Data_VLAN_60",
+    "vlan 101",
+    "name L3VNI_Transit"
+  ],
+  "before": [                                   // <3>
+    {
+      "vlan_id": 1,
+      "name": "default",
+      "state": "active",
+      "enabled": true
+    }
+  ],
+  "after": [                                    // <4>
+    { "vlan_id": 1, "name": "default", "state": "active" },
+    { "vlan_id": 40, "name": "Data_VLAN_40", "state": "active" },
+    { "vlan_id": 50, "name": "Data_VLAN_50", "state": "active" },
+    { "vlan_id": 60, "name": "Data_VLAN_60", "state": "active" },
+    { "vlan_id": 101, "name": "L3VNI_Transit", "state": "active" }
+  ]
+}
+----
+<1> **changed: true** -- the device was modified. The VLAN configuration did not match the intended state, so the module applied changes. On a subsequent run this would be `false` (idempotent -- no changes needed).
+<2> **commands** -- the exact NX-OS CLI commands sent to the device. Four VLANs were created: `Data_VLAN_40`, `Data_VLAN_50`, `Data_VLAN_60` for host traffic, and `L3VNI_Transit` (VLAN 101) which will be used later by the VXLAN overlay as the Layer 3 VNI transit VLAN.
+<3> **before** -- the VLAN configuration on the device _before_ the module ran. Only the default VLAN 1 existed -- the device had no data or transit VLANs configured.
+<4> **after** -- the VLAN configuration _after_ the module ran. All four intended VLANs are now present and active alongside the default VLAN. This confirms the base VLAN layer is in place and ready for the underlay and overlay stages.
+
+The `state: merged` parameter used in this task adds the defined VLANs without removing any existing configuration. This is the appropriate choice for base configuration where you want to layer new settings on top of whatever is already on the device.
+
+Review the other task outputs to see how each resource module configures a different layer of the base fabric.
+
+==== Base Tasks Overview
+
+The `base_fabric` role runs five resource module tasks per device (with vendor-specific modules dispatched automatically). Each task handles one layer of the base configuration:
+
+[cols="1,2,2,3",options="header"]
+|===
+| Order | Task | Cisco NX-OS Module | What It Configures
+
+| 1
+| Set Hostname
+| `cisco.nxos.nxos_hostname`
+| Configures the device hostname to match `inventory_hostname`, ensuring every switch is identifiable in logs, LLDP, and CLI prompts.
+
+| 2
+| Configure VLANs
+| `cisco.nxos.nxos_vlans`
+| Creates the data VLANs (40, 50, 60) for host-facing ports and the L3VNI transit VLAN (101) used later by the VXLAN overlay. Uses `state: merged` to add VLANs without disturbing existing ones.
+
+| 3
+| Enable Interfaces
+| `cisco.nxos.nxos_interfaces`
+| Brings up all spine-facing, host-facing, and loopback interfaces by setting `enabled: true`. Interfaces that are admin-down will not pass traffic, so this task ensures every link in the fabric is active.
+
+| 4
+| Configure L2 Switchports
+| `cisco.nxos.nxos_l2_interfaces`
+| Assigns host-facing ports to their respective access VLANs (e.g., Ethernet1/7 on leaf3 → VLAN 40). This determines which VLAN each connected host belongs to.
+
+| 5
+| Configure L3 IP Addresses
+| `cisco.nxos.nxos_l3_interfaces`
+| Assigns IP addresses to loopback interfaces (used as VTEP and router-ID sources) and point-to-point spine-leaf links (the /31 subnets). These addresses form the foundation of the underlay routing configured in the next module.
+|===
+
+Below is the Cisco NX-OS task file (`nxos.yml`) from the `base_fabric` role:
+
+[source,yaml]
+----
+- name: Configure Hostname [Cisco NX-OS]
+  cisco.nxos.nxos_hostname:
+    config:
+      hostname: "{{ base_hostname }}"
+    state: merged
+
+- name: Configure VLANs [Cisco NX-OS]
+  cisco.nxos.nxos_vlans:
+    config: "{{ base_vlans | default([]) }}"
+    state: merged
+  when: base_vlans is defined
+
+- name: Configure Interfaces Description and State [Cisco NX-OS]
+  cisco.nxos.nxos_interfaces:
+    config: "{{ base_interfaces }}"
+    state: merged
+
+- name: Configure L2 Switchports [Cisco NX-OS]
+  cisco.nxos.nxos_l2_interfaces:
+    config: "{{ base_l2_interfaces | default([]) }}"
+    state: merged
+  when: base_l2_interfaces is defined
+
+- name: Configure L3 IP Properties [Cisco NX-OS]
+  cisco.nxos.nxos_l3_interfaces:
+    config: "{{ base_l3_interfaces }}"
+    state: merged
+----
+
+Each task pulls its configuration from `host_vars` or `group_vars` variables (`base_hostname`, `base_vlans`, `base_interfaces`, etc.), keeping the task file generic and reusable. The `when: base_vlans is defined` and `when: base_l2_interfaces is defined` conditionals allow spines to skip VLAN and switchport tasks since they only need L3 configuration. The Arista EOS task file (`eos.yml`) follows the same five-task pattern using `arista.eos.*` modules and additionally enables `ip routing` on the device. Both vendor files use `state: merged`, which is additive -- it applies the intended settings without removing any existing configuration.
+
+== Step 4: Review the job output for the `1-4-Base_Configs-Test` job template
+
+image::base_test.png[compliance,align="center",link=self,window=blank,width=800]
+
+**Sucessfull Output**
+[source:yaml]
+----
+Truncated
+
+TASK [=== Test Summary for leaf1 ===] ******************************************
+ok: [leaf2] => {
+    "msg": [
+        "================================",
+        "✓ Base Configuration Tests PASSED",
+        "  Device: leaf2",
+        "  Management: UP",
+        "  Fabric Interfaces: Configured",
+        "  Neighbor Connectivity: OK",
+        "  Hostname: Correct",
+        "================================"
+    ]
+}
+ok: [leaf1] => {
+    "msg": [
+        "================================",
+        "✓ Base Configuration Tests PASSED",
+        "  Device: leaf1",
+        "  Management: UP",
+        "  Fabric Interfaces: Configured",
+        "  Neighbor Connectivity: OK",
+        "  Hostname: Correct",
+        "================================"
+    ]
+}
+ok: [leaf3] => {
+    "msg": [
+        "================================",
+        "✓ Base Configuration Tests PASSED",
+        "  Device: leaf3",
+        "  Management: UP",
+        "  Fabric Interfaces: Configured",
+        "  Neighbor Connectivity: OK",
+        "  Hostname: Correct",
+        "================================"
+    ]
+}
+ok: [leaf4] => {
+    "msg": [
+        "================================",
+        "✓ Base Configuration Tests PASSED",
+        "  Device: leaf4",
+        "  Management: UP",
+        "  Fabric Interfaces: Configured",
+        "  Neighbor Connectivity: OK",
+        "  Hostname: Correct",
+        "================================"
+    ]
+}
+----
+
+In the previous steps the workflow successfully deployed and tested so there was no need to launch the restore job-template.
+This section introducesan incorect IP addressing to fail the `Test` node on purpose to envoke the the restore job-template.
+
+image::base_workflow_success.png[compliance,align="center",link=self,window=blank,width=800]
+
+== Step 5: Launch the `1-4-Base_Configs-Workflow-Error` workflow job template
+
+Run this job-template to deploy an error.
+
+
+The `1-4-base_configs/broken_base_fabric.yml` plabook applies the following incorect IP addressing:
+
+**Incorrect Addressing**
+[source:yaml]
+----
+ # BROKEN: Incorrect IP addresses on spine1
+    # Correct should be: .0, .2, .4, .6
+    # Using wrong IPs: .10, .12, .14, .16
+    base_l3_interfaces:
+      - name: "Ethernet1"
+        ipv4:
+          - address: "10.0.1.10/31"
+      - name: "Ethernet2"
+        ipv4:
+          - address: "10.0.1.12/31"
+      - name: "Ethernet3"
+        ipv4:
+          - address: "10.0.1.14/31"
+      - name: "Ethernet4"
+        ipv4:
+          - address: "10.0.1.16/31"
+      - name: "Loopback0"
+        ipv4:
+          - address: "10.0.255.101/32"
+----
+
+Upon completion of the restore the correct IP addressing should be applied to spine1
+
+[source:yaml]
+----
+base_l3_interfaces:
+  - name: "Ethernet1"
+    ipv4:
+      - address: "10.0.1.0/31"
+  - name: "Ethernet2"
+    ipv4:
+      - address: "10.0.1.2/31"
+  - name: "Ethernet3"
+    ipv4:
+      - address: "10.0.1.4/31"
+  - name: "Ethernet4"
+    ipv4:
+      - address: "10.0.1.6/31"
+  - name: "Loopback0"
+    ipv4:
+      - address: "10.0.255.101/32"
+----
+
+== Step 6: Access spine1 to validate
+
+From the `ContainerLab Terminal` 
+
+[source:bash]
+----
+ssh spine 1
+----
+
+[source:bash]
+----
+enable
+show run | b Ethernet
+----
+
+**Expected Output**
+
+[source:bash]
+----
+
+interface Ethernet1
+   description TO-LEAF1-ARISTA
+   no switchport
+   ip address 10.0.1.0/31
+!
+interface Ethernet2
+   description TO-LEAF2-ARISTA
+   no switchport
+   ip address 10.0.1.2/31
+!
+interface Ethernet3
+   description TO-LEAF3-CISCO
+   no switchport
+   ip address 10.0.1.4/31
+!
+interface Ethernet4
+   description TO-LEAF4-CISCO
+   no switchport
+   ip address 10.0.1.6/31
+!
+----
+
+
+== Module summary
+
+In this module, you learned how to:
+
+* Execute the three-stage base configuration workflow -- **Backup → Deploy → Test** -- from the Ansible Automation Controller, and understand why taking a named backup branch before every configuration change gives you a reliable rollback point
+* Review device backup files in Gitea to verify that running configurations were captured before any base changes were applied
+* Read the structured output of a resource module (`cisco.nxos.nxos_vlans`) and interpret the `changed`, `commands`, `before`, and `after` fields to understand exactly what was configured and why
+* Walk through the five-task `base_fabric` role -- hostname, VLANs, interface state, L2 switchports, and L3 IP addresses -- and see how the role dispatches to vendor-specific task files (`eos.yml` / `nxos.yml`) based on `ansible_network_os`
+* Understand how `state: merged` adds intended configuration without removing existing settings, making it the right choice for layering base config onto devices
+* Validate the deployment by reviewing the test playbook output -- management interface checks, neighbor ping tests, and hostname verification -- across all four leafs
+* Deploy an intentionally broken configuration to spine1, observe the resulting test failures, and restore correct addressing using the backup-and-restore workflow
+
+With the base layer verified, the fabric now has the VLANs, loopback addresses, and point-to-point links that the next two modules depend on. The underlay module will build OSPF and BGP peering over these links, and the overlay module will establish VXLAN tunnels and EVPN sessions using the loopbacks configured here as VTEP sources. Every layer above inherits the correctness of this one -- which is why the test step is not optional.

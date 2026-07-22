@@ -1,0 +1,480 @@
+= 1-6: Overlay Configs
+:source-highlighter: rouge
+:toc: macro
+:toclevels: 1
+
+NOTE: **Level Set -- What is the EVPN VXLAN Overlay and How It Completes the Fabric** +
+The **overlay** is the virtualization layer that runs on top of the underlay. While the underlay provides IP reachability between all leaf loopbacks, the overlay uses those loopbacks as **VTEP** (VXLAN Tunnel Endpoint) sources to build tunnels that stretch Layer 2 VLANs across the entire fabric. **EVPN** acts as the control plane -- distributing MAC addresses, IP bindings, and routing information between VTEPs via BGP so that traffic is forwarded efficiently without flooding. Together, VXLAN tunneling and EVPN signaling enable hosts on different leafs to communicate as if they were on the same local switch, even across vendor boundaries. +
+ +
+The overlay depends on everything built in the previous modules: the **base configuration** provides the VLANs, loopbacks, and interface addressing; the **underlay** provides OSPF reachability and BGP peering. A misconfigured VNI mapping, a missing route target, or a mismatched anycast gateway MAC at this stage will prevent hosts from reaching each other -- but the symptoms will appear as silent connectivity failures between hosts, not as obvious protocol errors on the switches.
+
+== Learning objectives
+
+This module covers:
+
+* Deploying the VXLAN EVPN overlay across a multi-vendor spine-leaf fabric using the overlay workflow
+* Understanding how VTEPs, VNIs, VRFs, and anycast gateways work together to provide L2 extension and inter-VLAN routing across the fabric
+* Reviewing the platform differences between Arista EOS and Cisco NX-OS for VXLAN encapsulation (`Vxlan1` vs. `nve1`), VRF configuration, and anycast gateway implementation
+* Examining VLAN-to-VNI mappings, symmetric EVPN route targets, and per-leaf route distinguishers
+* Validating end-to-end host connectivity by testing three overlay scenarios: L2 stretch (same VLAN, same vendor), inter-VLAN symmetric IRB (same vendor), and cross-platform inter-VLAN routing (EOS to NX-OS)
+
+== It's encouraged to visit the VSCOde tab to review the playbooks and roles from `1-6-overlay_configs`
+
+TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
+
+== Overlay Details 
+**Optional** - Scroll down to skip to Step 1
+
+The overlay runs on a spine-leaf fabric hosted in Containerlab. All six devices connect to the Containerlab host via SSH on unique ports and share a common management address (`containerlab`).
+
+[source]
+----
+                    ┌─────────────────────────────┐
+                    │       BGP EVPN Overlay       │
+                    │    (eBGP, AS 65000 ↔ 65001)  │
+                    └─────────────────────────────┘
+
+              spine1 (EOS)                spine2 (EOS)
+              AS 65000                    AS 65000
+              Lo0: 10.0.255.101           Lo0: 10.0.255.102
+              ┌──────────┐                ┌──────────┐
+              │  EVPN RR │                │  EVPN RR │
+              │ (4 peers)│                │ (4 peers)│
+              └─┬──┬──┬──┘                └──┬──┬──┬─┘
+                │  │  │  │                │  │  │  │
+          ┌─────┘  │  │  └──────┐   ┌─────┘  │  │  └──────┐
+          │        │  │         │   │         │  │         │
+        ┌─┴──┐  ┌──┴┐ ┌┴──┐  ┌──┴┐ same connectivity
+        │    │  │   │ │   │  │   │ as spine1
+        │    │  │   │ │   │  │   │
+      ┌─┴──────┴┐┌──┴─┴───┐┌─┴───┴──┐┌──────────┐
+      │  leaf1  ││  leaf2  ││  leaf3  ││  leaf4   │
+      │  (EOS)  ││  (EOS)  ││ (NXOS) ││  (NXOS)  │
+      │ AS65001 ││ AS65001 ││ AS65001 ││  AS65001 │
+      │ VTEP    ││ VTEP    ││ VTEP    ││  VTEP    │
+      └─┬───────┘└─┬───────┘└─┬──────┘└──┬───────┘
+        │Eth7      │Eth7      │Eth1/7    │Eth1/7
+        │VLAN 50   │VLAN 50   │VLAN 40   │VLAN 60
+      ┌─┴───────┐┌─┴───────┐┌─┴───────┐┌─┴────────┐
+      │  host1  ││  host2  ││  host3  ││  host4   │
+      │ .50.51  ││ .50.52  ││ .40.43  ││  .60.64  │
+      │ Linux   ││ Linux   ││ Linux   ││  Linux   │
+      └─────────┘└─────────┘└─────────┘└──────────┘
+----
+
+=== Device Roles
+
+Spines (spine1, spine2)::
+Arista vEOS. Run BGP EVPN in AS 65000 and peer with all four leafs. They do not participate in VXLAN encapsulation -- they only relay EVPN routes between leafs. Each spine peers with all four leaf loopbacks via the `LEAF-PEERS` peer group with `next-hop-unchanged` set, so VTEP addresses pass through unmodified.
+
+Leafs (leaf1--leaf4)::
+The VTEPs. Each leaf originates and terminates VXLAN tunnels sourced from its Loopback0. Leaf1 and leaf2 run Arista vEOS; leaf3 and leaf4 run Cisco NX-OS (n9kv). All leafs share AS 65001 and use `allowas-in 3` to accept routes from other leafs in the same AS.
+
+== VTEP Addressing
+
+Every leaf acts as a VTEP. The VXLAN tunnel source is Loopback0, which is advertised into OSPF and reachable from all other leafs via the underlay.
+
+[cols="1,1,1,1", options="header"]
+|===
+|Device
+|Platform
+|Loopback0 (VTEP Source)
+|VXLAN Interface
+
+|leaf1
+|Arista EOS
+|10.0.250.11/32
+|Vxlan1
+
+|leaf2
+|Arista EOS
+|10.0.250.12/32
+|Vxlan1
+
+|leaf3
+|Cisco NX-OS
+|10.0.250.13/32
+|nve1
+
+|leaf4
+|Cisco NX-OS
+|10.0.250.14/32
+|nve1
+|===
+
+EOS uses a `Vxlan1` interface; NX-OS uses an `nve1` (Network Virtualization Endpoint) interface. Both source from Loopback0 and use UDP port 4789.
+
+== VRF and Tenant Design
+
+The fabric carries a single tenant VRF named `gold`. All three data VLANs (40, 50, 60) are placed in this VRF. A dedicated transit VLAN (101) carries the symmetric IRB L3VNI for inter-subnet routing across the fabric.
+
+[cols="1,1,1", options="header"]
+|===
+|VRF
+|L3 VNI
+|Purpose
+
+|gold
+|100001
+|Single tenant -- all data VLANs and inter-subnet routing
+|===
+
+=== VRF Configuration Differences by Platform
+
+EOS:: VRF is created with `vrf instance gold`. IP routing is enabled per-VRF with `ip routing vrf gold`. The L3VNI is mapped under the Vxlan1 interface (`vxlan vrf gold vni 100001`). Route targets are configured under BGP (`router bgp 65001` / `vrf gold`).
+
+NX-OS:: VRF is created with `vrf context gold` and the VNI is assigned directly inside the VRF context (`vni 100001`). Route distinguisher and route targets are also set inside `vrf context`. The L3VNI VNI membership is associated on the NVE interface with `associate-vrf`.
+
+== VLAN-to-VNI Mapping
+
+Three data VLANs are stretched across all four leafs. Each VLAN maps to an L2 VNI for VXLAN encapsulation. A fourth VLAN (101) serves as the transit VLAN for the L3VNI.
+
+[cols="1,1,1,1", options="header"]
+|===
+|VLAN
+|Name
+|L2 VNI
+|Purpose
+
+|40
+|Data_VLAN_40
+|100040
+|Data / host connectivity
+
+|50
+|Data_VLAN_50
+|100050
+|Data / host connectivity
+
+|60
+|Data_VLAN_60
+|100060
+|Data / host connectivity
+
+|101
+|L3VNI_Transit
+|100001
+|Symmetric IRB transit (VRF `gold` L3VNI)
+|===
+
+=== EVPN Route Targets
+
+Route targets are symmetric -- each L2 VNI imports and exports the same RT so that all leafs can exchange MAC/IP information for a given VLAN.
+
+[cols="1,1,1", options="header"]
+|===
+|VNI
+|Route Target (Import)
+|Route Target (Export)
+
+|100040
+|1:100040
+|1:100040
+
+|100050
+|1:100050
+|1:100050
+
+|100060
+|1:100060
+|1:100060
+
+|100001 (L3VNI)
+|1:100001
+|1:100001
+|===
+
+=== Route Distinguishers
+
+Each leaf uses its own loopback IP to form a unique RD per VLAN, ensuring EVPN route uniqueness across the fabric.
+
+EOS leafs:: `<loopback>:<vlan_id>` -- e.g., leaf1 VLAN 40 = `10.0.250.11:40`
+
+NX-OS leafs:: `auto` -- NX-OS derives the RD automatically from the router-id.
+
+VRF RD follows the same pattern: `<loopback>:1` on EOS, `auto` on NX-OS.
+
+== Anycast Gateway
+
+All four leafs share the same virtual gateway IP and MAC for each SVI, enabling hosts to use the same default gateway regardless of which leaf they connect to. A host migrating between leafs (or traffic arriving at a non-local leaf via VXLAN) always finds the same gateway.
+
+=== Gateway Addresses
+
+[cols="1,1,1", options="header"]
+|===
+|SVI
+|Virtual Gateway IP
+|Anycast MAC
+
+|Vlan40
+|10.40.40.1/24
+|00:11:22:33:44:55
+
+|Vlan50
+|10.50.50.1/24
+|00:11:22:33:44:55
+
+|Vlan60
+|10.60.60.1/24
+|00:11:22:33:44:55
+|===
+
+=== Platform Differences
+
+EOS:: Configured with `ip virtual-router mac-address 00:11:22:33:44:55` (global) and `ip virtual-router address <ip>` per SVI. The actual SVI IP is unique per leaf (e.g., leaf1 Vlan40 = `10.40.40.2/24`) while the virtual-router address (`10.40.40.1`) is shared.
+
+NX-OS:: Configured with `fabric forwarding anycast-gateway-mac 0011.2233.4455` (global) and `fabric forwarding mode anycast-gateway` per SVI. The SVI IP itself is the shared address (`10.40.40.1/24`) -- NX-OS does not need a separate "real" IP because the anycast-gateway mode handles it.
+
+== VXLAN Encapsulation
+
+=== EOS -- Vxlan1 Interface
+
+[source]
+----
+interface Vxlan1
+   vxlan source-interface Loopback0
+   vxlan udp-port 4789
+   vxlan flood vtep learned data-plane
+   vxlan vlan 40 vni 100040
+   vxlan vlan 50 vni 100050
+   vxlan vlan 60 vni 100060
+   vxlan vrf gold vni 100001
+----
+
+VTEP flood list is learned dynamically via the data plane. VLAN-to-VNI and VRF-to-VNI mappings are declared directly on the interface.
+
+=== NX-OS -- nve1 Interface
+
+[source]
+----
+interface nve1
+  no shutdown
+  host-reachability protocol bgp
+  source-interface loopback0
+  member vni 100001 associate-vrf
+  member vni 100040
+    suppress-arp
+    ingress-replication protocol bgp
+  member vni 100050
+    suppress-arp
+    ingress-replication protocol bgp
+  member vni 100060
+    suppress-arp
+    ingress-replication protocol bgp
+----
+
+NX-OS uses BGP-based ingress replication (head-end replication) instead of multicast for BUM traffic within each L2 VNI. ARP suppression is enabled on all data VNIs to reduce broadcast traffic in the VXLAN fabric. The L3VNI (100001) is associated with the VRF via `associate-vrf`.
+
+== BGP EVPN Control Plane
+
+=== eBGP Design
+
+The fabric uses eBGP between spines (AS 65000) and leafs (AS 65001) for the EVPN address family. Sessions peer over loopback addresses using eBGP multihop.
+
+[source]
+----
+                 AS 65000
+          ┌─────────────────────┐
+          │  spine1    spine2   │
+          │  4 peers   4 peers  │
+          └──┬──┬──┬──┬──┬──┬──┘
+             │  │  │  │  │  │
+          ┌──┴──┴──┴──┴──┴──┴──┐
+          │  leaf1  leaf2  leaf3  leaf4  │
+          │          AS 65001           │
+          │      allowas-in 3           │
+          └─────────────────────────────┘
+----
+
+Spines:: Peer group `LEAF-PEERS` with all four leaf loopbacks. `next-hop-unchanged` preserves the originating VTEP address when relaying EVPN routes. `send-community extended` carries route targets.
+
+EOS leafs:: Peer group `SPINES` with both spine loopbacks. `allowas-in 3` accepts routes that transit the shared AS 65001, since all leafs use the same AS.
+
+NX-OS leafs:: No peer groups -- each spine neighbor is configured individually. Same `allowas-in` and `send-community extended` settings.
+
+=== EVPN Address Families
+
+EOS:: `address-family evpn` under `router bgp 65001`. VLAN-aware bundles are configured for each VLAN with per-VLAN RD and RT. VRF `gold` has its own `address-family evpn` section with L3VNI route targets and `redistribute connected`.
+
+NX-OS:: `address-family l2vpn evpn` for BGP neighbor activation. EVPN VNI-to-RT mappings are configured under the global `evpn` configuration context. VRF routing is handled under `router bgp 65001` / `vrf gold` with `advertise l2vpn evpn` and `redistribute direct route-map ALLOW-ALL`.
+
+== PIM Multicast
+
+PIM sparse-mode is enabled on the fabric-facing interfaces and loopbacks. This provides a multicast underlay for BUM traffic flooding.
+
+Rendezvous Point (RP):: `10.0.255.254` -- a shared anycast RP address.
+
+NX-OS Anycast RP:: leaf3 configures PIM anycast-RP with a set list of RP peers (`10.0.250.13`, `10.0.250.14`), allowing multiple leafs to act as RPs for redundancy.
+
+PIM-enabled interfaces::
+- EOS leafs: Ethernet11 (to spine1), Ethernet12 (to spine2)
+- NX-OS leafs: Ethernet1/11, Ethernet1/12, loopback0, Vlan101
+
+== Hosts and Access Ports
+
+Each leaf has one host-facing access port connected to a Linux container host provisioned by Containerlab. The hosts are configured at topology deploy time via `exec` commands -- no Ansible management is needed.
+
+=== Host-to-Leaf Connectivity
+
+[cols="1,1,1,1,1,1", options="header"]
+|===
+|Host
+|Leaf
+|Interface
+|Access VLAN
+|Host IP
+|Default Gateway
+
+|host1
+|leaf1 (EOS)
+|Ethernet7
+|VLAN 50
+|10.50.50.51/24
+|10.50.50.1
+
+|host2
+|leaf2 (EOS)
+|Ethernet7
+|VLAN 50
+|10.50.50.52/24
+|10.50.50.1
+
+|host3
+|leaf3 (NX-OS)
+|Ethernet1/7
+|VLAN 40
+|10.40.40.43/24
+|10.40.40.1
+
+|host4
+|leaf4 (NX-OS)
+|Ethernet1/7
+|VLAN 60
+|10.60.60.64/24
+|10.60.60.1
+|===
+
+=== Single-Homed Hosts (No MLAG/vPC)
+
+All hosts are single-connected to a single leaf. Containerlab's Linux container nodes do not support link bonding (LACP), so multi-chassis link aggregation technologies like Arista MLAG or Cisco vPC are not used in this lab. Each host has a single `eth1` uplink to one leaf, which is sufficient to demonstrate all VXLAN EVPN overlay scenarios (L2 stretch, inter-VLAN symmetric IRB, and multi-vendor interop). In a production deployment, hosts would typically be dual-homed to a pair of leafs using MLAG (EOS) or vPC (NX-OS) for redundancy.
+
+=== Host Configuration
+
+Each host is a Containerlab `kind: linux` container. At startup, Containerlab runs the following commands to configure networking on the `eth1` interface (connected to the leaf access port):
+
+[source,bash]
+----
+# host1 (on leaf1, VLAN 50)
+ip link set eth1 mtu 9214
+ip addr add 10.50.50.51/24 dev eth1
+ip link set eth1 up
+ip route add 10.40.40.0/24 via 10.50.50.1
+ip route add 10.60.60.0/24 via 10.50.50.1
+----
+
+Each host gets:
+
+* An IP address on its local VLAN subnet
+* MTU set to match the leaf (9214 for EOS leafs, 9216 for NX-OS leafs)
+* Static routes to the other two VLAN subnets via the anycast gateway IP
+
+The static routes point to the anycast gateway address (`10.x.x.1`), which is the same on every leaf. This means the host does not need to know which leaf it is connected to -- the anycast gateway handles routing into the VXLAN fabric.
+
+=== Host IP Summary
+
+[source]
+----
+           VLAN 50 (VNI 100050)          VLAN 40 (VNI 100040)    VLAN 60 (VNI 100060)
+           10.50.50.0/24                 10.40.40.0/24            10.60.60.0/24
+           gw: 10.50.50.1               gw: 10.40.40.1           gw: 10.60.60.1
+
+  leaf1 (EOS)    leaf2 (EOS)    leaf3 (NXOS)       leaf4 (NXOS)
+  ┌──────────┐   ┌──────────┐   ┌──────────┐       ┌──────────┐
+  │  Eth7    │   │  Eth7    │   │ Eth1/7   │       │ Eth1/7   │
+  └────┬─────┘   └────┬─────┘   └────┬─────┘       └────┬─────┘
+       │              │              │                   │
+  ┌────┴─────┐   ┌────┴─────┐   ┌────┴─────┐       ┌────┴─────┐
+  │  host1   │   │  host2   │   │  host3   │       │  host4   │
+  │.50.50.51 │   │.50.50.52 │   │.40.40.43 │       │.60.60.64 │
+  │ VLAN 50  │   │ VLAN 50  │   │ VLAN 40  │       │ VLAN 60  │
+  └──────────┘   └──────────┘   └──────────┘       └──────────┘
+----
+
+=== Overlay Test Scenarios
+
+This host placement demonstrates three overlay scenarios:
+
+L2 stretch, same vendor (host1 ↔ host2)::
+Both hosts are on VLAN 50 across two EOS VTEPs (leaf1, leaf2). Traffic is bridged over the VXLAN fabric using VNI 100050. EVPN Type-2 routes advertise each host's MAC/IP, and Type-3 IMET routes set up BUM flooding between the two VTEPs. No routing is needed -- this is pure L2 extension.
+
+Inter-VLAN routing, cross-vendor (host3 ↔ host4)::
+host3 is on VLAN 40 at leaf3 (NX-OS), host4 is on VLAN 60 at leaf4 (NX-OS). Traffic requires symmetric IRB routing through the L3VNI (VNI 100001) in VRF `gold`. The ingress VTEP routes the packet from the source VLAN SVI into the VRF, encapsulates it with the L3VNI, and sends it to the egress VTEP, which routes it out the destination VLAN SVI. Both hosts use the anycast gateway as their next hop.
+
+Inter-VLAN routing, cross-vendor, cross-platform (host1 ↔ host3)::
+host1 on VLAN 50 at leaf1 (EOS) reaches host3 on VLAN 40 at leaf3 (NX-OS). This exercises the full multi-vendor overlay: EVPN route exchange between EOS and NX-OS leafs via the spine route reflectors, symmetric IRB across platforms, and interoperability of the anycast gateway (virtual-router on EOS, fabric-forwarding anycast on NX-OS) with the same shared MAC address.
+
+== Step 1: Launch the `1-6-Overlay_Configs-Workflow`
+
+1. Review Job Output for the 1-6-Overlay_Configs-Deploy job-template
+
+Examine each task output to better understand the underlying role and playbooks
+
+2. Review Job output for the 1-6-Overlay_Configs-Test job-template
+
+Examine each task output to understand the validation used for each configuration element.
+
+== Step 2: Validate Reachability for the Hosts
+
+Each host can be accessed and tested from docker.
+
+. Access the `Containerlab Terminal`
++
+You will run shell commands directly from the Containerlab container `clab-vxlan-host1-4`
+
+. Ping the anycast gateway from each host
++
+[source,bash]
+----
+docker exec -it clab-vxlan-host1  ping -c 4 10.50.50.1
+docker exec -it clab-vxlan-host2  ping -c 4 10.50.50.1
+docker exec -it clab-vxlan-host3  ping -c 4 10.40.40.1
+docker exec -it clab-vxlan-host4  ping -c 4 10.60.60.1
+----
+
+. Ping the other connected host IP addresses from `host1`
++
+[source,bash]
+----
+docker exec -it clab-vxlan-host1  ping -c 4 10.50.50.52
+docker exec -it clab-vxlan-host1  ping -c 4 10.40.40.43
+docker exec -it clab-vxlan-host1  ping -c 4 10.60.60.64
+----
+
+== Step 3: Troubleshooting
+
+If ping tests fail, it may be necessary to rerun the previous workflows:
+
+* 1-4-Base_Configs-Workflow
+* 1-5-Underlay_Configs-Workflow
+* 1-6-Overlay_Configs-Workflow
+
+
+== Step 4: Backup the `vxlan_configs` for a snapshot of the working VXLAN Fabric
+
+1. Run the `1-2-Backups_as_Code-Backup-GIT` Job template
+
+2. name the branch `vxlan_configs`
+
+== Module summary
+
+In this module, you learned how to:
+
+* Deploy the VXLAN EVPN overlay using the overlay workflow, completing the final layer of the fabric stack built across the base, underlay, and overlay modules
+* Identify how each leaf acts as a VTEP sourced from Loopback0, with EOS using `Vxlan1` and NX-OS using `nve1` for VXLAN encapsulation
+* Map VLANs to L2 VNIs (100040, 100050, 100060) and assign the L3VNI (100001) to VRF `gold` for symmetric IRB routing across the fabric
+* Configure symmetric EVPN route targets so all leafs import and export the same RTs per VNI, enabling MAC/IP route exchange across vendor boundaries
+* Set up an anycast gateway with a shared MAC (`00:11:22:33:44:55`) and virtual IP on every leaf, so hosts see the same default gateway regardless of which VTEP they connect to
+* Recognize the platform-specific differences in VRF, NVE, and anycast gateway configuration between Arista EOS and Cisco NX-OS
+* Validate the overlay end-to-end by pinging from hosts across three scenarios: L2 stretch within the same VLAN (host1 to host2), inter-VLAN routing on the same platform (host3 to host4), and cross-platform inter-VLAN routing between EOS and NX-OS (host1 to host3)
+
+With all hosts reachable across VLANs and vendors, the EVPN VXLAN fabric is fully operational -- base configuration, underlay routing, and overlay tunneling are working together as a complete automated network.

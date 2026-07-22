@@ -1,0 +1,21 @@
+<style>
+/* left align items inside imageblock */
+.doc .imageblock { align-items: flex-start; }
+/* gray border + background pad so white-background screenshots stand out */
+.doc .imageblock img {
+  border: 1px solid #c0c4ca;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  background-color: #f0f1f3;
+  padding: 8px;
+}
+/* custom video css */
+video {
+  border: solid 1px black;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,.2), 0 6px 20px 0 rgba(0,0,0,.19);
+}
+/* allow for wider screens */
+.doc { max-width: none; }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="icon" href="{{uiRootPath}}/img/favicon.ico" type="image/x-icon">
