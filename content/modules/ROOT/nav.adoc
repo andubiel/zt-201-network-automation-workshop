@@ -13,5 +13,5 @@
 * xref:10-module-08-configuration-drift-restore.adoc[1-8: Configuration Drift Restore]
 
 .Module 2: 201-Multi-Vendor-Network-Security-Automation (Future)
-* xref:11-module-09-future.adoc[2-1: Future Module]
+* xref:11-module-09-placeholder.adoc[2-1: Future Module]
 
