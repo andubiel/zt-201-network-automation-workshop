@@ -47,6 +47,8 @@ image::inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
 
 Open a terminal in Visual Studio Code `...` by clicking **Terminal** → **New Terminal** from the menu, or use the keyboard shortcut `Ctrl+Shift+` ` (backtick).
 
+TIP: If the screen has been adjusted or minimized you might notice three dots ... instead of Terminal. Click the three dots and then New Terminal.
+
 image::vscode-new-terminal.png[New terminal,align="center",link=self,window=_blank,width=600]
 
 The terminal opens in the `201-multi-vendor-vxlan-workshop/` directory. Verify your location with:
