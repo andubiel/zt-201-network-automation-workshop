@@ -499,7 +499,7 @@ In this module, you learned how to:
 * Read the diff output to pinpoint exactly which lines differ between the running and intended configurations -- recognizing that `changed: true` in the play recap indicates a detected difference, not an applied modification
 * Identify drift caused by the SNMP community string (`snmp-server community vxlan`) that was added during the tuning module but never committed to the `vxlan_configs` branch
 * Choose between two remediation paths: restoring devices to a previous backup branch to remove the drift, or updating the intended config branch to accept the current state as the new baseline
-* Restore device configurations to any named Git branch (`initial_configs` or `final_configs`) using the self-service restore workflow, returning the fabric to a known-good state in minutes
+* Restore device configurations to any named Git branch (`initial_config` or `final_configs`) using the self-service restore workflow, returning the fabric to a known-good state in minutes
 
 The backups-as-code pattern built across this workshop -- automated backups, versioned Git branches, drift detection, and one-click restores -- provides a complete lifecycle for network configuration management that eliminates manual troubleshooting and makes configuration state auditable at every point in time.
 
