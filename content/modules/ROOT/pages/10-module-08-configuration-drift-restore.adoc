@@ -190,15 +190,15 @@ This restores all devices back to the baseline state captured before any EVPN VX
 
 . Launch the `1-2-Backups_as_Code-Restore` job template
 
-. When prompted for the branch name, select `initial_configs`
+. When prompted for the branch name, select `initial_config`
 
-. Review the job output -- each device's running configuration is replaced with the config stored on the `initial_configs` branch, removing all base, underlay, overlay, and SNMP configurations
+. Review the job output -- each device's running configuration is replaced with the config stored on the `initial_config` branch, removing all base, underlay, overlay, and SNMP configurations
 
 **Output leaf1**
 
 * TASK [Restore configuration (EOS)]
 
-* The `intitial_configs` removes the `final_configs` to restore to the intitial backup state.
+* The `inittial_config` removes the `final_configs` to restore to the intitial backup state.
 
 [source:yaml]
 ----
