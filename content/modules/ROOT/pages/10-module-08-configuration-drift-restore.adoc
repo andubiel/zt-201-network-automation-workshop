@@ -184,7 +184,7 @@ Run a backup playbook to export the current running configs and commit them to t
 
 Which option is correct depends on whether the SNMP change was intentional and should be kept. This is the value of the backups-as-code pattern -- drift is detected automatically, and the decision about how to resolve it is left to the operator.
 
-== Step 3: Restore the current configuration state to `initial_configs`
+== Step 3: Restore the current configuration state to `initial_config`
 
 This restores all devices back to the baseline state captured before any EVPN VXLAN configurations were applied.
 
