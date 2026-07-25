@@ -33,7 +33,7 @@ Click the **VS Code** tab at the top of the Showroom window. The editor opens di
 
 image::launch_page.png[VS Code tab,align="center",link=self,window=_blank,width=600]
 
-TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by right-clicking the **VS Code** tab and selecting "Open Link in New Tab".
+TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by clicking on VSCode's  File and New Window.
 
 In the VS Code file browser, open the `201-multi-vendor-vxlan-workshop/` directory:
 
