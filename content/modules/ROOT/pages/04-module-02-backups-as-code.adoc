@@ -3,7 +3,7 @@
 :toc: macro
 :toclevels: 1
 
-This lab uses the ansible.scm collection to backup router configurations to git branches in the Gitea repo.
+This lab uses the ansible.scm collection to backup switch configurations to git branches in the Gitea repo.
 
 TIP: **Level Set -- Git Integration with ansible.scm** +
 The `ansible.scm` collection enables Ansible playbooks to read from and write to remote Git repositories like Gitea, GitLab, or GitHub -- all within a single playbook run. It can clone a repository, create or switch branches, stage changed files, commit them with a message, and push the results back to the remote. This means automation workflows can treat Git as a first-class destination: a backup playbook captures device configurations and commits them directly to a branch, producing versioned, auditable snapshots without any manual `git` commands.
