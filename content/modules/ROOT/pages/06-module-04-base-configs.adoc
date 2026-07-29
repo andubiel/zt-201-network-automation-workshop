@@ -157,7 +157,7 @@ The base configuration module follows a three-stage workflow: **Backup → Deplo
 
 . **Test** -- Launch the `1-4-Base_Configs-Test` job template to validate the deployment. The test playbook verifies that management interfaces are up, runs ping tests from each leaf to both spine neighbors, and confirms that hostnames match the inventory. If any test fails, review the output to identify the misconfigured device before proceeding to the underlay module.
 
-TIP: Always take a backup before and after major configuration changes. The backup branches in Gitea give you named restore points at every stage of the fabric build -- `pre_base_config`, `post_base_config`, `pre_underlay`, and so on. If something goes wrong in a later module, you can restore to the last known-good state without manually reconfiguring devices.
+TIP: In production always take a backup before and after major configuration changes. The backup branches in the GIT repository give you named restore points at every stage of the fabric build -- `pre_base_config`, `post_base_config`, `pre_underlay`, and so on. If something goes wrong in a later module, you can restore to the last known-good state without manually reconfiguring devices.
 
 == Step 2: Review the new backups for base_configs branch in Gitea
 
