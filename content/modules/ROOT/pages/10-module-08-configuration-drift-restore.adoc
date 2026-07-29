@@ -198,7 +198,7 @@ This restores all devices back to the baseline state captured before any EVPN VX
 
 * TASK [Restore configuration (EOS)]
 
-* The `inittial_config` removes the `final_configs` to restore to the intitial backup state.
+* The `initial_config` removes the `final_configs` to restore to the intitial backup state.
 
 [source:yaml]
 ----
