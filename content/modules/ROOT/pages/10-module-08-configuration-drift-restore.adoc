@@ -50,7 +50,7 @@ This is a compliance-check pattern: the source of truth lives in version control
 
 == How It Works
 
-The playbook has two steps:
+The playbook has two parts:
 
 === Part 1: Clone the Intended Config from Gitea
 
