@@ -37,7 +37,8 @@ In the previous lab section we confgured `SNMP`. We should see that as a `DIFF`.
 
 1. Launch the `1-2-Backups_as_Code-Git-Intent` job template
 
-2. When prompted select your `vxlan_configs`
+2. When prompted select your `vxlan_configs` 
+WARNING: Your timestamp will be different.
 
 image::diff_vxlan.png[DIFF,align="center",link=self,window=_blank,width=800]
 
@@ -51,7 +52,7 @@ This is a compliance-check pattern: the source of truth lives in version control
 
 The playbook has two steps:
 
-=== Step 1: Clone the Intended Config from Gitea
+=== Part 1: Clone the Intended Config from Gitea
 
 [source,yaml]
 ----
@@ -70,7 +71,7 @@ The `ansible.scm.git_retrieve` module clones the workshop repository from the Gi
 
 The intended config files live at: `/tmp/201-multi-vendor-vxlan-workshop/201_network_backup_files/<hostname>/<hostname>.cfg`
 
-=== Step 2: Diff Against Running Config
+=== Part 2: Diff Against Running Config
 
 The playbook uses `diff_against: intended` on the vendor-specific config modules:
 
