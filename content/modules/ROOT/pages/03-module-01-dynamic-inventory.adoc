@@ -85,9 +85,10 @@ roller.inventory`, `ansible.controller.group`, `ansible.controller.host`, and `a
 atically. This approach makes your automation platform reproducible, version-controlled, and auditable: you can rebuild a controller from scratch, track every c
 hange in Git, and promote configurations consistently across dev, staging, and production environments.        
 
-See below snippet of code from the playbook `controller_workshop_objects.yml` Observe how the groups, hosts and related groups were constructed. The following playbook uses modules from the ansible.controller collection:
+The snippet below is from the playbook `controller_workshop_objects.yml` and shows how the Workshop Inventory was pre-provisioned for your pod using controller as code. Notice how the groups, hosts, and related groups are constructed using modules from the `ansible.controller` collection:
 
 [source,yaml]
+Truncated
 ----
 # ── Workshop Inventory ──────────────────────────────────────────────────────
 - name: Workshop Inventory
@@ -101,21 +102,6 @@ See below snippet of code from the playbook `controller_workshop_objects.yml` Ob
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 # Groups
-- name: "Group — arista_leafs"
-  ansible.controller.group:
-    name: arista_leafs
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_host: containerlab
-      ansible_network_os: arista.eos.eos
-      ansible_connection: ansible.netcommon.network_cli
-      ansible_become: 'true'
-      ansible_become_method: enable
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Group — cisco_leafs"
   ansible.controller.group:
@@ -125,22 +111,6 @@ See below snippet of code from the playbook `controller_workshop_objects.yml` Ob
       ansible_host: containerlab
       ansible_network_os: cisco.nxos.nxos
       ansible_connection: ansible.netcommon.network_cli
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Group — spines"
-  ansible.controller.group:
-    name: spines
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_host: containerlab
-      ansible_network_os: arista.eos.eos
-      ansible_connection: ansible.netcommon.network_cli
-      ansible_become: 'true'
-      ansible_become_method: enable
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -160,18 +130,6 @@ See below snippet of code from the playbook `controller_workshop_objects.yml` Ob
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-- name: "Group — arista (parent of spines, arista_leafs)"
-  ansible.controller.group:
-    name: arista
-    inventory: "Workshop Inventory"
-    children:
-      - spines
-      - arista_leafs
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
 - name: "Group — cisco (parent of cisco_leafs)"
   ansible.controller.group:
@@ -179,31 +137,6 @@ See below snippet of code from the playbook `controller_workshop_objects.yml` Ob
     inventory: "Workshop Inventory"
     children:
       - cisco_leafs
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-# Switch hosts — accessed from AAP/control via containerlab port forwarding
-- name: "Host — leaf1 (Arista EOS)"
-  ansible.controller.host:
-    name: leaf1
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2222
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Host — leaf2 (Arista EOS)"
-  ansible.controller.host:
-    name: leaf2
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2223
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -228,30 +161,6 @@ See below snippet of code from the playbook `controller_workshop_objects.yml` Ob
     inventory: "Workshop Inventory"
     variables:
       ansible_port: 2225
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Host — spine1 (Arista EOS)"
-  ansible.controller.host:
-    name: spine1
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2226
-    state: present
-    controller_host: "{{ controller_endpoint.rstrip('/') }}"
-    controller_username: "{{ controller_username }}"
-    controller_password: "{{ controller_password }}"
-    validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-- name: "Host — spine2 (Arista EOS)"
-  ansible.controller.host:
-    name: spine2
-    inventory: "Workshop Inventory"
-    variables:
-      ansible_port: 2227
     state: present
     controller_host: "{{ controller_endpoint.rstrip('/') }}"
     controller_username: "{{ controller_username }}"
@@ -333,6 +242,7 @@ password: ansible123!
 +
 image::netbox_credential.png[Credential,align="center",link=self,window=_blank,width=800]
 +
+. Navigate to Automation Execution | Infrastructure |Credentials | Netbox Credential and edit - update the  credential
 . Paste in your Netbox Host and API Key.
 +
 --
@@ -380,7 +290,20 @@ image::netbox_devices.png[Devices,align="center",link=self,window=_blank,width=8
 
 . Navigate to | Inventories | Netbox Inventory | Sources | netbox_source | Sync
 . Ensure that your inventory sync is a success. If it fails check the API Token that was pasted into the credentials.
-. Review the source settings to review the configuration.
+. Review the source settings to understand the source configuration in AAP. Available options for an inventory source include:
++
+--
+* **Source** -- the inventory plugin type (e.g., NetBox, AWS, Azure, VMware, GCP, Red Hat Satellite, OpenStack, or a custom script)
+* **Credential** -- the credential used to authenticate with the source
+* **Source variables** -- YAML passed to the inventory plugin to control behavior (e.g., filtering, grouping, composing host variables)
+* **Verbosity** -- the log level for the sync job (0=Normal through 5=WinRM Debug)
+* **Update options**:
+** _Overwrite_ -- replace all existing hosts/groups with the synced data (unchecked means merge)
+** _Overwrite variables_ -- replace host/group variables rather than merging
+** _Update on launch_ -- automatically sync the source each time a job template using this inventory runs
+* **Cache timeout** -- how long (in seconds) to cache the inventory source results before re-querying
+* **Execution Environment** -- the container image used to run the sync
+--
 +
 image::inventory_source.png[Source,align="center",link=self,window=_blank,width=800]
 +
