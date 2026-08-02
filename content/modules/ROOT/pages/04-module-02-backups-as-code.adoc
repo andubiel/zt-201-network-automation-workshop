@@ -255,4 +255,4 @@ In this module:
 * You walked through the `backups.yml` playbook and saw how `ansible.scm` clones the repo, creates a timestamped branch, and pushes completed backups -- all without leaving the playbook
 * You observed how `when` conditionals route each device to the correct vendor module (`arista.eos.eos_config` or `cisco.nxos.nxos_config`) for a seamless multi-vendor backup
 * You learned that `set_stats` passes the branch name forward so downstream workflow jobs can reference the exact backup
-* You saw controller as code in action -- the playbook itself builds job templates with survey dropdowns drawn from live Git branches, giving operators self-service access to drift checks and restores
+* You saw controller as code in action -- the `backups.yml` playbook programmatically creates the intent and restore job templates used later in module 1-8 (Configuration Drift Restore), complete with self-service survey dropdowns populated from live Git branches so operators can run drift checks and restores without editing any playbook variables
