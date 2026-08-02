@@ -178,6 +178,7 @@ Below is an example of the `logging_global` module output for a Cisco NX-OS `lea
 <1> **commands** -- the exact CLI commands the module _would_ send to the device. In check mode these are calculated but not applied. This is the most actionable field for an operator reviewing the approval node -- it shows precisely what will change.
 <2> **before** -- the logging configuration on the device _before_ any changes. An empty `{}` means the device had no logging configuration in this resource scope.
 <3> **after** -- the logging configuration that _would_ exist after applying the changes. Comparing `before` and `after` reveals every deviation from the intended state. However, in check mode the `after` is always the same as the `before`. 
+In other words, we ran this playbook in check mode so we aren’t expecting anything in the “after” dictionary.
 <4> **changed** -- `true` indicates the device is out of compliance and changes are needed. If the device already matches the intended state, this would be `false` and `commands` would be empty.
 <5> **config** -- the intended logging state you defined in your playbook. This is the "source of truth" that the module compares against the device. It includes the logfile destination, console and monitor severity levels, syslog server hosts, and facility overrides.
 <6> **state: replaced** -- tells the module to enforce _exactly_ this configuration: add anything missing, remove anything extra, and leave unrelated config sections untouched.
