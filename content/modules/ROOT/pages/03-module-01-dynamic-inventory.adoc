@@ -101,8 +101,6 @@ Truncated
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
 
-# Groups
-
 - name: "Group — cisco_leafs"
   ansible.controller.group:
     name: cisco_leafs
@@ -166,8 +164,6 @@ Truncated
     controller_username: "{{ controller_username }}"
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
-Truncated
 
 ----
 
