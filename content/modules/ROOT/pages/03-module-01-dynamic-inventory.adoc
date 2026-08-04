@@ -87,8 +87,8 @@ hange in Git, and promote configurations consistently across dev, staging, and p
 
 The snippet below is from the playbook `controller_workshop_objects.yml` and shows how the Workshop Inventory was pre-provisioned for your pod using controller as code. Notice how the groups, hosts, and related groups are constructed using modules from the `ansible.controller` collection:
 
+.Truncated snippet from `controller_workshop_objects.yml`
 [source,yaml]
-Truncated
 ----
 # ── Workshop Inventory ──────────────────────────────────────────────────────
 - name: Workshop Inventory
@@ -164,7 +164,6 @@ Truncated
     controller_username: "{{ controller_username }}"
     controller_password: "{{ controller_password }}"
     validate_certs: "{{ controller_verify_ssl | default(false) }}"
-
 ----
 
 == Step 4: Examining the Inventory from the GUI
