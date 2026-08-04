@@ -130,7 +130,9 @@ push_ssh_key_to_control() {
   keybase="$(basename "${privkey}")"
   echo "Pushing SSH key (${privkey}) to control..." >> /tmp/progress.log
 
-  sshpass -p "${password}" ssh -o StrictHostKeyChecking=no \
+  local ssh_opts="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+  sshpass -p "${password}" ssh ${ssh_opts} \
     -o ConnectTimeout=30 "${key_user}@control" \
     "mkdir -p ~/.ssh && chmod 700 ~/.ssh" 2>>/tmp/progress.log
   if [[ $? -ne 0 ]]; then
@@ -138,7 +140,7 @@ push_ssh_key_to_control() {
     return 1
   fi
 
-  sshpass -p "${password}" scp -o StrictHostKeyChecking=no \
+  sshpass -p "${password}" scp ${ssh_opts} \
     "${privkey}" "${key_user}@control:${ssh_dir}/${keybase}" 2>>/tmp/progress.log
   if [[ $? -ne 0 ]]; then
     echo "ERROR: SCP private key to control failed" >> /tmp/progress.log
@@ -146,12 +148,12 @@ push_ssh_key_to_control() {
   fi
 
   if [[ -n "$pubkey" ]]; then
-    sshpass -p "${password}" scp -o StrictHostKeyChecking=no \
+    sshpass -p "${password}" scp ${ssh_opts} \
       "${pubkey}" "${key_user}@control:${ssh_dir}/$(basename "${pubkey}")" \
       2>>/tmp/progress.log || true
   fi
 
-  sshpass -p "${password}" ssh -o StrictHostKeyChecking=no \
+  sshpass -p "${password}" ssh ${ssh_opts} \
     "${key_user}@control" bash -s -- "${keybase}" <<'REMOTE'
     chmod 600 ~/.ssh/"$1" 2>/dev/null
     cat > ~/.ssh/config <<EOF

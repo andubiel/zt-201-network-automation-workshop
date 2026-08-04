@@ -71,7 +71,7 @@ install_rpms() {
   local rpm_dir="${REPO_DIR}/rpms"
   if [[ -d "${rpm_dir}" ]]; then
     echo "Installing bundled RPMs from ${rpm_dir}..." >> /tmp/progress.log
-    rpm -ivh "${rpm_dir}"/*.rpm >> /tmp/progress.log 2>&1 || true
+    rpm -Uvh "${rpm_dir}"/*.rpm >> /tmp/progress.log 2>&1 || true
   fi
 }
 

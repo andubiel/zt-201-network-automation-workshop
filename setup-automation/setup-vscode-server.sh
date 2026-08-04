@@ -33,7 +33,7 @@ chmod 440 /etc/sudoers.d/rhel_sudoers
 # ---------------------------------------------------------------------------
 if [[ -d "${REPO_DIR}/rpms" ]]; then
   echo "Installing bundled RPMs on vscode VM..." >> /tmp/progress.log
-  rpm -ivh "${REPO_DIR}"/rpms/*.rpm >> /tmp/progress.log 2>&1 || true
+  rpm -Uvh "${REPO_DIR}"/rpms/*.rpm >> /tmp/progress.log 2>&1 || true
 fi
 
 # ---------------------------------------------------------------------------
