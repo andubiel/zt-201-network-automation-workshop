@@ -10,7 +10,7 @@ Network resource modules make compliance checks straightforward -- by using the 
 
 == Learning objectives
 
-By the end of this module, you will be able to:
+By the end of this section, you will be able to:
 
 * Configure a workflow survey that lets operators select which compliance checks (logging, NTP) to run at launch time
 * Explain how an AAP workflow chains a check mode job, an approval node, and a run mode job into a single orchestrated process

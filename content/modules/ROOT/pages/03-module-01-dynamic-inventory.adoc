@@ -11,7 +11,7 @@ NOTE: Subscribe to our link:https://www.youtube.com/ansibleautomation[Ansible Yo
 
 == Learning objectives
 
-By the end of this module, you will be able to:
+By the end of this section, you will be able to:
 
 * Connect to the lab environment using Visual Studio Code
 * Examine inventory files and understand groups, hosts, and variables

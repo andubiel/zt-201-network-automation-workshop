@@ -14,7 +14,7 @@ to manage configuration drift and configuration restore.
 
 == Learning objectives
 
-By the end of this module, you will be able to:
+By the end of this section, you will be able to:
 
 * Run a backup job template that captures running configurations from multi-vendor network devices
 * Locate and browse device backup files stored in Git branches on Gitea

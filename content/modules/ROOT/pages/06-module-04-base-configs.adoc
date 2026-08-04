@@ -15,7 +15,7 @@ Manually configuring base settings across a multi-vendor spine-leaf fabric is te
 
 IMPORTANT: **The base configuration is the foundation that every subsequent layer depends on.** The underlay module builds OSPF and BGP peering on top of the loopback addresses and point-to-point links configured here. The overlay module then establishes VXLAN tunnels and EVPN peering using those same loopbacks as VTEP sources. A misconfigured VLAN, a missing loopback, or an incorrect /31 address at this stage will silently break underlay adjacencies and prevent overlay tunnels from forming -- and the failure may not surface until two modules later. Getting the base right, and proving it with automated tests, is not optional preparation; it is the critical first step of a working EVPN VXLAN fabric.
 
-This module covers:
+This section covers:
 
 * Running a three-stage **Backup → Deploy → Test** workflow to safely provision base fabric configuration across a multi-vendor spine-leaf topology
 * Interpreting resource module output -- reading the `changed`, `commands`, `before`, and `after` fields to verify what was applied to each device

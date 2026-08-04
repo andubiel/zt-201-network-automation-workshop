@@ -10,7 +10,7 @@ The overlay depends on everything built in the previous modules: the **base conf
 
 == Learning objectives
 
-This module covers:
+This section covers:
 
 * Deploying the VXLAN EVPN overlay across a multi-vendor spine-leaf fabric using the overlay workflow
 * Understanding how VTEPs, VNIs, VRFs, and anycast gateways work together to provide L2 extension and inter-VLAN routing across the fabric

@@ -7,7 +7,7 @@ This module demonstrates why tuning playbooks for Ansible Automation Platform is
 
 == Learning objectives
 
-This module covers:
+This section covers:
 
 * Building a survey-driven Job Template that lets operators choose `serial` batch sizes, `max_fail_percentage` thresholds, and whether to inject an error -- all at runtime
 * Running a canary deployment using stepped `serial` batches (`1, 50%, 100%`) to test on a single device before expanding to the rest of the inventory

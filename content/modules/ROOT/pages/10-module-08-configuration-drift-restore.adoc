@@ -11,7 +11,7 @@ This module builds on that foundation. Where the backup module captured snapshot
 
 == Learning objectives
 
-This module covers:
+This section covers:
 
 * Creating a known-good backup snapshot (`final_configs`) that captures the completed fabric state after all configuration modules have been applied
 * Detecting configuration drift by comparing a device's running configuration against an intended state stored in a Git branch using `diff_against: intended`
