@@ -41,6 +41,11 @@ In practice, these controls are layered. `serial` sets the batch size for a roll
 
 == Step 1: Create a survey for the `1-7-Tuning_For_Scale` Job Template
 
+==== Access the Ansible Automation Platform tab:
+
+user: admin +
+password: ansible123!
+
 Parameters:
 
 * question_name: "Do you want to send an error?"

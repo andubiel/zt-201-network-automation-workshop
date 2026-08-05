@@ -415,6 +415,11 @@ host1 on VLAN 50 at leaf1 (EOS) reaches host3 on VLAN 40 at leaf3 (NX-OS). This 
 
 == Step 1: Launch the `1-6-Overlay_Configs-Workflow`
 
+==== Access the Ansible Automation Platform tab:
+
+user: admin +
+password: ansible123!
+
 1. Review Job Output for the 1-6-Overlay_Configs-Deploy job-template
 +
 Examine each task output to better understand the underlying role and playbooks
