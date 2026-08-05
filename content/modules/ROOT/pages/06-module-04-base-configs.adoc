@@ -34,10 +34,8 @@ TIP: Scroll all the way down and complete all steps in this lab guide before cli
  * Recommended read 
  * Optional to scroll down to step1 (skip reading)
 
----
 
-  The 1-4-base_configs folder provisions a multi-vendor leaf-spine topology. It contains three playbooks and
-  a role:
+==== The 1-4-base_configs folder provisions a multi-vendor leaf-spine topology. It contains three playbooks and a role:
 
   ┌────────────────────────────┬─────────────────────────────────────────────────────────────────────────┐
   │            File            │                                 Purpose                                 │
@@ -51,28 +49,29 @@ TIP: Scroll all the way down and complete all steps in this lab guide before cli
   │ roles/base_fabric/         │ Role that dispatches to vendor-specific task files (eos.yml, nxos.yml)  │
   └────────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
 
-  Base Configuration Topology
+==== Base Configuration Topology
   
-  image::base_top.png[base,align="center",link=self,window=_blank,width=1000]
-  Role Dispatch Pattern
+image::base_top.png[base,align="center",link=self,window=_blank,width=1000]
 
-  The base_fabric role uses a single-line main.yml to route to vendor-specific task files:
+==== Role Dispatch Pattern
 
-  [source,yaml]
+The base_fabric role uses a single-line main.yml to route to vendor-specific task files:
+
+[source:yaml]
   ----
   - name: Route execution by Network Operating System
     ansible.builtin.include_tasks: "{{ ansible_network_os.split('.')[-1] }}.yml"
   ----
 
-  This splits arista.eos.eos into eos and cisco.nxos.nxos into nxos, dynamically including the correct task file. 
-  Both vendor files configure the same five resource categories using their respective collection modules: 
-  hostname, VLANs, interface state, L2 switchports, and L3 IP addresses. 
-  The Arista file additionally enables ip routing.
+This splits arista.eos.eos into eos and cisco.nxos.nxos into nxos, dynamically including the correct task file. 
+Both vendor files configure the same five resource categories using their respective collection modules: 
+hostname, VLANs, interface state, L2 switchports, and L3 IP addresses. 
+The Arista file additionally enables ip routing.
 
-  ==== Broken Fabric Playbook
+==== Broken Fabric Playbook
 
- broken_base_fabric.yml is a purpose-built troubleshooting exercise. It redeploys spine1 with incorrect IP addresses on all four
- leaf-facing interfaces:
+broken_base_fabric.yml is a purpose-built troubleshooting exercise. It redeploys spine1 with incorrect IP addresses on all four
+leaf-facing interfaces:
 
   ┌───────────┬─────────────┬──────────────┐
   │ Interface │ Correct IP  │  Broken IP   │
@@ -86,16 +85,16 @@ TIP: Scroll all the way down and complete all steps in this lab guide before cli
   │ Ethernet4 │ 10.0.1.6/31 │ 10.0.1.16/31 │
   └───────────┴─────────────┴──────────────┘
 
-  Running test_base_connectivity.yml after this will show all four leaf-to-spine1 ping tests failing, while leaf-to-spine2 tests continue
-  to pass. Re-running deploy_fabric.yml restores correct addressing.
+Running test_base_connectivity.yml after this will show all four leaf-to-spine1 ping tests failing, while leaf-to-spine2 tests continue
+to pass. Re-running deploy_fabric.yml restores correct addressing.
 
-  Connectivity Test Playbook
+==== Connectivity Test Playbook
 
-  test_base_connectivity.yml runs from the leafs and validates three things per device:
+test_base_connectivity.yml runs from the leafs and validates three things per device:
 
-  1. Management interface is up (vendor-specific show commands)
-  2. Neighbor ping tests -- each leaf pings both its spine1 and spine2 neighbor IPs; results are asserted with pass/fail messages
-  3. Hostname verification -- the device's configured hostname matches inventory_hostname
+1. Management interface is up (vendor-specific show commands)
+2. Neighbor ping tests -- each leaf pings both its spine1 and spine2 neighbor IPs; results are asserted with pass/fail messages
+3. Hostname verification -- the device's configured hostname matches inventory_hostname
 
 == Step 1: Launch the 1-4-Base_Configs-Workflow
 
