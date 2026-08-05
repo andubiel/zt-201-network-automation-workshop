@@ -155,11 +155,30 @@ image::base_configs_workflow.png[compliance,align="center",link=self,window=blan
 
 The base configuration module follows a three-stage workflow: **Backup → Deploy → Test**. Each stage is run as a separate job template from the Ansible Automation Controller.
 
-. **Backup** -- Before making any changes, run the `1-2-Backups_as_Code-Backup-GIT` job template to capture a snapshot of every device's running configuration. Name the branch something meaningful like `pre_base_config` so you can identify it later. This backup serves as a recovery point -- if the base configuration introduces an issue or you need to return the devices to their pre-base state, you can use the `1-2-Backups_as_Code-Git-Restore` job template to select this branch and roll the devices back to their exact configuration before any base changes were applied.
+. **Backup** -- Run the `1-2-Backups_as_Code-Backup-GIT` job template to snapshot every device's running configuration before making changes.
+Name the branch something meaningful like `pre_base_config`.
++
+This backup is your recovery point.
+If the base configuration introduces an issue, use the `1-2-Backups_as_Code-Git-Restore` job template to select this branch and roll devices back to their exact pre-base state.
 
-. **Deploy** -- Launch the `1-4-Base_Configs-Deploy` job template to push the base fabric configuration (hostnames, VLANs, loopback interfaces, point-to-point links, and switchport assignments) to all spines and leafs. The playbook uses the `base_fabric` role, which automatically dispatches to the correct vendor-specific task file based on each device's `ansible_network_os`.
+. **Deploy** -- Launch the `1-4-Base_Configs-Deploy` job template to push base fabric configuration to all spines and leafs:
++
+* Hostnames
+* VLANs
+* Loopback interfaces
+* Point-to-point links
+* Switchport assignments
++
+The playbook uses the `base_fabric` role, which dispatches to the correct vendor-specific task file based on each device's `ansible_network_os`.
 
-. **Test** -- Launch the `1-4-Base_Configs-Test` job template to validate the deployment. The test playbook verifies that management interfaces are up, runs ping tests from each leaf to both spine neighbors, and confirms that hostnames match the inventory. If any test fails, review the output to identify the misconfigured device before proceeding to the underlay module.
+. **Test** -- Launch the `1-4-Base_Configs-Test` job template to validate the deployment.
+The test playbook checks:
++
+* Management interfaces are up
+* Ping tests from each leaf to both spine neighbors
+* Hostnames match the inventory
++
+If any test fails, review the output to identify the misconfigured device before proceeding to the underlay module.
 
 TIP: In production always take a backup before and after major configuration changes. The backup branches in the GIT repository give you named restore points at every stage of the fabric build -- `pre_base_config`, `post_base_config`, `pre_underlay`, and so on. If something goes wrong in a later module, you can restore to the last known-good state without manually reconfiguring devices.
 
