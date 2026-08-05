@@ -25,7 +25,7 @@ The workshop is organized into two modules:
 
 === Module 1: 201-Multi-Vendor-Network-Automation (sections 1-1 - 1-8)
 
-* Section 1-1: Introduction to the Workshop and Setup (20 minutes)
+* Section 1-1: Dynamic Inventory (20 minutes)
 * Section 1-2: Backups as Code (20 minutes)
 * Section 1-3: Network Compliance (20 minutes)
 * Section 1-4: Basic Configuration and Validation (20 minutes)
