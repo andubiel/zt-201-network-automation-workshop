@@ -95,7 +95,7 @@ The hybrid approach uses the best tool for each job -- resource modules where th
 
 == Learning objectives
 
-This select_inventories_workshop_inventory covers:
+This section covers:
 
 * Deploying OSPF and BGP across a multi-vendor spine-leaf fabric using the **Backup → Deploy → Test** underlay workflow
 * When to use **resource modules** vs. **Jinja2 templates** -- and why this underlay takes a hybrid approach that combines both
