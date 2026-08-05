@@ -105,12 +105,16 @@ TIP: Scroll all the way down and complete all steps in this lab guide before cli
 
   The base_fabric role uses a single-line main.yml to route to vendor-specific task files:
 
+  [source,yaml]
+  ----
   - name: Route execution by Network Operating System
     ansible.builtin.include_tasks: "{{ ansible_network_os.split('.')[-1] }}.yml"
+  ----
 
-  This splits arista.eos.eos into eos and cisco.nxos.nxos into nxos, dynamically including the correct task file. Both vendor files
-  configure the same five resource categories using their respective collection modules: hostname, VLANs, interface state, L2 switchports,
-  and L3 IP addresses. The Arista file additionally enables ip routing.
+  This splits arista.eos.eos into eos and cisco.nxos.nxos into nxos, dynamically including the correct task file. 
+  Both vendor files configure the same five resource categories using their respective collection modules: 
+  hostname, VLANs, interface state, L2 switchports, and L3 IP addresses. 
+  The Arista file additionally enables ip routing.
 
   Broken Fabric Playbook
 
@@ -290,11 +294,11 @@ Each task pulls its configuration from `host_vars` or `group_vars` variables (`b
 
 image::base_test.png[Test,align="center",link=self,window=blank,width=800]
 
-**Sucessfull Output**
-[source:yaml]
-----
-Truncated
+**Successful Output**
 
+.Truncated test output
+[source,yaml]
+----
 TASK [=== Test Summary for leaf1 ===] ******************************************
 ok: [leaf2] => {
     "msg": [
@@ -347,7 +351,7 @@ ok: [leaf4] => {
 ----
 
 In the previous steps the workflow successfully deployed and tested so there was no need to launch the restore job-template.
-This section introduces an incorect IP addressing to fail the `Test` node on purpose. This failure will envoke the the restore job-template.
+This section introduces incorrect IP addressing to fail the `Test` node on purpose. This failure will invoke the restore job-template.
 
 image::base_workflow_success.png[Workflow,align="center",link=self,window=blank,width=800]
 
@@ -356,10 +360,10 @@ image::base_workflow_success.png[Workflow,align="center",link=self,window=blank,
 Run this job-template to deploy an error.
 
 
-The `1-4-base_configs/broken_base_fabric.yml` plabook applies the following incorect IP addressing:
+The `1-4-base_configs/broken_base_fabric.yml` playbook applies the following incorrect IP addressing:
 
 **Incorrect Addressing**
-[source:yaml]
+[source,yaml]
 ----
  # BROKEN: Incorrect IP addresses on spine1
     # Correct should be: .0, .2, .4, .6
@@ -384,7 +388,7 @@ The `1-4-base_configs/broken_base_fabric.yml` plabook applies the following inco
 
 Upon completion of the restore the correct IP addressing should be applied to spine1
 
-[source:yaml]
+[source,yaml]
 ----
 base_l3_interfaces:
   - name: "Ethernet1"
@@ -408,12 +412,12 @@ base_l3_interfaces:
 
 From the `ContainerLab Terminal` 
 
-[source:bash]
+[source,bash]
 ----
 ssh spine1
 ----
 
-[source:bash]
+[source,bash]
 ----
 enable
 show run | b Ethernet
@@ -421,7 +425,7 @@ show run | b Ethernet
 
 **Expected Output**
 
-[source:bash]
+[source,bash]
 ----
 
 interface Ethernet1
