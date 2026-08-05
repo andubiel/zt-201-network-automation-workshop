@@ -51,56 +51,9 @@ TIP: Scroll all the way down and complete all steps in this lab guide before cli
   │ roles/base_fabric/         │ Role that dispatches to vendor-specific task files (eos.yml, nxos.yml)  │
   └────────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
 
-  Device Inventory
-
-  ┌────────┬──────────────┬───────┬─────────────────┬─────────────────────┬───────────┐
-  │ Device │ Vendor / NOS │ Role  │    Loopback0    │  Host-Facing Port   │ Host VLAN │
-  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
-  │ spine1 │ Arista EOS   │ Spine │ 10.0.255.101/32 │ --                  │ --        │
-  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
-  │ spine2 │ Arista EOS   │ Spine │ 10.0.255.102/32 │ --                  │ --        │
-  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
-  │ leaf1  │ Arista EOS   │ Leaf  │ 10.0.250.11/32  │ Ethernet7 (host1)   │ VLAN 40   │
-  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
-  │ leaf2  │ Arista EOS   │ Leaf  │ 10.0.250.12/32  │ Ethernet7 (host2)   │ VLAN 50   │
-  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
-  │ leaf3  │ Cisco NXOS   │ Leaf  │ 10.0.250.13/32  │ Ethernet1/7 (host3) │ VLAN 40   │
-  ├────────┼──────────────┼───────┼─────────────────┼─────────────────────┼───────────┤
-  │ leaf4  │ Cisco NXOS   │ Leaf  │ 10.0.250.14/32  │ Ethernet1/7 (host4) │ VLAN 60   │
-  └────────┴──────────────┴───────┴─────────────────┴─────────────────────┴───────────┘
-
-  Fabric Connectivity Map
-
-  All leafs are dual-homed to both spines using /31 point-to-point links across two subnets:
-
-  Spine1 Links (10.0.1.x/31)
-
-  spine1 Eth1 (10.0.1.0) ──── (10.0.1.1) Eth11  leaf1
-  spine1 Eth2 (10.0.1.2) ──── (10.0.1.3) Eth11  leaf2
-  spine1 Eth3 (10.0.1.4) ──── (10.0.1.5) Eth1/11 leaf3
-  spine1 Eth4 (10.0.1.6) ──── (10.0.1.7) Eth1/11 leaf4
-
-  Spine2 Links (10.0.20.x/31)
-
-  spine2 Eth1 (10.0.20.0) ──── (10.0.20.1) Eth12  leaf1
-  spine2 Eth2 (10.0.20.2) ──── (10.0.20.3) Eth12  leaf2
-  spine2 Eth3 (10.0.20.4) ──── (10.0.20.5) Eth1/12 leaf3
-  spine2 Eth4 (10.0.20.6) ──── (10.0.20.7) Eth1/12 leaf4
-
-  VLANs (Configured on All Leafs)
-
-  ┌──────┬───────────────┬────────────────────────────────────────┐
-  │ VLAN │     Name      │                Purpose                 │
-  ├──────┼───────────────┼────────────────────────────────────────┤
-  │ 40   │ Data_VLAN_40  │ Host data (leaf1, leaf3)               │
-  ├──────┼───────────────┼────────────────────────────────────────┤
-  │ 50   │ Data_VLAN_50  │ Host data (leaf2)                      │
-  ├──────┼───────────────┼────────────────────────────────────────┤
-  │ 60   │ Data_VLAN_60  │ Host data (leaf4)                      │
-  ├──────┼───────────────┼────────────────────────────────────────┤
-  │ 101  │ L3VNI_Transit │ VXLAN L3 VNI transit (used by overlay) │
-  └──────┴───────────────┴────────────────────────────────────────┘
-
+  Base Configuration Topology
+  
+  image::base_top.png[base,align="center",link=self,window=_blank,width=1000]
   Role Dispatch Pattern
 
   The base_fabric role uses a single-line main.yml to route to vendor-specific task files:
