@@ -20,7 +20,7 @@ This section covers:
 
 == It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-6-overlay_configs`
 
-TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
+TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
 == Overlay Details (Recommended Read)
 **Optional** - Scroll down to skip to Step 1

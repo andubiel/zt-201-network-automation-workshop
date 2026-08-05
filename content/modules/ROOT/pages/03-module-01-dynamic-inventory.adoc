@@ -19,7 +19,7 @@ By the end of this section, you will be able to:
 * Configure Netbox as a dynamic inventory source
 * Gather and explore facts from network devices
 
-TIP: Scroll all the way down and complete all steps in this lab guide before clicking **Next** to move to the next section.
+TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
 == Step 1: Connecting via VS Code
 
