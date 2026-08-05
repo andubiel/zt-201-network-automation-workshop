@@ -69,10 +69,10 @@ TIP: Scroll all the way down and complete all steps in this lab guide before cli
   hostname, VLANs, interface state, L2 switchports, and L3 IP addresses. 
   The Arista file additionally enables ip routing.
 
-  Broken Fabric Playbook
+  ==== Broken Fabric Playbook
 
-  broken_base_fabric.yml is a purpose-built troubleshooting exercise. It redeploys spine1 with incorrect IP addresses on all four
-  leaf-facing interfaces:
+ broken_base_fabric.yml is a purpose-built troubleshooting exercise. It redeploys spine1 with incorrect IP addresses on all four
+ leaf-facing interfaces:
 
   ┌───────────┬─────────────┬──────────────┐
   │ Interface │ Correct IP  │  Broken IP   │
