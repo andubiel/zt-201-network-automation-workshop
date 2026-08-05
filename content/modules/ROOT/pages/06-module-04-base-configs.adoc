@@ -98,6 +98,8 @@ test_base_connectivity.yml runs from the leafs and validates three things per de
 
 == Step 1: Launch the 1-4-Base_Configs-Workflow
 
+==== Access the Ansible Automation Platform tab:
+
 user: admin +
 password: ansible123!
 
