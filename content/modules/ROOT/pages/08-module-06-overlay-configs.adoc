@@ -38,7 +38,7 @@ The overlay runs on a spine-leaf fabric hosted in Containerlab. All six devices 
               AS 65000                    AS 65000
               Lo0: 10.0.255.101           Lo0: 10.0.255.102
               ┌──────────┐                ┌──────────┐
-              │  EVPN RR │                │  EVPN RR │
+              │EVPN Relay│                │EVPN Relay│
               │ (4 peers)│                │ (4 peers)│
               └─┬──┬──┬──┘                └──┬──┬──┬─┘
                 │  │  │  │                │  │  │  │

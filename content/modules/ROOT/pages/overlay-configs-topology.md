@@ -5,8 +5,8 @@
 ```mermaid
 graph TD
     subgraph Spines ["<b>Spine Layer — AS 65000</b>"]
-        S1["<b>spine1</b> — Arista EOS<br>Lo0: 10.0.255.101/32<br>EVPN RR — 4 leaf peers<br>next-hop-unchanged"]
-        S2["<b>spine2</b> — Arista EOS<br>Lo0: 10.0.255.102/32<br>EVPN RR — 4 leaf peers<br>next-hop-unchanged"]
+        S1["<b>spine1</b> — Arista EOS<br>Lo0: 10.0.255.101/32<br>EVPN Relay — 4 leaf peers<br>next-hop-unchanged"]
+        S2["<b>spine2</b> — Arista EOS<br>Lo0: 10.0.255.102/32<br>EVPN Relay — 4 leaf peers<br>next-hop-unchanged"]
     end
 
     subgraph Leafs ["<b>Leaf / VTEP Layer — AS 65001</b>"]
