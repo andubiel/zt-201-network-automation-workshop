@@ -48,7 +48,7 @@ toc::[]
               spine1 (EOS)                spine2 (EOS)
               AS 65000                    AS 65000
               ┌──────────┐                ┌──────────┐
-              │  EVPN RR │                │  EVPN RR │
+              │EVPN Relay│                │EVPN Relay│
               └─┬──┬──┬──┘                └──┬──┬──┬─┘
                 │  │  │  │                │  │  │  │
           ┌─────┘  │  │  └──────┐   ┌─────┘  │  │  └──────┐
@@ -65,7 +65,7 @@ toc::[]
       └──────┘  └──────┘  └──────┘  └───────┘
 ----
 
-Both spines act as EVPN route reflectors. All four leafs are VTEPs sourcing VXLAN tunnels from Loopback0. Three data VLANs (40, 50, 60) are stretched across the fabric in VRF `gold` with symmetric IRB for inter-subnet routing.
+Both spines act as EVPN route relays. All four leafs are VTEPs sourcing VXLAN tunnels from Loopback0. Three data VLANs (40, 50, 60) are stretched across the fabric in VRF `gold` with symmetric IRB for inter-subnet routing.
 
 == Directory structure
 
