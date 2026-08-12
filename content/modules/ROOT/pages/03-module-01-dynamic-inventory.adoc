@@ -283,7 +283,7 @@ image::netbox_devices.png[Devices,align="center",link=self,window=_blank,width=8
 
 == Step 11: Sync the Netbox Inventory from the Automation Controller
 
-. Navigate to | Inventories | Netbox Inventory | Sources | netbox_source | Sync
+. Navigate to | Inventories | Netbox Inventory | Inventory Sources | netbox_source | Sync inventory source
 . Ensure that your inventory sync is a success. If it fails check the API Token that was pasted into the credentials.
 . Review the source settings to understand the source configuration in AAP. Available options for an inventory source include:
 +
