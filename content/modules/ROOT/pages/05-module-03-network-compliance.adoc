@@ -32,10 +32,10 @@ A workflow in Ansible Automation Platform chains multiple job templates into a s
 
 . Open the `workflow job-template` named `1-3-Network-Compliance-Workflow`
 +
-user: admin +
-password: ansible123!
+user: *admin* +
+password: *ansible123!*
 +
-.  Click `edit` to check the Workflow Configurations
+.  Click *Edit* to check the Workflow Configurations
 +
 **Parameters:**
 +
@@ -43,7 +43,7 @@ password: ansible123!
 * Organization: Red Hat network organization
 * Inventory: Workshop Inventory
 +
-Click `save`.
+Click *Save*.
 +
 . Review the Workflow nodes from the visualizer.
 +
@@ -63,7 +63,7 @@ image::workflow_nodes.png[compliance,align="center",link=self,window=blank,width
 +
 image:exit_visualizer.png[compliance,align="center",link=self,window=blank,width=800]
 +
-. Select survey and create new survey
+. Select *Survey* and click *Create new survey*
 +
 image:create_survey.png[compliance,align="center",link=self,window=blank,width=800]
 +
@@ -75,8 +75,8 @@ image:create_survey.png[compliance,align="center",link=self,window=blank,width=8
 * multiple select
 * logging
 * ntp
-* variable = tag 
-* enable survey
+* variable = *tag*
+* *Enable survey*
 +
 image:question_config.png[compliance,align="center",link=self,window=blank,width=800]
 +
@@ -90,9 +90,9 @@ WARNING: Don't forget to enable the survey!
 
 NOTE: This workflow will pause at the approval node `Human Approval`. The check mode job runs first and reports what _would_ change on each device -- without touching them. An operator can then review the proposed changes, verify they are expected, and investigate anything unexpected before approving. Only after approval does the run mode job execute and apply the changes to production devices. This human-in-the-loop gate prevents automation from blindly pushing configurations that could cause outages, security gaps, or unintended side effects -- giving your team confidence that every change is reviewed before it reaches the network.
 
-. Launch 1-3-Network-Compliance-Workflow
+. Launch *1-3-Network-Compliance-Workflow*
 +
-Select `logging` and `ntp` when prompted by the survey.
+Select *logging* and *ntp* when prompted by the survey.
 +
 image::workflow_paused.png[compliance,align="center",link=self,window=blank,width=800]
 +
@@ -100,13 +100,13 @@ image::workflow_paused.png[compliance,align="center",link=self,window=blank,widt
 +
 image::workflow_check.png[compliance,align="center",link=self,window=blank,width=800]
 +
-. Scroll down to click `leaf3` - TASK [roles/logging : Check/Apply NXOS logging configuration] 
+. Scroll down to click *leaf3* - TASK [roles/logging : Check/Apply NXOS logging configuration]
 +
 image::leaf3_logging.png[compliance,align="center",link=self,window=blank,width=800]
 
 == Step 4: Review the Resource Module output
 
-.  Click on Data to review the module output
+.  Click on *Data* to review the module output
 +
 image::leaf3_data.png[compliance,align="center",link=self,window=blank,width=800]
 +
@@ -186,7 +186,7 @@ In other words, we ran this playbook in check mode so we aren’t expecting anyt
 Where does Ansible locate the `Intended configuration` to define the configuration?
 
 [start=2]
-. Navigate to VSCode tab | 1-3-network_compliance/group_vars/cisco.yml
+. Navigate to *VSCode* tab | `1-3-network_compliance/group_vars/cisco.yml`
  
 [source:yaml]
 ----
@@ -231,7 +231,7 @@ image::checkmode.png[compliance,align="center",link=self,window=blank,width=800]
 [start=3]
 . Validate that check mode `didn't` make changes to leaf3
 
-Access the `Containerlab terminal` tab to use `SSH` to the devices.
+Access the *Containerlab Terminal* tab to use `SSH` to the devices.
 
 [source:bash]
 ----
@@ -250,7 +250,7 @@ TIP: If the Containerlab Terminal is stuck refresh the tab.
 image::refresh.png[refresh,align="center",link=self,window=blank,width=800]
 
 [start=4]
-. Return to the automation controller 1-3-Network_Compliance-Check `job` output and examine the DIFF output for leaf3
+. Return to the automation controller *1-3-Network_Compliance-Check* job output and examine the DIFF output for leaf3
 
 === Understanding the Diff Output
 
@@ -347,12 +347,12 @@ The output shows exactly which logging settings were added, removed, or changed 
 
 1. Return to the AAP Controller to approve.
 +
-`Jobs`
+*Jobs*
 
 image::workflow_paused.png[compliance,align="center",link=self,window=blank,width=800]
 
 [start=2]
-. Click Approve | Confirm | Workflow Approvals
+. Click *Approve* | *Confirm* | *Workflow Approvals*
 
 image::click_approval.png[compliance,align="center",link=self,window=blank,width=800]
 
@@ -405,7 +405,7 @@ The key difference from the check mode output is the `after` field: in check mod
 
 == Step 8: Validate Changes on `leaf3`
 
-Access the `Containerlab terminal` tab to use `SSH` to the devices.
+Access the *Containerlab Terminal* tab to use `SSH` to the devices.
 
 [source:bash]
 ----

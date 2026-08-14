@@ -14,7 +14,7 @@ The overlay is entirely dependent on the underlay for transport. If an OSPF adja
 
 The underlay section takes a *hybrid approach* to configuring the multi-vendor VXLAN EVPN fabric, using Ansible resource modules where they work well and falling back to Jinja2 templates where they don't.
 
-All files mentioned can be located on the VSCode tab in `1-5-underlay_configs`
+All files mentioned can be located on the *VSCode* tab in `1-5-underlay_configs`
 
 == Resource Modules for the Simple, Structured Stuff
 
@@ -106,16 +106,16 @@ This section covers:
 * Validating the underlay with automated tests -- asserting OSPF adjacency counts, BGP EVPN session state, OSPF route presence, and loopback-to-loopback ping reachability across all six fabric devices
 * Reading test playbook output to confirm expected neighbor counts match live device state on both Arista EOS and Cisco NX-OS
 
-== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-5-underlay_configs`
+== It's encouraged to visit the *VSCode* tab to review the playbooks and roles from `1-5-underlay_configs`
 
 TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
 == Step 1: Launch the `1-5-Underlay_Configs-Workflow`
 
-==== Access the Ansible Automation Platform tab:
+==== Access the *Ansible Automation Platform* tab:
 
-user: admin +
-password: ansible123!
+user: *admin* +
+password: *ansible123!*
 
 Make sure every node succeeds
 
@@ -126,9 +126,9 @@ image:underlay_workflow.png[Workflow,align="center",link=self,window=blank,width
 
 image:workflow_underlay_deploy.png[Deploy,align="center",link=self,window=blank,width=600]
 
-1. In the job output - Click on `TASK [underlay_fabric : Configure BGP]` for spine1 
+1. In the job output - Click on `TASK [underlay_fabric : Configure BGP]` for *spine1*
 +
-. Click on the Data Tab
+. Click on the *Data Tab*
 
 Here's what's happening:
 

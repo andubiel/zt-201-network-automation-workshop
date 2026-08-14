@@ -415,16 +415,16 @@ host1 on VLAN 50 at leaf1 (EOS) reaches host3 on VLAN 40 at leaf3 (NX-OS). This 
 
 == Step 1: Launch the `1-6-Overlay_Configs-Workflow`
 
-==== Access the Ansible Automation Platform tab:
+==== Access the *Ansible Automation Platform* tab:
 
-user: admin +
-password: ansible123!
+user: *admin* +
+password: *ansible123!*
 
-1. Review Job Output for the 1-6-Overlay_Configs-Deploy job-template
+1. Review Job Output for the *1-6-Overlay_Configs-Deploy* job-template
 +
 Examine each task output to better understand the underlying role and playbooks
 
-2. Review Job output for the 1-6-Overlay_Configs-Test job-template
+2. Review Job output for the *1-6-Overlay_Configs-Test* job-template
 +
 Examine each task output to understand the validation used for each configuration element.
 
@@ -459,16 +459,16 @@ docker exec -it clab-vxlan-host1  ping -c 4 10.60.60.64
 
 If ping tests fail, it may be necessary to rerun the previous workflows:
 
-* 1-4-Base_Configs-Workflow
-* 1-5-Underlay_Configs-Workflow
-* 1-6-Overlay_Configs-Workflow
+* *1-4-Base_Configs-Workflow*
+* *1-5-Underlay_Configs-Workflow*
+* *1-6-Overlay_Configs-Workflow*
 
 
 == Step 4: Backup the `vxlan_configs` for a snapshot of the working VXLAN Fabric
 
 1. Run the `1-2-Backups_as_Code-Backup-GIT` Job template
 
-2. name the branch `vxlan_configs`
+2. name the branch *vxlan_configs*
 
 == Module summary
 

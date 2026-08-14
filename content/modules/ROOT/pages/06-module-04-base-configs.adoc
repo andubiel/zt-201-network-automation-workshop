@@ -100,8 +100,8 @@ test_base_connectivity.yml runs from the leafs and validates three things per de
 
 ==== Access the Ansible Automation Platform tab:
 
-user: admin +
-password: ansible123!
+user: *admin* +
+password: *ansible123!*
 
 image::base_configs_workflow.png[compliance,align="center",link=self,window=blank,width=800]
 
@@ -110,7 +110,7 @@ image::base_configs_workflow.png[compliance,align="center",link=self,window=blan
 The base configuration module follows a three-stage workflow: **Backup → Deploy → Test**. Each stage is run as a separate job template from the Ansible Automation Controller.
 
 . **Backup** -- Run the `1-2-Backups_as_Code-Backup-GIT` job template to snapshot every device's running configuration before making changes.
-Name the branch something meaningful like `pre_base_config`.
+Name the branch something meaningful like *pre_base_config*.
 +
 This backup is your recovery point.
 If the base configuration introduces an issue, use the `1-2-Backups_as_Code-Git-Restore` job template to select this branch and roll devices back to their exact pre-base state.
@@ -140,7 +140,7 @@ TIP: In production always take a backup before and after major configuration cha
 
 image::base_configs_branch.png[Base,align="center",link=self,window=blank,width=800]
 
-1. Navigate to leaf3.cfg
+1. Navigate to *leaf3.cfg*
 
 image::base_leaf3.png[Leaf3,align="center",link=self,window=blank,width=800]
 
@@ -383,7 +383,7 @@ base_l3_interfaces:
 
 == Step 6: Access spine1 to validate
 
-From the `ContainerLab Terminal` 
+From the *ContainerLab Terminal*
 
 [source,bash]
 ----

@@ -43,8 +43,8 @@ In practice, these controls are layered. `serial` sets the batch size for a roll
 
 ==== Access the Ansible Automation Platform tab:
 
-user: admin +
-password: ansible123!
+user: *admin* +
+password: *ansible123!*
 
 Parameters:
 
@@ -52,23 +52,23 @@ Parameters:
   required: true
   type: multiplechoice
   choices: "yes\no"
-  the default is no
-  variable: error
+  the default is *no*
+  variable: *error*
          
 * question_name: "Please select the 'Serial' batch percentages"
   required: true
   type: multiselect
   choices: 1 35% 50% 75% 100%
-  variable: serials
+  variable: *serials*
   
 * question_name: "Please select the Maximum_Failure_Percentage"
   required: true
   type: multiplechoice
   choices: 0 5 10 20 50 75 100
-  variable: max_fail
+  variable: *max_fail*
           
 **Config** 
-WARNING: Remember to toggle the survey on!
+WARNING: Remember to *toggle the survey on*!
 The completed survey configuration should look like the following: 
 
 image:survey4.png[Survey,align="center",link=self,window=blank,width=600]
@@ -82,10 +82,10 @@ image:survey3.png[Survey,align="center",link=self,window=blank,width=600]
 
 . Enter the following answers into the prompt:
 
-* "Do you want to send an error?" no
-* "Please select the 'Serial' batch percentages" 1 50% 100%
-* "Please select the Maximum_Failure_Percentage" 0
- 
+* "Do you want to send an error?" *no*
+* "Please select the 'Serial' batch percentages" *1 50% 100%*
+* "Please select the Maximum_Failure_Percentage" *0*
+
 image:prompt1.png[Prompt,align="center",link=self,window=blank,width=800]
 
 == Output Explanation
@@ -201,9 +201,9 @@ The combination is a controlled rollout: push to one device first (canary), if i
 
 . Enter the following answers into the prompt:
 
-* "Do you want to send an error?" yes
-* "Please select the 'Serial' batch percentages" 1 50% 100%
-* "Please select the Maximum_Failure_Percentage" 0
+* "Do you want to send an error?" *yes*
+* "Please select the 'Serial' batch percentages" *1 50% 100%*
+* "Please select the Maximum_Failure_Percentage" *0*
 
 == Output Explanation
 
@@ -344,9 +344,9 @@ Only 1 of 6 devices (leaf1) was actually changed. The blast radius was limited t
 
 . Enter the following answers into the prompt:
 
-* "Do you want to send an error?" yes
-* "Please select the 'Serial' batch percentages" 50% 100%
-* "Please select the Maximum_Failure_Percentage" 50
+* "Do you want to send an error?" *yes*
+* "Please select the 'Serial' batch percentages" *50% 100%*
+* "Please select the Maximum_Failure_Percentage" *50*
 
 == Output Explanation
 

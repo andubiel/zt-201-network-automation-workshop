@@ -33,7 +33,7 @@ Click the **VS Code** tab at the top of the Showroom window. The editor opens di
 
 image::launch_page.png[VS Code tab,align="center",link=self,window=_blank,width=600]
 
-TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by clicking on VSCode's  File and New Window.
+TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by clicking on VSCode's *File* and *New Window*.
 
 In the VS Code file browser, open the `201-multi-vendor-vxlan-workshop/` directory:
 
@@ -47,7 +47,7 @@ image::inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
 
 Open a terminal in Visual Studio Code `...` by clicking **Terminal** → **New Terminal** from the menu, or use the keyboard shortcut `Ctrl+Shift+` ` (backtick).
 
-TIP: If the screen has been adjusted or minimized you might notice three dots ... instead of Terminal. Click the three dots and then New Terminal.
+TIP: If the screen has been adjusted or minimized you might notice three dots ... instead of Terminal. Click the three dots and then *New Terminal*.
 
 image::vscode-new-terminal.png[New terminal,align="center",link=self,window=_blank,width=600]
 
@@ -172,12 +172,12 @@ The snippet below is from the playbook `controller_workshop_objects.yml` and sho
 +
 image::automation-controller-tab.png[Tab,align="center",link=self,window=_blank,width=600]
 +
-username: admin +
-password: ansible123!
+username: *admin* +
+password: *ansible123!*
 +
 image::controller_login.png[AAP,align="center",link=self,window=_blank,width=400]
 +
-. Navigate to | Automation Execution | Infrastructure | Inventories | Workshop Inventory
+. Navigate to *Automation Execution* | *Infrastructure* | *Inventories* | *Workshop Inventory*
 +
 image::select_inventories_workshop_inventory.png[Inventories,align="center",link=self,window=_blank,width=900]
 +
@@ -185,7 +185,7 @@ image::select_inventories_workshop_inventory.png[Inventories,align="center",link
 +
 image::workshop_inventory.png[Workshop,align="center",link=self,window=_blank,width=800]
 +
-. In this example, navigate to group cisco | related groups | cisco_leafs
+. In this example, navigate to group *cisco* | *related groups* | *cisco_leafs*
 +
 image::related_groups.png[Groups,align="center",link=self,window=_blank,width=800]
 +
@@ -193,7 +193,7 @@ image::related_groups.png[Groups,align="center",link=self,window=_blank,width=80
 +
 image::cisco_leaf_group_vars.png[Leaf,align="center",link=self,window=_blank,width=800]
 +
-. Navigate to | Inventories | Workshop Inventory | Hosts | leaf1. Notice the host_vars for leaf1:
+. Navigate to *Inventories* | *Workshop Inventory* | *Hosts* | *leaf1*. Notice the host_vars for leaf1:
 +
 image::leaf1_host.png[Host,align="center",link=self,window=_blank,width=800]
 
@@ -204,10 +204,10 @@ image::leaf1_host.png[Host,align="center",link=self,window=_blank,width=800]
 +
 image::netbox_tab.png[Netbox,align="center",link=self,window=_blank,width=800]
 +
-username: admin +
-password: admin@123
- 
- 
+username: *admin* +
+password: *admin@123*
+
+
 NOTE: **Level Set -- What is NetBox?** +
 NetBox is an open-source web application that serves as an Infrastructure Resource Modeling (IRM) tool and source of truth for network infrastructure. It's designed to document and manage IP address management (IPAM), data center infrastructure (racks, devices, cables), network equipment inventory, virtualization resources, and circuits and connections. +
  +
@@ -216,7 +216,7 @@ Instead of maintaining static YAML/INI files, Ansible queries NetBox in real-tim
 
 == Step 6 : Create API Token for Netbox
 
-. Navigate to | Admin | API Tokens | Add a Token | Create |
+. Navigate to *Admin* | *API Tokens* | *Add a Token* | *Create*
 +
 image::add_new_token.png[Token,align="center",link=self,window=_blank,width=800]
 
@@ -232,12 +232,12 @@ image::copy_new_token.png[Copy,align="center",link=self,window=_blank,width=800]
 
 . Access Ansible Automation Platform Tab again to update the Netbox Credential to update the API Key.
 +
-username: admin +
-password: ansible123!
+username: *admin* +
+password: *ansible123!*
 +
 image::netbox_credential.png[Credential,align="center",link=self,window=_blank,width=800]
 +
-. Navigate to Automation Execution | Infrastructure |Credentials | Netbox Credential and edit - update the  credential
+. Navigate to *Automation Execution* | *Infrastructure* | *Credentials* | *Netbox Credential* and edit - update the credential
 . Paste in your Netbox Host and API Key.
 +
 --
@@ -255,17 +255,17 @@ Only paste the remaining API key contents from your Netbox:
 nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
 ----
 --
-`save`
+*Save*
 
 == Step 9: Update Netbox Configuration with Ansible Automation
 
-. Launch the 1-1-Dynamic_inventory-Netbox-Setup Job-Template from the automation controller
+. Launch the *1-1-Dynamic_inventory-Netbox-Setup* Job-Template from the automation controller
 +
 This playbook will automate the Netbox intial configuration.
 +
-user: admin
+user: *admin*
 +
-password: admin@123
+password: *admin@123*
 +
 image::launch_setup_netbox.png[Launch,align="center",link=self,window=_blank,width=800]
 
@@ -273,17 +273,17 @@ image::launch_setup_netbox.png[Launch,align="center",link=self,window=_blank,wid
 
 . Access Netbox tab
 +
-user: admin +
-password: admin@123
+user: *admin* +
+password: *admin@123*
 +
-. Navigate to | Devices |
+. Navigate to *Devices*
 . Click into a specific network device to examine the Netbox configurations
 +
 image::netbox_devices.png[Devices,align="center",link=self,window=_blank,width=800]
 
 == Step 11: Sync the Netbox Inventory from the Automation Controller
 
-. Navigate to | Inventories | Netbox Inventory | Inventory Sources | netbox_source | Sync inventory source
+. Navigate to *Inventories* | *Netbox Inventory* | *Inventory Sources* | *netbox_source* | *Sync inventory source*
 . Ensure that your inventory sync is a success. If it fails check the API Token that was pasted into the credentials.
 . Review the source settings to understand the source configuration in AAP. Available options for an inventory source include:
 +
@@ -312,7 +312,7 @@ image::netbox_groups.png[Groups,align="center",link=self,window=_blank,width=800
 +
 image::netbox_hosts.png[Hosts,align="center",link=self,window=_blank,width=800]
 +
-. Take a look at the `netbox_inventory.yml` file from the VSCode tab. The credentials needed to log into Netbox are read in automatically as environment variables from the `Netbox Credential`.
+. Take a look at the `netbox_inventory.yml` file from the *VSCode* tab. The credentials needed to log into Netbox are read in automatically as environment variables from the `Netbox Credential`.
 +
 [source,yaml]
 ----
@@ -339,13 +339,13 @@ compose:
 enable_plugins = host_list, script, yaml, ini, auto
 ----
 
-== Step 12: Launch the 1-1-Dynamic_Inventory-Netbox-Facts Job-Template
+== Step 12: Launch the *1-1-Dynamic_Inventory-Netbox-Facts* Job-Template
 
 . Run this Job-Template to launch a playbook that requests facts from each device using the Netbox Inventory.
 +
 Example Output from leaf3:
 +
-TASK [Gather all NXOS facts] click on leaf3 | data
+TASK [Gather all NXOS facts] click on *leaf3* | *data*
 
 [source:yaml]
 ----
