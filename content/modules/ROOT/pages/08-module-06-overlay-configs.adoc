@@ -16,9 +16,9 @@ This section covers:
 * Understanding how VTEPs, VNIs, VRFs, and anycast gateways work together to provide L2 extension and inter-VLAN routing across the fabric
 * Reviewing the platform differences between Arista EOS and Cisco NX-OS for VXLAN encapsulation (`Vxlan1` vs. `nve1`), VRF configuration, and anycast gateway implementation
 * Examining VLAN-to-VNI mappings, symmetric EVPN route targets, and per-leaf route distinguishers
-* Validating end-to-end host connectivity by testing three overlay scenarios: L2 stretch (same VLAN, same vendor), inter-VLAN symmetric IRB (same vendor), and cross-platform inter-VLAN routing (EOS to NX-OS)
+* Validating end-to-end host connectivity across three overlay scenarios that exercise L2 stretch, inter-VLAN routing, and cross-platform interoperability
 
-== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-6-overlay_configs`
+== Visit the *VSCode* tab to review the playbooks and roles from `1-6-overlay_configs`
 
 TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
@@ -123,7 +123,7 @@ The fabric carries a single tenant VRF named `gold`. All three data VLANs (40, 5
 
 EOS:: VRF is created with `vrf instance gold`. IP routing is enabled per-VRF with `ip routing vrf gold`. The L3VNI is mapped under the Vxlan1 interface (`vxlan vrf gold vni 100001`). Route targets are configured under BGP (`router bgp 65001` / `vrf gold`).
 
-NX-OS:: VRF is created with `vrf context gold` and the VNI is assigned directly inside the VRF context (`vni 100001`). Route distinguisher and route targets are also set inside `vrf context`. The L3VNI VNI membership is associated on the NVE interface with `associate-vrf`.
+NX-OS:: VRF is created with `vrf context gold` and the VNI is assigned directly inside the VRF context (`vni 100001`). Route distinguisher and route targets are also set inside `vrf context`. The L3VNI membership is associated on the NVE interface with `associate-vrf`.
 
 == VLAN-to-VNI Mapping
 
@@ -407,13 +407,15 @@ This host placement demonstrates three overlay scenarios:
 L2 stretch, same vendor (host1 ↔ host2)::
 Both hosts are on VLAN 50 across two EOS VTEPs (leaf1, leaf2). Traffic is bridged over the VXLAN fabric using VNI 100050. EVPN Type-2 routes advertise each host's MAC/IP, and Type-3 IMET routes set up BUM flooding between the two VTEPs. No routing is needed -- this is pure L2 extension.
 
-Inter-VLAN routing, cross-vendor (host3 ↔ host4)::
+Inter-VLAN routing, same vendor (host3 ↔ host4)::
 host3 is on VLAN 40 at leaf3 (NX-OS), host4 is on VLAN 60 at leaf4 (NX-OS). Traffic requires symmetric IRB routing through the L3VNI (VNI 100001) in VRF `gold`. The ingress VTEP routes the packet from the source VLAN SVI into the VRF, encapsulates it with the L3VNI, and sends it to the egress VTEP, which routes it out the destination VLAN SVI. Both hosts use the anycast gateway as their next hop.
 
 Inter-VLAN routing, cross-vendor, cross-platform (host1 ↔ host3)::
 host1 on VLAN 50 at leaf1 (EOS) reaches host3 on VLAN 40 at leaf3 (NX-OS). This exercises the full multi-vendor overlay: EVPN route exchange between EOS and NX-OS leafs via the spine route reflectors, symmetric IRB across platforms, and interoperability of the anycast gateway (virtual-router on EOS, fabric-forwarding anycast on NX-OS) with the same shared MAC address.
 
 == Step 1: Launch the `1-6-Overlay_Configs-Workflow`
+
+The overlay is the final configuration layer that enables hosts to communicate across the fabric. Reviewing both the deploy and test job outputs helps you understand what VXLAN and EVPN configuration was applied and whether the tunnel endpoints, VNI mappings, and route targets are working correctly -- the failure modes described in the Level Set make these outputs essential reading.
 
 ==== Access the *Ansible Automation Platform* tab:
 
@@ -422,7 +424,7 @@ password: *ansible123!*
 
 1. Review Job Output for the *1-6-Overlay_Configs-Deploy* job-template
 +
-Examine each task output to better understand the underlying role and playbooks
+Examine each task output to better understand the underlying role and playbooks.
 
 2. Review Job output for the *1-6-Overlay_Configs-Test* job-template
 +
@@ -430,7 +432,9 @@ Examine each task output to understand the validation used for each configuratio
 
 == Step 2: Validate Reachability for the Hosts
 
-Each host can be accessed and tested from docker.
+Pinging from the hosts is the ultimate proof that the entire fabric stack works -- base, underlay, and overlay. Unlike switch-level tests that verify protocol state, host pings prove that real traffic traverses the VXLAN tunnels and EVPN routes end-to-end. These three scenarios (L2 stretch, same-vendor inter-VLAN, cross-vendor inter-VLAN) exercise every overlay path the fabric was built to support.
+
+Each host can be accessed and tested from Docker.
 
 . Access the `Containerlab Terminal`
 +
@@ -464,11 +468,13 @@ If ping tests fail, it may be necessary to rerun the previous workflows:
 * *1-6-Overlay_Configs-Workflow*
 
 
-== Step 4: Backup the `vxlan_configs` for a snapshot of the working VXLAN Fabric
+== Step 4: Back Up the `vxlan_configs` for a Snapshot of the working VXLAN Fabric
+
+Taking a named backup at this point captures the fully operational VXLAN fabric as a Git-versioned restore point. If a later module (tuning, compliance, or manual troubleshooting) breaks the overlay, you can restore to this exact state instead of re-running the base, underlay, and overlay workflows from scratch.
 
 1. Run the `1-2-Backups_as_Code-Backup-GIT` Job template
 
-2. name the branch *vxlan_configs*
+2. Name the branch *vxlan_configs*
 
 == Module summary
 

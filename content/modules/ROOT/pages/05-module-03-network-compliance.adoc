@@ -6,7 +6,7 @@
 NOTE: **Level Set -- Why Automated Network Compliance Matters** +
 Manual compliance audits are slow, error-prone, and impossible to scale. A network engineer checking configurations by hand across dozens of devices can miss subtle drift -- a changed ACL, a missing NTP server, a mismatched SNMP community -- that silently degrades security or causes outages. Automated compliance with Ansible lets you define the intended state once and continuously validate every device against it. Deviations are detected instantly, reported clearly, and can be remediated in the same workflow. This shifts compliance from a periodic, reactive audit to a continuous, proactive process -- reducing risk, accelerating change windows, and providing auditable evidence that your network matches its documented standard.
 
-Network resource modules make compliance checks straightforward -- by using the `state: replaced` parameter, you can define the intended configuration and let Ansible enforce it across your devices. Running the playbook in **check mode** lets you preview what would change without touching the device, giving you a safe way to audit compliance. When you're ready to remediate, switching to **run mode** applies the changes to the remote devices. For production environments, **Approval Nodes** in an AAP workflow add a human gate between the check and the apply -- pausing execution so an operator can review the proposed changes or troubleshoot before anything is pushed to live infrastructure.
+Network resource modules make compliance checks straightforward -- by using the `state: replaced` parameter, you can define the intended configuration and let Ansible enforce it across your devices. Running the playbook in **check mode** lets you preview what would change without touching the device, giving you a safe way to audit compliance. When you're ready to remediate, switching to **run mode** applies the changes to the remote devices.
 
 == Learning objectives
 
@@ -21,7 +21,7 @@ By the end of this section, you will be able to:
 * Approve or deny changes at a human-in-the-loop approval node after reviewing check mode output
 * Validate that run mode remediation was applied by inspecting the device CLI and comparing the run mode `after` output to the intended state
 
-== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-3-network_complaince`
+== Visit the *VSCode* tab to review the playbooks and roles from `1-3-network_compliance`
 
 TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
@@ -55,7 +55,7 @@ image::visualizer.png[compliance,align="center",link=self,window=blank,width=600
 * Approval Node
 * 1-3-Network_Compliance-Run Job-Template
 +
-. Review how the Nodes are connected together `(always, success, failure etc)`:
+. Review how the Nodes are connected together `(always, success, failure, etc.)`:
 +
 image::workflow_nodes.png[compliance,align="center",link=self,window=blank,width=800]
 +
@@ -67,7 +67,7 @@ image:exit_visualizer.png[compliance,align="center",link=self,window=blank,width
 +
 image:create_survey.png[compliance,align="center",link=self,window=blank,width=800]
 +
-. Configure survey question
+. Configure the survey question
 +
 **Parameters:**
 
@@ -80,13 +80,13 @@ image:create_survey.png[compliance,align="center",link=self,window=blank,width=8
 +
 image:question_config.png[compliance,align="center",link=self,window=blank,width=800]
 +
-TIP: in multiple choice multiple select hit enter to bring up the next choice box.
+TIP: In multiple choice multiple select, hit enter to bring up the next choice box.
 +
 image:survey_config.png[compliance,align="center",link=self,window=blank,width=800]
 +
 WARNING: Don't forget to enable the survey!
 
-== Step 3: Launch the 1-3-Network-Compliance-Workflow
+== Step 2: Launch the 1-3-Network-Compliance-Workflow
 
 NOTE: This workflow will pause at the approval node `Human Approval`. The check mode job runs first and reports what _would_ change on each device -- without touching them. An operator can then review the proposed changes, verify they are expected, and investigate anything unexpected before approving. Only after approval does the run mode job execute and apply the changes to production devices. This human-in-the-loop gate prevents automation from blindly pushing configurations that could cause outages, security gaps, or unintended side effects -- giving your team confidence that every change is reviewed before it reaches the network.
 
@@ -104,7 +104,7 @@ image::workflow_check.png[compliance,align="center",link=self,window=blank,width
 +
 image::leaf3_logging.png[compliance,align="center",link=self,window=blank,width=800]
 
-== Step 4: Review the Resource Module output
+== Step 3: Review the Resource Module Output
 
 .  Click on *Data* to review the module output
 +
@@ -181,7 +181,7 @@ Below is an example of the `logging_global` module output for a Cisco NX-OS `lea
 In other words, we ran this playbook in check mode so we aren’t expecting anything in the “after” dictionary.
 <4> **changed** -- `true` indicates the device is out of compliance and changes are needed. If the device already matches the intended state, this would be `false` and `commands` would be empty.
 <5> **config** -- the intended logging state you defined in your playbook. This is the "source of truth" that the module compares against the device. It includes the logfile destination, console and monitor severity levels, syslog server hosts, and facility overrides.
-<6> **state: replaced** -- tells the module to enforce _exactly_ this configuration: add anything missing, remove anything extra, and leave unrelated config sections untouched.
+<6> **state: replaced** -- as described in the Level Set above.
  
 Where does Ansible locate the `Intended configuration` to define the configuration?
 
@@ -229,7 +229,7 @@ At the **playbook level**, you can also set `check_mode: true` on an individual 
 image::checkmode.png[compliance,align="center",link=self,window=blank,width=800]
  
 [start=3]
-. Validate that check mode `didn't` make changes to leaf3
+. Validate that check mode didn't make changes to leaf3
 
 Access the *Containerlab Terminal* tab to use `SSH` to the devices.
 
@@ -245,7 +245,7 @@ show run | i logging
 No output expected
 leaf3# 
 
-TIP: If the Containerlab Terminal is stuck refresh the tab.
+TIP: If the Containerlab Terminal is stuck, refresh the tab.
 
 image::refresh.png[refresh,align="center",link=self,window=blank,width=800]
 
@@ -295,15 +295,13 @@ When `diff_mode: true` is enabled on the job template, Ansible produces a unifie
 
 Reading the diff:
 
-* **`--- before`** -- the logging configuration currently on the device. In this case `{}` (empty) means the device has no logging configuration in this resource scope.
-* **`+++ after`** -- the intended logging configuration that _would_ be applied. Every line prefixed with `+` is something that will be added to bring the device into compliance.
+* **`---` / `+++`** -- the diff labels. Lines prefixed with `-` exist in `before` but not `after`; lines prefixed with `+` will be added.
 * **`@@ -1 +1,29 @@`** -- the diff header showing the scope of the change: 1 line removed (the empty `{}`), 29 lines added (the full intended configuration).
-* **`changed: true`** -- confirms the device is out of compliance and changes are pending approval.
 
-In this example, `leaf3` had _no_ logging configuration at all. The diff shows every piece of the intended state being added: console logging at critical severity, a local5 facility, two syslog servers (`1.1.1.2` and `1.1.1.3`), a logfile destination, and monitor logging at warning level. This is exactly what the operator reviews at the approval node -- a clear, readable summary of everything that will change before clicking approve.
+In this example, `leaf3` had no logging configuration at all (`before` was `{}`). The diff shows every piece of the intended state being added -- this is what the operator reviews at the approval node before clicking approve.
 
 
-== Step 5: Understand the Compliance Playbook Tasks from `1-3-network_compliance/roles/logging/tasks/cisco.nxos.nxos.yml` on VSCode.
+== Step 4: Understand the Compliance Playbook Tasks from `1-3-network_compliance/roles/logging/tasks/cisco.nxos.nxos.yml` in VSCode
 
 === Task 1: Check/Apply NXOS Logging Configuration
 
@@ -320,7 +318,7 @@ In this example, `leaf3` had _no_ logging configuration at all. The diff shows e
 `cisco.nxos.nxos_logging_global` is a resource module that manages the entire logging configuration on a Cisco NX-OS device declaratively.
 
 * **`config: "{{ logging_nxos }}"`** -- the desired logging state, defined as a structured data model (in `group_vars` or `host_vars`). This is not raw CLI commands -- it is a YAML dictionary describing syslog servers, log levels, and facilities.
-* **`state: replaced`** -- replaces the device's current logging config with exactly what is defined in `logging_nxos`. Anything on the device that is not in the variable gets removed; anything missing gets added. This enforces the config as the single source of truth.
+* **`state: replaced`** -- enforces exactly the configuration defined in `logging_nxos`, as described earlier.
 * **`notify: Logging compliance violation`** -- triggers a handler only if the module made changes (i.e., the device was out of compliance). If the config already matched, no handler fires. This is how the playbook flags drift.
 * **`register: logging_diff`** -- captures the module's return data, which includes `before` (the device's config before the task ran) and `after` (the config after). This is consumed by the next task.
 
@@ -343,7 +341,7 @@ In this example, `leaf3` had _no_ logging configuration at all. The diff shows e
 
 The output shows exactly which logging settings were added, removed, or changed -- giving operators a clear view of what was out of compliance and what the playbook corrected.
 
-== Step 6: Approve the changes to continue the `1-3-Solution-Network-Compliance-Workflow`
+== Step 5: Approve the changes to continue the `1-3-Network-Compliance-Workflow`
 
 1. Return to the AAP Controller to approve.
 +
@@ -356,7 +354,7 @@ image::workflow_paused.png[compliance,align="center",link=self,window=blank,widt
 
 image::click_approval.png[compliance,align="center",link=self,window=blank,width=800]
 
-== Step 7: Review the Job Output for `1-3-Network_Compliance-Run`
+== Step 6: Review the Job Output for `1-3-Network_Compliance-Run`
 
 image::leaf3_run.png[compliance,align="center",link=self,window=blank,width=800]
 
@@ -403,7 +401,9 @@ TASK [roles/logging : Check/Apply NXOS logging configuration]
 
 The key difference from the check mode output is the `after` field: in check mode it was empty (no changes were applied), but in run mode it reflects the actual configuration now running on the device. This is confirmation that the remediation succeeded -- `leaf3` now matches the intended logging state defined in `group_vars/cisco.yml`.
 
-== Step 8: Validate Changes on `leaf3`
+== Step 7: Validate Changes on `leaf3`
+
+Checking the device CLI directly after automation confirms that the resource module's `after` output matches the actual running configuration. Trusting automation output alone is not enough when configuration accuracy is critical -- this manual verification step closes the loop.
 
 Access the *Containerlab Terminal* tab to use `SSH` to the devices.
 

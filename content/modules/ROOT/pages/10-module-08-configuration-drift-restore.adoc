@@ -1,4 +1,4 @@
-= 1-8: Configuration Drift Restore
+= 1-8: Configuration Drift and Restore
 :source-highlighter: rouge
 :toc: macro
 :toclevels: 1
@@ -19,26 +19,26 @@ This section covers:
 * Deciding how to resolve drift: restoring devices to a previous backup branch or updating the intended config to accept the current state
 * Restoring device configurations from named Git branches using the self-service restore workflow
 
-== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-2-backups_as_code`
+== Visit the *VSCode* tab to review the playbooks and roles from `1-2-backups_as_code`
 
 TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
-== Step 1: Backing up the `final_configs`
+== Step 1: Back Up the `final_configs`
 
 ==== Access the Ansible Automation Platform tab:
 
 user: *admin* +
 password: *ansible123!*
 
-This snapshot will serve as the completed configuration.
+Creating this backup before testing drift detection gives you a known-good restore point that you can return to at the end of the exercise. In production, taking named snapshots at key milestones (post-deployment, post-change-window, post-upgrade) turns routine backups into a configuration lifecycle management practice.
 
 1. Launch the `1-2-Backups_as_Code-Backup-GIT` job template
 
-enter *final_configs* when prompted for the branch name.
+Enter *final_configs* when prompted for the branch name.
 
-== Step 2: Compare the VXLAN backup with the device config. 
+== Step 2: Compare the VXLAN backup with the device config
 
-In the previous lab section we configured *SNMP*. We should see that as a *DIFF*.
+In the previous lab section we configured *SNMP*. We should see that as a *DIFF*. This comparison demonstrates how drift detection works in practice -- the `vxlan_configs` branch was captured before the SNMP changes in the tuning module, so any configuration added since then appears as drift. In production, running this comparison on a schedule surfaces unauthorized manual changes, firmware-reset defaults, and automation side effects before they cause outages.
 
 1. Launch the `1-2-Backups_as_Code-Git-Intent` job template
 
@@ -80,7 +80,7 @@ The intended config files live at: `/tmp/201-multi-vendor-vxlan-workshop/201_net
 
 The playbook uses `diff_against: intended` on the vendor-specific config modules:
 
-* *NX-OS devices* -- `cisco.nxos.config` with `intended_config` loaded via `lookup('file', ...)`
+* *NX-OS devices* -- `cisco.nxos.nxos_config` with `intended_config` loaded via `lookup('file', ...)`
 * *EOS devices* -- `arista.eos.eos_config` with the same pattern
 
 Each module pulls the running config from the device, compares it against the intended config from Git, and reports the diff. It does not apply any changes -- `diff_against: intended` is read-only.
@@ -192,7 +192,7 @@ Which option is correct depends on whether the SNMP change was intentional and s
 
 == Step 3: Restore the current configuration state to `initial_config`
 
-This restores all devices back to the baseline state captured before any EVPN VXLAN configurations were applied.
+Restoring to `initial_config` strips away every configuration layer you built across the workshop -- base, underlay, overlay, compliance, and SNMP -- returning the devices to their bare startup state. Review the diff output to see how much configuration a single restore operation removes across six multi-vendor devices.
 
 . Launch the `1-2-Backups_as_Code-Restore` job template
 
@@ -344,7 +344,7 @@ changed: [leaf1]
 
 == Step 4: Restore the current configuration state to `final_configs`
 
-This restores all devices to the fully configured EVPN VXLAN fabric state, including the SNMP community string added during the tuning module.
+Restoring to `final_configs` rebuilds the entire fabric from the backup you captured in Step 1, proving that the restore workflow works in both directions -- tearing down and rebuilding. Compare this diff against Step 3's output to see the same configuration reappear with reversed `+`/`-` prefixes.
 
 . Launch the `1-2-Backups_as_Code-Restore` job template
 
@@ -356,7 +356,7 @@ This restores all devices to the fully configured EVPN VXLAN fabric state, inclu
 
 * TASK [Restore configuration (EOS)]
 
-* The `final_configs` adds the completed config back the `leaf1` device.
+* The `final_configs` adds the completed config back to the `leaf1` device.
 
 [source:yaml]
 ----
@@ -500,8 +500,8 @@ changed: [leaf1]
 
 In this module, you learned how to:
 
-* Capture a known-good fabric snapshot by running the backup workflow with a named branch (`final_configs`), preserving the fully configured EVPN VXLAN state as a Git-versioned restore point
-* Use `diff_against: intended` with `cisco.nxos.config` and `arista.eos.eos_config` to compare each device's running configuration against a stored intended config without pushing any changes to the network
+* Establish a named backup branch (`final_configs`) as the baseline for drift detection, then use it to verify that restore operations return devices to that exact state
+* Use `diff_against: intended` with `cisco.nxos.nxos_config` and `arista.eos.eos_config` to compare each device's running configuration against a stored intended config without pushing any changes to the network
 * Read the diff output to pinpoint exactly which lines differ between the running and intended configurations -- recognizing that `changed: true` in the play recap indicates a detected difference, not an applied modification
 * Identify drift caused by the SNMP community string (`snmp-server community vxlan`) that was added during the tuning module but never committed to the `vxlan_configs` branch
 * Choose between two remediation paths: restoring devices to a previous backup branch to remove the drift, or updating the intended config branch to accept the current state as the new baseline
@@ -511,7 +511,7 @@ The backups-as-code pattern built across this workshop -- automated backups, ver
 
 == Congratulations!
 
-You have completed module 1 from the  **The Advanced Network Automation** workshop. Over the course of the first eight sections, you built a fully operational multi-vendor EVPN VXLAN fabric from the ground up -- entirely through automation.
+You have completed module 1 of **The Advanced Network Automation** workshop. Over the course of the first eight sections, you built a fully operational multi-vendor EVPN VXLAN fabric from the ground up -- entirely through automation.
 
 Here is what you accomplished:
 
@@ -519,9 +519,9 @@ Here is what you accomplished:
 . **Backups as Code** -- Captured device configurations as versioned Git branches in Gitea, creating named restore points that any operator can select from a self-service survey
 . **Network Compliance** -- Validated device state against defined standards using resource modules in `state: gathered` and Ansible's `assert` module to catch misconfigurations before they reach production
 . **Base Configs** -- Deployed foundational settings (hostnames, VLANs, loopbacks, interfaces) across all six devices using resource modules with `state: merged`, establishing the platform the fabric runs on
-. **Underlay Configs** -- Built OSPF adjacencies and iBGP peering across the spine-leaf topology using a hybrid approach of resource modules and Jinja2 templates, then validated routing before moving to the overlay
+. **Underlay Configs** -- Built OSPF adjacencies and eBGP peering across the spine-leaf topology using a hybrid approach of resource modules and Jinja2 templates, then validated routing before moving to the overlay
 . **Overlay Configs** -- Deployed VXLAN tunnels, EVPN route targets, VRFs, and anycast gateways to complete the fabric, then validated end-to-end host connectivity across L2 stretch, inter-VLAN, and cross-platform scenarios
 . **Tuning for Scale** -- Configured AAP execution controls (`forks`, `serial`, `max_fail_percentage`, `throttle`) to protect production networks from automation errors and optimize job performance
 . **Configuration Drift and Restore** -- Detected configuration drift by comparing running configs against Git-stored intended state, then restored devices to known-good snapshots using the backup branches you created earlier
 
-From an empty topology to a fully validated, drift-protected EVPN VXLAN fabric -- all managed through Ansible Automation Platform. These same patterns scale from a six-device lab to production networks with ten thousands of devices across multiple vendors and sites.
+From an empty topology to a fully validated, drift-protected EVPN VXLAN fabric -- all managed through Ansible Automation Platform. These same patterns scale from a six-device lab to production networks with tens of thousands of devices across multiple vendors and sites.

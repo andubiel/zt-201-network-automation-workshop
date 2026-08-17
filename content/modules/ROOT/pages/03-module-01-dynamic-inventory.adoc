@@ -33,13 +33,13 @@ Click the **VS Code** tab at the top of the Showroom window. The editor opens di
 
 image::launch_page.png[VS Code tab,align="center",link=self,window=_blank,width=600]
 
-TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by clicking on VSCode's *File* and *New Window*.
+TIP: For the best experience (especially for copy/paste operations), open VS Code in its own browser tab by clicking on VS Code's *File* and *New Window*.
 
 In the VS Code file browser, open the `201-multi-vendor-vxlan-workshop/` directory:
 
 image::vscode-networkworkshop.png[File browser,align="center",link=self,window=_blank,width=600]
 
-Click `inventory.yml` to view its contents. This YAML inventory file could be used to source an inventory from a project. Review the yaml file to understand how the parent and child groups were constructed for the network devices. You'll explore additional inventory options in subsequent steps.
+Click `inventory.yml` to view its contents. This YAML inventory file could be used to source an inventory from a project. Review the YAML file to understand how the parent and child groups were constructed for the network devices. You'll explore additional inventory options in subsequent steps.
 
 image::inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
 
@@ -47,7 +47,7 @@ image::inventory.png[Playbook,align="center",link=self,window=_blank,width=800]
 
 Open a terminal in Visual Studio Code `...` by clicking **Terminal** → **New Terminal** from the menu, or use the keyboard shortcut `Ctrl+Shift+` ` (backtick).
 
-TIP: If the screen has been adjusted or minimized you might notice three dots ... instead of Terminal. Click the three dots and then *New Terminal*.
+TIP: If the screen has been adjusted or minimized, you might notice three dots ... instead of Terminal. Click the three dots and then *New Terminal*.
 
 image::vscode-new-terminal.png[New terminal,align="center",link=self,window=_blank,width=600]
 
@@ -74,9 +74,9 @@ TIP: Useful Linux commands for navigation: +
 NOTE: **Level Set -- Why Inventories Matter** +
 An Ansible inventory defines _what_ you automate against. Without an inventory, Ansible has no targets -- no playbook can run. Inventories organize hosts into groups with shared variables, enabling you to apply the right configuration to the right devices at scale. In network automation, where you manage dozens or hundreds of switches and routers across multiple vendors, a well-structured inventory is the foundation for consistent, repeatable automation.
 
-The scope of a `play` within a `playbook` is limited to the groups of hosts declared within an Ansible **inventory**. Ansible supports multiple link:http://docs.ansible.com/ansible/latest/intro_inventory.html[inventory^] types. An inventory could be a simple flat file with a collection of hosts defined within it or it could be a dynamic script (potentially querying a CMDB backend) that generates a list of devices to run the playbook against.
+The scope of a `play` within a `playbook` is limited to the groups of hosts declared within an Ansible **inventory**. Ansible supports multiple link:http://docs.ansible.com/ansible/latest/intro_inventory.html[inventory^] types. An inventory could be a simple flat file with a collection of hosts defined within it, or it could be a dynamic script (potentially querying a CMDB backend) that generates a list of devices to run the playbook against.
 
-In this lab you will work with an automation controller GUI based inventory called "Workshop Inventory". The "Workshop Inventory" was pre-configured during the lab setup using controller_as_code. 
+In this lab, you will work with an automation controller GUI-based inventory called "Workshop Inventory". The "Workshop Inventory" was pre-configured during the lab setup using controller as code.
 
 NOTE: **Level Set -- What is Controller as Code?** +                                                                                                             
 Controller as Code is the practice of defining your entire Ansible Automation Platform configuration -- inventories, credentials, job templates, workflows, team
@@ -168,6 +168,8 @@ The snippet below is from the playbook `controller_workshop_objects.yml` and sho
 
 == Step 4: Examining the Inventory from the GUI
 
+Understanding how inventory appears in the Automation Controller GUI is essential because this is where operators interact with inventory day-to-day -- adding hosts, assigning variables, and verifying group membership without editing YAML files.
+
 . Access the automation controller tab
 +
 image::automation-controller-tab.png[Tab,align="center",link=self,window=_blank,width=600]
@@ -181,7 +183,7 @@ image::controller_login.png[AAP,align="center",link=self,window=_blank,width=400
 +
 image::select_inventories_workshop_inventory.png[Inventories,align="center",link=self,window=_blank,width=900]
 +
-. Explore the groups, hosts and associated groups for the `Workshop Inventory`.
+. Explore the groups, hosts, and associated groups for the `Workshop Inventory`.
 +
 image::workshop_inventory.png[Workshop,align="center",link=self,window=_blank,width=800]
 +
@@ -189,7 +191,7 @@ image::workshop_inventory.png[Workshop,align="center",link=self,window=_blank,wi
 +
 image::related_groups.png[Groups,align="center",link=self,window=_blank,width=800]
 +
-. See below the cisco_leafs group_vars
+. See the `cisco_leafs` group_vars below:
 +
 image::cisco_leaf_group_vars.png[Leaf,align="center",link=self,window=_blank,width=800]
 +
@@ -198,9 +200,9 @@ image::cisco_leaf_group_vars.png[Leaf,align="center",link=self,window=_blank,wid
 image::leaf1_host.png[Host,align="center",link=self,window=_blank,width=800]
 
 
-== Step 5 : Open Netbox
+== Step 5: Open NetBox
 
-. Navigate to the Netbox tab
+. Navigate to the *NetBox* tab
 +
 image::netbox_tab.png[Netbox,align="center",link=self,window=_blank,width=800]
 +
@@ -214,23 +216,27 @@ NetBox is an open-source web application that serves as an Infrastructure Resour
 **Why use NetBox as an Ansible inventory source?** +
 Instead of maintaining static YAML/INI files, Ansible queries NetBox in real-time. Inventory automatically reflects infrastructure changes without manual updates, eliminating drift between documentation and automation.
 
-== Step 6 : Create API Token for Netbox
+== Step 6: Create API Token for NetBox
+
+An API token is required for Ansible to authenticate with NetBox programmatically. Without it, the dynamic inventory plugin cannot query NetBox for device data.
 
 . Navigate to *Admin* | *API Tokens* | *Add a Token* | *Create*
 +
 image::add_new_token.png[Token,align="center",link=self,window=_blank,width=800]
 
 
-== Step 7 : Copy API Token
+== Step 7: Copy API Token
 
 image::copy_new_token.png[Copy,align="center",link=self,window=_blank,width=800]
 
-**Important:** Copy the API token to VSCode or local notepad for later usage.
+**Important:** Copy the API token to VS Code or a local notepad for later usage.
 
 
-== Step 8: Update Netbox Credential 
+== Step 8: Update NetBox Credential
 
-. Access Ansible Automation Platform Tab again to update the Netbox Credential to update the API Key.
+Storing the API token in an AAP credential keeps it out of playbooks and version control, following the principle of separating secrets from code.
+
+. Access the *Ansible Automation Platform* tab again to update the NetBox Credential with the API Key.
 +
 username: *admin* +
 password: *ansible123!*
@@ -241,7 +247,7 @@ image::netbox_credential.png[Credential,align="center",link=self,window=_blank,w
 . Paste in your Netbox Host and API Key.
 +
 --
-For the API Key remove the `Bearer` portion:
+For the API Key, remove the `Bearer` portion:
 
 WARNING: Do not paste `Bearer`
 
@@ -249,7 +255,7 @@ WARNING: Do not paste `Bearer`
 Bearer nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
 ----
 
-Only paste the remaining API key contents from your Netbox:
+Only paste the remaining API key contents from your NetBox:
 
 ----
 nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
@@ -257,11 +263,11 @@ nbt_LVn2diKVGVDm.EioTctdbV1kEQ19YModdnoVEYy2gMho9q0qh9Chp
 --
 *Save*
 
-== Step 9: Update Netbox Configuration with Ansible Automation
+== Step 9: Update NetBox Configuration with Ansible Automation
 
-. Launch the *1-1-Dynamic_inventory-Netbox-Setup* Job-Template from the automation controller
-+
-This playbook will automate the Netbox intial configuration.
+Populating NetBox by hand is tedious and error-prone across many devices. This job template automates the initial setup -- sites, device types, devices, interfaces, and custom fields -- so NetBox is ready to serve as a dynamic inventory source in minutes rather than hours.
+
+. Launch the *1-1-Dynamic_inventory-Netbox-Setup* job template from the automation controller
 +
 user: *admin*
 +
@@ -269,9 +275,11 @@ password: *admin@123*
 +
 image::launch_setup_netbox.png[Launch,align="center",link=self,window=_blank,width=800]
 
-== Step 10: Validate Netbox Configuration
+== Step 10: Validate NetBox Configuration
 
-. Access Netbox tab
+After any automated change, verifying the results match expectations is critical. Inspecting the devices in NetBox confirms the automation populated the correct data before you rely on it as an inventory source.
+
+. Access the *NetBox* tab
 +
 user: *admin* +
 password: *admin@123*
@@ -281,10 +289,12 @@ password: *admin@123*
 +
 image::netbox_devices.png[Devices,align="center",link=self,window=_blank,width=800]
 
-== Step 11: Sync the Netbox Inventory from the Automation Controller
+== Step 11: Sync the NetBox Inventory from the Automation Controller
 
-. Navigate to *Inventories* | *Netbox Inventory* | *Inventory Sources* | *netbox_source* | *Sync inventory source*
-. Ensure that your inventory sync is a success. If it fails check the API Token that was pasted into the credentials.
+Syncing pulls the latest device data from NetBox into the Automation Controller's inventory. This is the step that turns NetBox from a documentation tool into a live inventory source -- after the sync, every playbook run targets the devices and variables that NetBox defines.
+
+. Navigate to *Inventories* | *NetBox Inventory* | *Inventory Sources* | *netbox_source* | *Sync inventory source*
+. Ensure that your inventory sync is a success. If it fails, check the API Token that was pasted into the credentials.
 . Review the source settings to understand the source configuration in AAP. Available options for an inventory source include:
 +
 --
@@ -331,7 +341,7 @@ compose:
   ansible_become: custom_fields.ansible_become
 ----
 +
-. Lastly the `ansible.cfg` file will use the auto plugin to invoke the `netbox_inventory.yml` file.
+. Lastly, the `ansible.cfg` file will use the auto plugin to invoke the `netbox_inventory.yml` file.
 +
 [source,ini]
 ----
@@ -339,9 +349,11 @@ compose:
 enable_plugins = host_list, script, yaml, ini, auto
 ----
 
-== Step 12: Launch the *1-1-Dynamic_Inventory-Netbox-Facts* Job-Template
+== Step 12: Launch the *1-1-Dynamic_Inventory-Netbox-Facts* Job Template
 
-. Run this Job-Template to launch a playbook that requests facts from each device using the Netbox Inventory.
+Gathering facts proves that the entire pipeline works end-to-end: the NetBox dynamic inventory resolves the correct hosts and connection details, and Ansible can reach and authenticate to each device. The facts output also reveals what data is available for use in future playbooks -- interfaces, neighbors, hardware details, and software versions.
+
+. Run this job template to launch a playbook that requests facts from each device using the NetBox Inventory.
 +
 Example Output from leaf3:
 +
@@ -428,11 +440,11 @@ TASK [Gather all NXOS facts] click on *leaf3* | *data*
 
 WARNING: Sometimes devices fail during setup!
 
-. Access the containerlab tab
+. Access the *Containerlab* tab
 +
 image::containerlab_tab.png[Tab,align="center",link=self,window=_blank,width=800]
 +
-. Run the following command to ensure all six network switches are running
+. Run the following command to ensure all six network switches are running:
 
 [type:bash]
 ----
@@ -480,7 +492,7 @@ Good output:
 ╰───────────────────┴──────────────────────────────────────────────────────────┴─────────────┴───────────────────╯
 ----
 
-It's normal for some node types to be unhealthy but not the state of `exited`
+It's normal for some node types to be unhealthy, but not the state of `exited`.
 
 . If `exited`, redeploy the topology
 +
@@ -493,7 +505,7 @@ WARNING: Redeploy could take ~10 minutes
 +
 . Test by using `ssh`
 
-For example
+For example:
 
 [type:bash]
 ----
@@ -536,6 +548,7 @@ http://www.gnu.org/licenses/lgpl.html
 ***************************************************************************
 leaf3# exit
 ----
+
 == Module summary
 
 In this module, you learned how to:
@@ -547,7 +560,7 @@ In this module, you learned how to:
 * Populate Netbox with device data by launching the Netbox Setup job template
 * Configure and sync a Netbox dynamic inventory source in the Automation Controller
 * Understand the `netbox_inventory.yml` plugin configuration and how it maps custom fields to Ansible variables
-* Gather and explore network device facts using the Netbox Inventory
+* Gather and explore network device facts using the NetBox Inventory
 
 
 

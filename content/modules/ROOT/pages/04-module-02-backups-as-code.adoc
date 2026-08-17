@@ -3,13 +3,13 @@
 :toc: macro
 :toclevels: 1
 
-This lab uses the ansible.scm collection to backup switch configurations to git branches in the Gitea repo.
+This lab uses the ansible.scm collection to back up switch configurations to Git branches in the Gitea repo.
 
 TIP: **Level Set -- Git Integration with ansible.scm** +
 The `ansible.scm` collection enables Ansible playbooks to read from and write to remote Git repositories like Gitea, GitLab, or GitHub -- all within a single playbook run. It can clone a repository, create or switch branches, stage changed files, commit them with a message, and push the results back to the remote. This means automation workflows can treat Git as a first-class destination: a backup playbook captures device configurations and commits them directly to a branch, producing versioned, auditable snapshots without any manual `git` commands.
 
 
-Additionally, controller as code is used to create job-templates and self service surveys for a later lab 
+Additionally, controller as code is used to create job templates and self-service surveys for a later lab
 to manage configuration drift and configuration restore.
 
 == Learning objectives
@@ -23,11 +23,11 @@ By the end of this section, you will be able to:
 * Understand how `set_stats` exposes data to downstream workflow jobs in Ansible Automation Controller
 * Explain how controller as code dynamically creates job templates with survey menus populated from Git branches
 
-== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-2-backups_as_code`
+== Visit the *VSCode* tab to review the playbooks and roles from `1-2-backups_as_code`
 
 TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
-== Step 1:  Collect the Initial Backup Configuration
+== Step 1: Collect the Initial Backup Configuration
 
 NOTE: **Level Set -- Why Backup Network Configurations?** +
 Network device configurations represent hours of engineering work and are critical to keeping your infrastructure running. Without backups, a misconfiguration, hardware failure, or unauthorized change can mean hours of manual recovery -- or worse, lost configurations that no one remembers. Saving backups to Git branches in a repo like Gitea adds powerful capabilities: every backup is versioned, so you can compare any two points in time with a simple `diff`. Named branches let you capture snapshots at meaningful moments -- `initial_config` before a change window, `pre_upgrade` before a firmware update, or `post_remediation` after a fix. This makes it easy to pinpoint exactly what changed, roll back to a known-good state, and maintain an auditable history of your network's configuration over time.
@@ -41,12 +41,14 @@ password: *ansible123!*
 +
 image::initial_config.png[Initial,align="center",link=self,window=_blank,width=800]
 +
-. Observe the job output for a successful backup
+. Observe the job output for a successful backup.
 
 
-== Step 2: Locate the device backups
+== Step 2: Locate the Device Backups
 
-. Access the *Gitea* tab and login
+Verifying that backup files landed in the correct Git branch and directory structure confirms the backup workflow completed successfully. In production, this is how you prove that a valid restore point exists before making changes.
+
+. Access the *Gitea* tab and log in
 +
 user: *gitea* +
 password: *gitea123*
@@ -63,7 +65,7 @@ image::gitiea-backups.png[Backups,align="center",link=self,window=_blank,width=8
 +
 . Navigate to the backup files located in `201_network_backup_files/`
 +
-NOTE: Your timestamp will be unique
+NOTE: Your timestamp will be unique.
 
 image::gitea_leaf3.png[Leaf3,align="center",link=self,window=_blank,width=800]
 
@@ -241,8 +243,7 @@ The playbook implements a Backups-as-Code pipeline:
 
 == Snapshots
 
-NOTE: It's important to complete the backups as directed throughout this workshop. Each backup can be used as a snapshot to effectively reconfigure devices in the event that your session is powered off. The Network devices will reboot to their
-startup configuration if your workshop session is shutdown and powered on. 
+NOTE: It's important to complete the backups as directed throughout this workshop. Each backup can be used as a snapshot to effectively reconfigure devices in the event that your session is powered off. The network devices will reboot to their startup configuration if your workshop session is shut down and powered on.
 
 The `1-2-Backups_as_Code-Git-Restore` Job Template provides a dropdown to select an appropriate backup to reload the switch configurations.
 

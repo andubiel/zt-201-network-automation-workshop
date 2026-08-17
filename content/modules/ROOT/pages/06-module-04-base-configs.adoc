@@ -13,7 +13,7 @@ Manually configuring base settings across a multi-vendor spine-leaf fabric is te
 
 == Learning objectives
 
-IMPORTANT: **The base configuration is the foundation that every subsequent layer depends on.** The underlay module builds OSPF and BGP peering on top of the loopback addresses and point-to-point links configured here. The overlay module then establishes VXLAN tunnels and EVPN peering using those same loopbacks as VTEP sources. A misconfigured VLAN, a missing loopback, or an incorrect /31 address at this stage will silently break underlay adjacencies and prevent overlay tunnels from forming -- and the failure may not surface until two modules later. Getting the base right, and proving it with automated tests, is not optional preparation; it is the critical first step of a working EVPN VXLAN fabric.
+IMPORTANT: A misconfigured VLAN, a missing loopback, or an incorrect /31 address at this stage will silently break underlay adjacencies and prevent overlay tunnels from forming -- and the failure may not surface until two modules later. Getting the base right, and proving it with automated tests, is not optional preparation.
 
 This section covers:
 
@@ -24,23 +24,23 @@ This section covers:
 * Validating deployments with automated ping tests, interface checks, and hostname verification
 * Diagnosing and recovering from a broken configuration using the backup-and-restore workflow
 
-== It's encouraged to visit the VSCode tab to review the playbooks and roles from `1-4-base_configs`
+== Visit the *VSCode* tab to review the playbooks and roles from `1-4-base_configs`
 
 TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
 
 **Base Configuration Overview**
 
- * Recommended read 
- * Optional to scroll down to step1 (skip reading)
+ * Recommended read
+ * Optional -- scroll down to Step 1 (skip reading)
 
 
-==== The 1-4-base_configs folder provisions a multi-vendor leaf-spine topology. It contains three playbooks and a role:
+==== The `1-4-base_configs` folder provisions a multi-vendor leaf-spine topology. It contains three playbooks and a role:
 
   ┌────────────────────────────┬─────────────────────────────────────────────────────────────────────────┐
   │            File            │                                 Purpose                                 │
   ├────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
-  │ deploy_fabric.yml          │ Deploys correct base config to all spines and leafs                     │
+  │ deploy_fabric.yml          │ Deploys the correct base config to all spines and leafs                  │
   ├────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
   │ broken_base_fabric.yml     │ Deploys intentionally broken spine1 IPs (for troubleshooting exercises) │
   ├────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
@@ -63,15 +63,14 @@ The base_fabric role uses a single-line main.yml to route to vendor-specific tas
     ansible.builtin.include_tasks: "{{ ansible_network_os.split('.')[-1] }}.yml"
   ----
 
-This splits arista.eos.eos into eos and cisco.nxos.nxos into nxos, dynamically including the correct task file. 
-Both vendor files configure the same five resource categories using their respective collection modules: 
-hostname, VLANs, interface state, L2 switchports, and L3 IP addresses. 
-The Arista file additionally enables ip routing.
+This splits `arista.eos.eos` into `eos` and `cisco.nxos.nxos` into `nxos`, dynamically including the correct task file.
+Both vendor files configure the same five resource categories using their respective collection modules:
+hostname, VLANs, interface state, L2 switchports, and L3 IP addresses.
+The Arista file additionally enables `ip routing`.
 
 ==== Broken Fabric Playbook
 
-broken_base_fabric.yml is a purpose-built troubleshooting exercise. It redeploys spine1 with incorrect IP addresses on all four
-leaf-facing interfaces:
+`broken_base_fabric.yml` is a purpose-built troubleshooting exercise. It redeploys spine1 with incorrect IP addresses on all four leaf-facing interfaces:
 
   ┌───────────┬─────────────┬──────────────┐
   │ Interface │ Correct IP  │  Broken IP   │
@@ -85,16 +84,11 @@ leaf-facing interfaces:
   │ Ethernet4 │ 10.0.1.6/31 │ 10.0.1.16/31 │
   └───────────┴─────────────┴──────────────┘
 
-Running test_base_connectivity.yml after this will show all four leaf-to-spine1 ping tests failing, while leaf-to-spine2 tests continue
-to pass. Re-running deploy_fabric.yml restores correct addressing.
+Running `test_base_connectivity.yml` after this will show all four leaf-to-spine1 ping tests failing, while leaf-to-spine2 tests continue to pass. Re-running `deploy_fabric.yml` restores correct addressing.
 
 ==== Connectivity Test Playbook
 
-test_base_connectivity.yml runs from the leafs and validates three things per device:
-
-1. Management interface is up (vendor-specific show commands)
-2. Neighbor ping tests -- each leaf pings both its spine1 and spine2 neighbor IPs; results are asserted with pass/fail messages
-3. Hostname verification -- the device's configured hostname matches inventory_hostname
+`test_base_connectivity.yml` runs from the leafs and validates management interfaces, neighbor reachability, and hostname correctness -- details are covered in the Step 1 workflow overview below.
 
 == Step 1: Launch the 1-4-Base_Configs-Workflow
 
@@ -134,9 +128,11 @@ The test playbook checks:
 +
 If any test fails, review the output to identify the misconfigured device before proceeding to the underlay module.
 
-TIP: In production always take a backup before and after major configuration changes. The backup branches in the GIT repository give you named restore points at every stage of the fabric build -- `pre_base_config`, `post_base_config`, `pre_underlay`, and so on. If something goes wrong in a later module, you can restore to the last known-good state without manually reconfiguring devices.
+TIP: In production always take a backup before and after major configuration changes. The backup branches in the Git repository give you named restore points at every stage of the fabric build -- `pre_base_config`, `post_base_config`, `pre_underlay`, and so on. If something goes wrong in a later module, you can restore to the last known-good state without manually reconfiguring devices.
 
 == Step 2: Review the new backups for base_configs branch in Gitea
+
+Reviewing the backup in Gitea before proceeding confirms that the device configurations were captured correctly and that the branch is ready to serve as a restore point if needed.
 
 image::base_configs_branch.png[Base,align="center",link=self,window=blank,width=800]
 
@@ -323,15 +319,14 @@ ok: [leaf4] => {
 }
 ----
 
-In the previous steps the workflow successfully deployed and tested so there was no need to launch the restore job-template.
-This section introduces incorrect IP addressing to fail the `Test` node on purpose. This failure will invoke the restore job-template.
+In the previous steps, the workflow successfully deployed and tested, so there was no need to launch the restore job template.
+This step introduces incorrect IP addressing to fail the `Test` node on purpose. This failure will invoke the restore job template.
 
 image::base_workflow_success.png[Workflow,align="center",link=self,window=blank,width=800]
 
 == Step 5: Launch the `1-4-Base_Configs-Workflow-Error` workflow job template
 
-Run this job-template to deploy an error.
-
+In production, misconfigurations happen -- whether from a bad variable, a typo in host_vars, or an upstream data error. This exercise deliberately breaks spine1's IP addressing to demonstrate how the workflow's test stage catches the error and how the restore job template recovers the device to its last known-good configuration. Learning to diagnose and recover from failures in a lab builds the confidence to handle them in production.
 
 The `1-4-base_configs/broken_base_fabric.yml` playbook applies the following incorrect IP addressing:
 
@@ -359,7 +354,7 @@ The `1-4-base_configs/broken_base_fabric.yml` playbook applies the following inc
           - address: "10.0.255.101/32"
 ----
 
-Upon completion of the restore the correct IP addressing should be applied to spine1
+Upon completion of the restore, the correct IP addressing should be applied to spine1.
 
 [source,yaml]
 ----
@@ -382,6 +377,8 @@ base_l3_interfaces:
 ----
 
 == Step 6: Access spine1 to validate
+
+After a restore, verifying the device CLI directly confirms that the correct IP addresses are back in place. This closes the loop on the troubleshooting exercise -- you've seen the error, the automated detection, and the automated recovery, and now you confirm the fix with your own eyes.
 
 From the *ContainerLab Terminal*
 

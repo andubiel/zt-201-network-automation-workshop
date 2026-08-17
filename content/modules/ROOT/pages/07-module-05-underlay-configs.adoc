@@ -7,14 +7,12 @@ NOTE: **Level Set -- What is the EVPN VXLAN Underlay and Why It Must Be Solid Be
 The **underlay** is the routed Layer 3 network that carries all traffic between spines and leafs in an EVPN VXLAN fabric. It has one job: give every leaf a reachable path to every other leaf's loopback address so that VXLAN tunnels can form between them. Without a working underlay, the overlay has no transport -- VTEP-to-VTEP tunnels cannot establish, BGP EVPN peering sessions will not come up, and no tenant traffic crosses the fabric. +
  +
 **How the underlay works** +
-Each spine-leaf link uses a point-to-point /31 subnet configured in the base module. On top of these links, an Interior Gateway Protocol -- in this lab, **OSPF** -- advertises all loopback and point-to-point prefixes so that every switch has a route to every other switch's Loopback0. These loopback addresses are critical: they serve as the **router ID** for BGP, the **VTEP source** for VXLAN tunnels, and the **BGP peering address** for the EVPN overlay. Once OSPF has converged, **iBGP** sessions are established between each leaf and both spines using the loopback addresses as peering endpoints. At this stage BGP carries only the underlay address families -- the EVPN address family is added later in the overlay module. OSPF provides reachability; BGP provides the peering mesh that the overlay will extend. +
+Each spine-leaf link uses a point-to-point /31 subnet configured in the base module. On top of these links, an Interior Gateway Protocol -- in this lab, **OSPF** -- advertises all loopback and point-to-point prefixes so that every switch has a route to every other switch's Loopback0. These loopback addresses are critical: they serve as the **router ID** for BGP, the **VTEP source** for VXLAN tunnels, and the **BGP peering address** for the EVPN overlay. Once OSPF has converged, **eBGP** sessions are established between each leaf and both spines using the loopback addresses as peering endpoints. At this stage BGP carries only the underlay address families -- the EVPN address family is added later in the overlay module. OSPF provides reachability; BGP provides the peering mesh that the overlay will extend. +
  +
 **Why automate and test the underlay before deploying the overlay?** +
 The overlay is entirely dependent on the underlay for transport. If an OSPF adjacency is missing between a spine and a leaf, that leaf's loopback will be unreachable from other leafs -- which means VXLAN tunnels to that VTEP will never establish and BGP EVPN sessions will fail to connect. These failures are silent at the overlay layer: EVPN simply never converges, with no clear indication that the root cause is a missing OSPF route two layers below. By automating the underlay deployment with Ansible and running connectivity tests -- verifying OSPF neighbor adjacencies, confirming that all loopbacks are reachable from every leaf, and checking that BGP peering sessions reach the Established state -- you prove the transport layer works before adding the complexity of VXLAN and EVPN on top of it. Catching a wrong OSPF area ID, a missing network statement, or an incorrect BGP neighbor address at this stage takes minutes to fix and re-deploy. Discovering the same error after the overlay is deployed means troubleshooting across OSPF, BGP, VXLAN, and EVPN simultaneously -- a process that can take hours and affects the entire fabric.
 
-The underlay section takes a *hybrid approach* to configuring the multi-vendor VXLAN EVPN fabric, using Ansible resource modules where they work well and falling back to Jinja2 templates where they don't.
-
-All files mentioned can be located on the *VSCode* tab in `1-5-underlay_configs`
+All files mentioned can be located on the *VSCode* tab in `1-5-underlay_configs`.
 
 == Resource Modules for the Simple, Structured Stuff
 
@@ -30,7 +28,7 @@ For base fabric and underlay features with clean, declarative data models -- int
 
 Resource modules give us idempotency for free, built-in validation, structured error messages, and a consistent pattern across EOS and NX-OS. For compliance enforcement (NTP, logging, SNMP), we use the same modules with `state: replaced` to ensure devices match the declared config exactly.
 
-=== Resource Modules Used 
+=== Resource Modules Used
 
 .Underlay Configuration (section 1-5)
 [cols="1,1,1", options="header"]
@@ -106,11 +104,13 @@ This section covers:
 * Validating the underlay with automated tests -- asserting OSPF adjacency counts, BGP EVPN session state, OSPF route presence, and loopback-to-loopback ping reachability across all six fabric devices
 * Reading test playbook output to confirm expected neighbor counts match live device state on both Arista EOS and Cisco NX-OS
 
-== It's encouraged to visit the *VSCode* tab to review the playbooks and roles from `1-5-underlay_configs`
+== Visit the *VSCode* tab to review the playbooks and roles from `1-5-underlay_configs`
 
 TIP: Complete all **Step** sections on this page before clicking **Next**. Sections without a **Step** prefix are reference material -- read them at your own pace, but there is nothing to execute.
 
 == Step 1: Launch the `1-5-Underlay_Configs-Workflow`
+
+Running the full Backup -> Deploy -> Test workflow here ensures that OSPF adjacencies form, BGP sessions establish, and all loopbacks are reachable before you add the complexity of the overlay. Catching a routing issue at this stage is straightforward; diagnosing the same problem after the overlay is deployed means troubleshooting across four protocol layers simultaneously.
 
 ==== Access the *Ansible Automation Platform* tab:
 
@@ -122,7 +122,7 @@ Make sure every node succeeds
 image:underlay_workflow.png[Workflow,align="center",link=self,window=blank,width=600]
 
 
-== Step 2: Review the job output for the `1-5-Underlay_Configs-Deploy` job template to understand a template driven task
+== Step 2: Review the job output for the `1-5-Underlay_Configs-Deploy` job template to understand a template-driven task
 
 image:workflow_underlay_deploy.png[Deploy,align="center",link=self,window=blank,width=600]
 
@@ -171,11 +171,13 @@ This is a standard `eos_config` warning. It is telling you that if you run this 
 
 == Step 3: Review the job output for the `1-5-Underlay_Configs-Test` job template
 
+Reviewing the test output teaches you to read the validation results that confirm the underlay is healthy. In production, these same tests can run as scheduled jobs to continuously verify that OSPF adjacencies, BGP sessions, and loopback reachability remain intact -- catching silent underlay failures before they disrupt overlay traffic.
+
 image:workflow_underlay_test.png[Test,align="center",link=self,window=blank,width=600]
 
-== Recommended - Deep Explanation of the Test Output 
+== Recommended -- Deep Explanation of the Test Output
 +
-(Optional Scrolldown to skip to Module Summary)
+(Optional -- scroll down to skip to Module Summary)
 
 The `underlay_test.yml` playbook output validates that the underlay network deployed by `1-5-underlay_configs` is functioning correctly. It runs against all six fabric devices (spine1, spine2, leaf1--leaf4) and tests the three foundational requirements that must be healthy before the VXLAN EVPN overlay can be built on top: OSPF adjacencies, BGP EVPN sessions, and loopback-to-loopback reachability.
 
@@ -465,16 +467,6 @@ spine2  : ok=18  changed=0  unreachable=0  failed=0  skipped=13  rescued=0  igno
 
 The 13 skipped tasks per device are expected -- each device skips the vendor-specific tasks for the other platform (EOS devices skip NX-OS tasks and vice versa). Zero changes confirms this is a read-only validation playbook.
 
-== Conclusion
-
-The underlay deployed by `1-5-underlay_configs` is fully operational:
-
-* OSPF adjacencies are FULL on all 12 spine-leaf links (bidirectional)
-* All loopback addresses are reachable across the fabric via OSPF-learned routes
-* All 12 BGP EVPN sessions are Established and ready to carry overlay routes
-
-The fabric is ready for overlay deployment (section 1-6).
-
 == Module summary
 
 In this module, you learned how to:
@@ -486,7 +478,7 @@ In this module, you learned how to:
 * Identify EOS's session-based config model and how `eos_config` opens a config session, applies changes, diffs against running-config, and commits
 * Recognize the idempotency tradeoff when using templates vs. resource modules -- templates require the rendered output to match the device's running-config formatting exactly, which is why `changed: true` may appear on re-runs even when the logical configuration has not changed
 * Verify the underlay by reviewing the test playbook results: all 12 OSPF adjacencies reached FULL state, all loopback addresses were reachable with 0% packet loss, and all 12 BGP EVPN sessions reached Established -- confirming the fabric is ready for overlay deployment
-* Understand why `PfxRcd = 0` on all BGP sessions is expected at this section -- the EVPN sessions are established and ready to carry overlay routes, but no VTEPs, VNIs, or route targets have been configured yet
+* Understand why `PfxRcd = 0` on all BGP sessions is expected at this stage -- the EVPN sessions are established and ready to carry overlay routes, but no VTEPs, VNIs, or route targets have been configured yet
 * Read the play recap and interpret skipped task counts as the expected result of vendor-specific conditional dispatch (`when: ansible_network_os`) in a multi-vendor playbook
 
 With the underlay verified -- OSPF adjacencies up, all loopbacks reachable, and BGP peering established -- the fabric now has the routed transport layer that the overlay module will build VXLAN tunnels and EVPN sessions on top of.
