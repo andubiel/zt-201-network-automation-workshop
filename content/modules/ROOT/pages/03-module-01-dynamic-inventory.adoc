@@ -561,7 +561,3 @@ In this module, you learned how to:
 * Configure and sync a Netbox dynamic inventory source in the Automation Controller
 * Understand the `netbox_inventory.yml` plugin configuration and how it maps custom fields to Ansible variables
 * Gather and explore network device facts using the NetBox Inventory
-
-
-
-
