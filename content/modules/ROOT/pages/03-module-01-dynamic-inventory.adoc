@@ -436,7 +436,7 @@ TASK [Gather all NXOS facts] click on *leaf3* | *data*
 
 ----
 
-== Troubleshooting: If you are unable to connect to a device
+== Troubleshooting: Only if you are unable to connect to a device (Otherwise, scroll down to the Module Summary)
 
 WARNING: Sometimes devices fail during setup!
 
