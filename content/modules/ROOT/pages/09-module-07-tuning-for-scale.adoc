@@ -51,32 +51,36 @@ password: *ansible123!*
 Parameters:
 
 * question_name: "Do you want to send an error?"
-  required: true
-  type: multiplechoice
-  choices: yes / no
-  the default is *no*
-  variable: *error*
-         
+  * required: true
+  * type: multiplechoice
+  * choices: yes / no
+  * the default is *no*
+  * answer variable name: *error*
+
+image:survey1.png[Survey,align="center",link=self,window=blank,width=800]
+       
 * question_name: "Please select the 'Serial' batch percentages"
-  required: true
-  type: multiselect
-  choices: 1 35% 50% 75% 100%
-  variable: *serials*
+  * required: true
+  * type: multiselect
+  * choices: 1 35% 50% 75% 100%
+  * answer variable name: *serials*
+
+image:survey2.png[Survey,align="center",link=self,window=blank,width=800]
   
 * question_name: "Please select the Maximum_Failure_Percentage"
-  required: true
-  type: multiplechoice
-  choices: 0 5 10 20 50 75 100
-  variable: *max_fail*
+  * required: true
+  * type: multiplechoice
+  * choices: 0 5 10 20 50 75 100
+  * answer variable name:: *max_fail*
+
+image:survey3.png[Survey,align="center",link=self,window=blank,width=800]
           
 **Config** 
 WARNING: Remember to *toggle the survey on*!
 The completed survey configuration should look like the following:
 
-image:survey4.png[Survey,align="center",link=self,window=blank,width=600]
-image:survey1.png[Survey,align="center",link=self,window=blank,width=600]
-image:survey2.png[Survey,align="center",link=self,window=blank,width=600]
-image:survey3.png[Survey,align="center",link=self,window=blank,width=600]
+image:survey4.png[Survey,align="center",link=self,window=blank,width=800]
+
 
 == Step 2: Launch the Job Template with no error
 
